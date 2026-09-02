@@ -181,6 +181,109 @@ def _json_from_body(body: str) -> Any | None:
         return None
 
 
+
+def _switch_page_to_lunch(driver) -> bool:
+    """Try to switch MySchoolQuest's visible program/menu selector to Lunch.
+
+    The public page currently opens Yankee Ridge on a Snack program.  We prefer
+    the site's own controls instead of guessing undocumented query parameters.
+    """
+    from selenium.webdriver.common.by import By
+    from selenium.webdriver.support.ui import Select
+
+    # First handle ordinary <select> controls, if Quest uses one.
+    for element in driver.find_elements(By.TAG_NAME, "select"):
+        try:
+            choices = Select(element)
+            for option in choices.options:
+                label = (option.text or "").strip()
+                if "lunch" in label.casefold():
+                    choices.select_by_visible_text(label)
+                    time.sleep(2.0)
+                    return True
+        except Exception:
+            continue
+
+    # Quest's current UI appears to use a custom dropdown.  Open likely
+    # program controls, then look for a short visible option containing Lunch.
+    likely_controls = []
+    for element in driver.find_elements(By.XPATH, "//button | //*[@role='button']"):
+        try:
+            if not element.is_displayed():
+                continue
+            text = re.sub(r"\s+", " ", element.text or "").strip()
+            lower = text.casefold()
+            if text and len(text) <= 90 and any(token in lower for token in ("program", "asccp", "esser", "snack")):
+                likely_controls.append(element)
+        except Exception:
+            continue
+
+    for control in likely_controls[:8]:
+        try:
+            try:
+                control.click()
+            except Exception:
+                driver.execute_script("arguments[0].click();", control)
+            time.sleep(0.6)
+
+            candidates = driver.find_elements(
+                By.XPATH,
+                "//*[contains(translate(normalize-space(.), 'LUNCH', 'lunch'), 'lunch')]",
+            )
+            short_candidates = []
+            for candidate in candidates:
+                try:
+                    if not candidate.is_displayed():
+                        continue
+                    text = re.sub(r"\s+", " ", candidate.text or "").strip()
+                    if text and len(text) <= 80 and "lunch" in text.casefold():
+                        short_candidates.append((len(text), candidate, text))
+                except Exception:
+                    continue
+            short_candidates.sort(key=lambda row: row[0])
+            if short_candidates:
+                _, candidate, label = short_candidates[0]
+                try:
+                    candidate.click()
+                except Exception:
+                    driver.execute_script("arguments[0].click();", candidate)
+                time.sleep(3.0)
+                body = re.sub(r"\s+", " ", driver.find_element(By.TAG_NAME, "body").text).strip()
+                if "lunch" in body.casefold():
+                    print(f"quest-k5 detail: selected menu option {label!r}")
+                    return True
+        except Exception:
+            continue
+    return False
+
+
+def _payload_shape(payload: Any, *, depth: int = 0, max_depth: int = 3) -> str:
+    """Return a compact, non-exhaustive description for workflow diagnostics."""
+    if depth >= max_depth:
+        if isinstance(payload, dict):
+            return "{…}"
+        if isinstance(payload, list):
+            return f"[{len(payload)} items…]"
+        if isinstance(payload, str):
+            text = re.sub(r"\s+", " ", payload).strip()
+            return repr(text[:70] + ("…" if len(text) > 70 else ""))
+        return repr(payload)
+    if isinstance(payload, dict):
+        parts = []
+        for key, value in list(payload.items())[:12]:
+            parts.append(f"{key}: {_payload_shape(value, depth=depth+1, max_depth=max_depth)}")
+        suffix = ", …" if len(payload) > 12 else ""
+        return "{" + ", ".join(parts) + suffix + "}"
+    if isinstance(payload, list):
+        if not payload:
+            return "[]"
+        return f"[{len(payload)} items; first={_payload_shape(payload[0], depth=depth+1, max_depth=max_depth)}]"
+    if isinstance(payload, str):
+        text = re.sub(r"\s+", " ", payload).strip()
+        return repr(text[:70] + ("…" if len(text) > 70 else ""))
+    return repr(payload)
+
+
 def fetch_yankee_k5(*, url: str = YANKEE_RIDGE_MENU_URL, wait_seconds: float = 8.0) -> list[dict]:
     """Load MySchoolQuest in headless Chrome and inspect public JSON responses."""
     try:
@@ -206,6 +309,11 @@ def fetch_yankee_k5(*, url: str = YANKEE_RIDGE_MENU_URL, wait_seconds: float = 8
         driver.execute_cdp_cmd("Network.enable", {})
         driver.get(url)
         time.sleep(wait_seconds)
+        switched_to_lunch = _switch_page_to_lunch(driver)
+        if switched_to_lunch:
+            print("quest-k5 detail: page switch to Lunch succeeded")
+        else:
+            print("quest-k5 detail: could not confirm a page switch to Lunch")
 
         for entry in driver.get_log("performance"):
             try:
@@ -258,6 +366,10 @@ def fetch_yankee_k5(*, url: str = YANKEE_RIDGE_MENU_URL, wait_seconds: float = 8
             print("quest-k5 observed requests:")
             for observed in diagnostic_urls:
                 print(f"  - {observed}")
+        if payloads:
+            print("quest-k5 JSON shapes:")
+            for idx, payload in enumerate(payloads[:4], start=1):
+                print(f"  payload {idx}: {_payload_shape(payload)}")
         body_text = re.sub(r"\s+", " ", driver.find_element("tag name", "body").text).strip()
         if body_text:
             print("quest-k5 rendered-text sample:")
