@@ -417,11 +417,23 @@ def fetch_quest_group(group_id: str, *, wait_seconds: float = 7.0) -> list[dict]
             if parsed is not None:
                 payload_records.append((response_url, parsed))
 
-        # Prefer the most recent /menus/week response because it follows any program switch.
+        # Quest can emit more than one /menus/week response while a page is loading
+        # or switching programs.  Do not blindly take the last one: calendar UI
+        # interactions sometimes trigger a narrower one-day response.  Prefer the
+        # response with the most dated menu entries, breaking ties in favor of the
+        # later response.
         menu_payloads = [p for url, p in payload_records if "/menus/week" in url and isinstance(p, dict)]
         if not menu_payloads:
             menu_payloads = [p for _, p in payload_records if isinstance(p, dict) and isinstance(p.get("dates"), list) and isinstance(p.get("menus"), list)]
-        menu_payload = menu_payloads[-1] if menu_payloads else None
+
+        def payload_date_count(payload: Any) -> int:
+            if not isinstance(payload, dict) or not isinstance(payload.get("dates"), list):
+                return 0
+            return sum(1 for raw in payload.get("dates", []) if _parse_date(raw))
+
+        menu_payload = None
+        if menu_payloads:
+            _, menu_payload = max(enumerate(menu_payloads), key=lambda row: (payload_date_count(row[1]), row[0]))
 
         response_dates: list[str] = []
         if isinstance(menu_payload, dict):
@@ -429,14 +441,35 @@ def fetch_quest_group(group_id: str, *, wait_seconds: float = 7.0) -> list[dict]
 
         body_text = driver.find_element("tag name", "body").text
         rendered_days = _extract_rendered_lunch(body_text, response_dates)
-        if rendered_days:
-            day_map = rendered_days
+        json_days = _extract_parallel_days(menu_payload) if menu_payload is not None else {}
+
+        # The elementary page exposes numbered Entrée slots cleanly in rendered
+        # text, while secondary pages often split choices across pizza, deli,
+        # salad, grill, etc.  The JSON retains all of those Main Entree items.
+        # Choose the richer clean set for each date rather than applying one
+        # extraction method to every grade band.
+        day_map: dict[str, list[str]] = {}
+        methods_used: set[str] = set()
+        for day in sorted(set(rendered_days) | set(json_days)):
+            rendered_items = _sanitize_items(rendered_days.get(day, []))
+            json_items = _sanitize_items(json_days.get(day, []))
+            if len(json_items) > len(rendered_items):
+                day_map[day] = json_items
+                methods_used.add("Quest JSON")
+            elif rendered_items:
+                day_map[day] = rendered_items
+                methods_used.add("rendered Lunch page")
+            elif json_items:
+                day_map[day] = json_items
+                methods_used.add("Quest JSON")
+
+        if methods_used == {"Quest JSON"}:
+            method = "Quest JSON"
+        elif methods_used == {"rendered Lunch page"}:
             method = "rendered Lunch page"
-        elif menu_payload is not None:
-            day_map = _extract_parallel_days(menu_payload)
-            method = "Quest JSON fallback"
+        elif methods_used:
+            method = "rendered page + Quest JSON"
         else:
-            day_map = {}
             method = "none"
 
         today = date.today()
