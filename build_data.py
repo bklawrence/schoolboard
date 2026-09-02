@@ -119,8 +119,6 @@ def build(*, offline: bool = False) -> dict:
                     source=cfg["source"],
                     id_prefix=cfg["id_prefix"],
                 )
-                if not source_events:
-                    raise RuntimeError("Snap feed returned zero VEVENT records")
                 source_status.append({
                     "id": cfg["id"],
                     "status": "live",
