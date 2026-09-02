@@ -421,7 +421,8 @@ def fetch_school_feed(
     opener=urlopen,
     article_limit: int = 12,
     reference: date | None = None,
-) -> list[dict]:
+    return_refreshed_urls: bool = False,
+):
     reference = reference or date.today()
     home_html = _request(school.home, timeout=timeout, opener=opener)
     urls = _article_urls(home_html, school.home, limit=article_limit)
@@ -442,11 +443,13 @@ def fetch_school_feed(
     events = []
     seen = set()
     successes = 0
+    refreshed_urls: set[str] = set()
 
     for url in urls:
         try:
             html = _request(url, timeout=timeout, opener=opener)
             successes += 1
+            refreshed_urls.add(url)
         except Exception:
             continue
 
@@ -462,4 +465,7 @@ def fetch_school_feed(
 
     floor = date(reference.year if reference.month >= 7 else reference.year - 1, 7, 1)
     events = [e for e in events if date.fromisoformat(e["date"]) >= floor]
-    return sorted(events, key=lambda e: (e["date"], e.get("start", ""), e["title"]))
+    events = sorted(events, key=lambda e: (e["date"], e.get("start", ""), e["title"]))
+    if return_refreshed_urls:
+        return events, refreshed_urls
+    return events
