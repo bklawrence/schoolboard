@@ -15,8 +15,10 @@ from collectors.usd116_calendar import SOURCE_NAME as USD116_CALENDAR_SOURCE, fe
 from collectors.usd116_schoolfeeds import SCHOOL_FEEDS, SOURCE_PREFIX as USD116_SCHOOLFEED_PREFIX, fetch_school_feed
 from collectors.unit4_events import (
     DISTRICT_SOURCE as UNIT4_DISTRICT_SOURCE,
+    STM_SOURCE,
     UNIT4_CALENDARS,
     UNIT4_SCHOOL_IDS,
+    fetch_stm_calendar,
     fetch_unit4_calendar,
     fetch_unit4_district_calendar,
 )
@@ -458,6 +460,46 @@ def build(*, offline: bool = False) -> dict:
                 "error": f"{type(exc).__name__}: {exc}",
             })
 
+    # The High School of Saint Thomas More public Apptegy calendar.
+    if offline:
+        stm_events = previous_source_events(STM_SOURCE)
+        stm_events, _, _ = filter_events_to_rolling_window(
+            stm_events,
+            reference=today,
+        )
+        source_status.append({
+            "id": "stm-calendar",
+            "status": "cached" if stm_events else "live",
+            "count": len(stm_events),
+            "unit": "events",
+        })
+    else:
+        try:
+            stm_events = fetch_stm_calendar()
+            stm_events, _, _ = filter_events_to_rolling_window(
+                stm_events,
+                reference=today,
+            )
+            source_status.append({
+                "id": "stm-calendar",
+                "status": "live",
+                "count": len(stm_events),
+                "unit": "events",
+            })
+        except Exception as exc:
+            stm_events = previous_source_events(STM_SOURCE)
+            stm_events, _, _ = filter_events_to_rolling_window(
+                stm_events,
+                reference=today,
+            )
+            source_status.append({
+                "id": "stm-calendar",
+                "status": "cached" if stm_events else "failed",
+                "count": len(stm_events),
+                "unit": "events",
+                "error": f"{type(exc).__name__}: {exc}",
+            })
+
     # Countryside School (independent K-8) public Finalsite calendar.
     if offline:
         countryside_events = previous_source_events(COUNTRYSIDE_SOURCE)
@@ -551,6 +593,7 @@ def build(*, offline: bool = False) -> dict:
         + usd116_calendar_events
         + usd116_school_events
         + unit4_school_events
+        + stm_events
         + countryside_events
     )
 
