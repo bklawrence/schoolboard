@@ -8,6 +8,7 @@ from zoneinfo import ZoneInfo
 
 from collectors.quest import QUEST_GROUPS, fetch_quest_group
 from collectors.snap import fetch_uni_snap
+from collectors.unit4 import discover_unit4_menu
 
 ROOT = Path(__file__).resolve().parent
 STATIC_PATH = ROOT / "data" / "static-events.json"
@@ -120,8 +121,30 @@ def build(*, offline: bool = False) -> dict:
                 })
         quest_meals.extend(group_meals)
 
+    # Unit 4 discovery is intentionally isolated from the working USD 116 feeds.
+    # Until the public menu application's identifiers/API are known, failure here
+    # does not affect existing meals; the frontend retains its Unit 4 fallback.
+    if offline:
+        unit4_meals = [m for m in previous_group_meals("u4elem")]
+        source_status.append({"id": "unit4-menus", "status": "cached" if unit4_meals else "pending", "count": len(unit4_meals), "unit": "menu days"})
+    else:
+        try:
+            unit4_meals = discover_unit4_menu()
+            if not unit4_meals:
+                raise RuntimeError("Unit 4 discovery returned zero menu records")
+            source_status.append({"id": "unit4-menus", "status": "live", "count": len(unit4_meals), "unit": "menu days"})
+        except Exception as exc:
+            unit4_meals = []
+            source_status.append({
+                "id": "unit4-menus",
+                "status": "discovery",
+                "count": 0,
+                "unit": "menu days",
+                "error": f"{type(exc).__name__}: {exc}",
+            })
+
     events = merge_unique(static_events + snap_events)
-    meals = merge_meals(static_meals + quest_meals)
+    meals = merge_meals(static_meals + quest_meals + unit4_meals)
     now = datetime.now(ZoneInfo("America/Chicago")).isoformat(timespec="seconds")
     return {
         "updated": now,
