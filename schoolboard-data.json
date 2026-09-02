@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-02T14:28:13-05:00",
+  "updated": "2026-09-02T14:37:19-05:00",
   "mode": "live-collector",
   "sources": [
     {
@@ -79,7 +79,7 @@
       "status": "failed",
       "count": 0,
       "unit": "events",
-      "error": "RuntimeError: Countryside calendar page loaded but calendar widget did not render"
+      "error": "RuntimeError: Countryside calendar contained no dated day cells"
     },
     {
       "id": "quest-k5",
@@ -95,9 +95,10 @@
     },
     {
       "id": "quest-high",
-      "status": "live",
+      "status": "cached",
       "count": 5,
-      "unit": "menu days"
+      "unit": "menu days",
+      "error": "WebDriverException: Message: unknown error: net::ERR_CONNECTION_RESET\n  (Session info: chrome=151.0.7922.173)\nStacktrace:\n#0 0x55df3eacd36a <unknown>\n#1 0x55df3e440f49 <unknown>\n#2 0x55df3e437d9c <unknown>\n#3 0x55df3e428e81 <unknown>\n#4 0x55df3e42abf5 <unknown>\n#5 0x55df3e42937a <unknown>\n#6 0x55df3e4289f9 <unknown>\n#7 0x55df3e428616 <unknown>\n#8 0x55df3e4261fe <unknown>\n#9 0x55df3e426a40 <unknown>\n#10 0x55df3e4449fd <unknown>\n#11 0x55df3e4dfdcb <unknown>\n#12 0x55df3e4df0c3 <unknown>\n#13 0x55df3e489c92 <unknown>\n#14 0x55df3e48ab11 <unknown>\n#15 0x55df3ea928d0 <unknown>\n#16 0x55df3ea90f3a <unknown>\n#17 0x55df3ea7b9b5 <unknown>\n#18 0x55df3ea91c0a <unknown>\n#19 0x55df3ea63740 <unknown>\n#20 0x55df3eab89a8 <unknown>\n#21 0x55df3eab8b45 <unknown>\n#22 0x55df3eacbf1e <unknown>\n#23 0x7fdbbc29cb84 <unknown>\n#24 0x7fdbbc329d6c <unknown>\n"
     },
     {
       "id": "unit4-menus",
