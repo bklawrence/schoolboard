@@ -15447,21 +15447,25 @@
 
   let data = DEMO_DATA;
   let selected = loadSelected();
+  if (!Array.isArray(selected)) selected = [];
   try{
-    if (localStorage.getItem("schoolboard-selection-version") !== "v18"){
-      selected = SCHOOLS.map(s => s.id);
-      localStorage.setItem("schoolboard-selection-version", "v18");
-      localStorage.setItem("schoolboard-schools", JSON.stringify(selected));
+    // v19 changes only the first-run default. Existing saved selections are
+    // preserved; a browser with no saved SchoolBoard preference starts empty.
+    if (localStorage.getItem("schoolboard-selection-version") !== "v19"){
+      localStorage.setItem("schoolboard-selection-version", "v19");
+      if (localStorage.getItem("schoolboard-schools") === null){
+        localStorage.setItem("schoolboard-schools", JSON.stringify(selected));
+      }
     }
   }catch(e){}
-  if (!selected.length) selected = SCHOOLS.map(s => s.id);
 
   function loadSelected(){
     try{
       const raw = localStorage.getItem("schoolboard-schools");
-      const parsed = raw ? JSON.parse(raw) : [];
-      return Array.isArray(parsed) ? parsed.filter(id => SCHOOLS.some(s => s.id === id)) : [];
-    }catch(e){ return []; }
+      if (raw === null) return null;
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed.filter(id => SCHOOLS.some(s => s.id === id)) : null;
+    }catch(e){ return null; }
   }
 
   function saveSelected(){
@@ -15598,13 +15602,6 @@
       });
       host.appendChild(b);
     });
-
-    if (!selected.length){
-      const empty = document.createElement("span");
-      empty.className = "tagline";
-      empty.textContent = "No schools selected";
-      host.appendChild(empty);
-    }
 
     const add = document.createElement("button");
     add.className = "add-school";
