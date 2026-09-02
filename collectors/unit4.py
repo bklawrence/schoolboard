@@ -124,17 +124,52 @@ def _graphql_menu_payloads(driver) -> list[dict[str, Any]]:
     return payloads
 
 
+def _first_present(*values: Any) -> Any:
+    """Return the first value that is not None/blank."""
+    for value in values:
+        if value is None:
+            continue
+        if isinstance(value, str) and not value.strip():
+            continue
+        return value
+    return None
+
+
 def _item_date(item: dict[str, Any], menu: dict[str, Any]) -> str | None:
-    """Convert SNAF's JS-style zero-based month into YYYY-MM-DD."""
+    """Convert SNAF's item date into YYYY-MM-DD.
+
+    SNAF's month is JavaScript-style zero-based at the menu level (September
+    2026 is reported as month=8).  Some item records include month/year keys
+    whose values are null/blank, so they must explicitly fall back to the
+    enclosing menu rather than using dict.get(..., fallback).
+    """
+    raw_day = _first_present(item.get("day"), item.get("date"))
+
+    # Be tolerant if the API ever emits an ISO-ish date string instead of a day number.
+    if isinstance(raw_day, str):
+        text = raw_day.strip()
+        match = re.match(r"^(\d{4})-(\d{1,2})-(\d{1,2})", text)
+        if match:
+            try:
+                return date(*(int(part) for part in match.groups())).isoformat()
+            except ValueError:
+                return None
+
     try:
-        year = int(item.get("year", menu.get("year")))
-        month_raw = int(item.get("month", menu.get("month")))
-        day = int(item.get("day"))
+        year = int(_first_present(item.get("year"), menu.get("year")))
+        month_raw = int(_first_present(item.get("month"), menu.get("month")))
+        day = int(raw_day)
     except (TypeError, ValueError):
         return None
 
     # The observed September 2026 menu reports month=8, so SNAF is zero-based.
     month = month_raw + 1 if 0 <= month_raw <= 11 else month_raw
+
+    # Day is normally 1-based. Handle a possible zero for the first of the month
+    # defensively without shifting ordinary day values.
+    if day == 0:
+        day = 1
+
     try:
         return date(year, month, day).isoformat()
     except ValueError:
@@ -187,19 +222,32 @@ def _keep_item(item: dict[str, Any]) -> bool:
 
 
 def _menu_to_days(menu: dict[str, Any]) -> dict[str, list[str]]:
-    found: dict[str, list[str]] = defaultdict(list)
+    items = [item for item in (menu.get("items") or []) if isinstance(item, dict)]
 
-    for item in menu.get("items") or []:
-        if not isinstance(item, dict) or not _keep_item(item):
-            continue
-        day = _item_date(item, menu)
-        name = _product_name(item)
-        if not day or not name:
-            continue
-        if name not in found[day]:
-            found[day].append(name)
+    def collect(*, apply_category_filter: bool) -> dict[str, list[str]]:
+        found: dict[str, list[str]] = defaultdict(list)
+        for item in items:
+            if apply_category_filter and not _keep_item(item):
+                continue
+            day = _item_date(item, menu)
+            name = _product_name(item)
+            if not day or not name:
+                continue
+            if name not in found[day]:
+                found[day].append(name)
+        return dict(found)
 
-    return dict(found)
+    # Prefer the cleaner entrée-oriented view. If SNAF's category metadata is
+    # inconsistent, retain the dated named products rather than failing the
+    # whole source; obvious condiments are still removed by _product_name().
+    found = collect(apply_category_filter=True)
+    if found:
+        return found
+
+    fallback = collect(apply_category_filter=False)
+    if fallback:
+        print("unit4-menus detail: category filter produced zero items; using named-product fallback")
+    return fallback
 
 
 def _meal_records(group: str, days: dict[str, list[str]]) -> list[dict[str, Any]]:
@@ -300,6 +348,23 @@ def _fetch_target(driver, group: str, grade_band: str, school: str, menu_name: s
     menu = max(menus, key=lambda m: len(m.get("items") or []))
     days = _menu_to_days(menu)
     if not days:
+        sample = []
+        for item in (menu.get("items") or [])[:8]:
+            if not isinstance(item, dict):
+                continue
+            product = item.get("product") if isinstance(item.get("product"), dict) else {}
+            sample.append({
+                "day": item.get("day"),
+                "month": item.get("month"),
+                "year": item.get("year"),
+                "product": product.get("name"),
+                "category": product.get("category"),
+                "meal": product.get("meal"),
+            })
+        print(
+            f"unit4-menus detail: unparsed item sample for {actual_school} / {actual_menu}: "
+            + json.dumps(sample, ensure_ascii=False)
+        )
         raise RuntimeError(
             f"Unit 4 menu payload contained no dated food items for {actual_school} / {actual_menu}"
         )
