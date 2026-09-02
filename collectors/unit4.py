@@ -3,54 +3,92 @@ from __future__ import annotations
 import json
 import re
 import time
+from collections import defaultdict
+from datetime import date, timedelta
 from typing import Any
 
 SID = "1465843288260"
 MENU_URL = f"https://champaignschoolsfoodservices.org/index.php?sid={SID}&page=menus"
+SOURCE_NAME = "Unit 4 School Nutrition & Fitness"
+GRAPHQL_URL = "https://api.schoolnutritionandfitness.com/graphql"
 
+# We deliberately use one representative school for each districtwide menu band.
+# The public menu application exposes the same grade-band menu types at schools
+# within those bands; this avoids fetching every school separately.
 TARGETS = [
-    ("Elementary Schools", "Barkstall Elementary", ["Elementary Lunch Menu"]),
-    ("Middle School Menus", "Edison Middle", ["Middle Lunch"]),
-    (
-        "High School Menus",
-        "Central High",
-        [
-            "HS - Around the World Menu",
-            "HS - Grill Zone & Garden Marke...",
-            "HS - Pizzeria & Taste of Home ...",
-        ],
-    ),
+    ("u4elem", "Elementary Schools", "Barkstall Elementary", "Elementary Lunch Menu"),
+    ("u4middle", "Middle School Menus", "Edison Middle", "Middle Lunch"),
+    ("u4world", "High School Menus", "Central High", "HS - Around the World"),
+    ("u4grill", "High School Menus", "Central High", "HS - Grill Zone & Garden"),
+    ("u4combo", "High School Menus", "Central High", "HS - Pizzeria & Taste of Home"),
 ]
 
+UNIT4_GROUPS = ("u4elem", "u4middle", "u4world", "u4pizza", "u4home", "u4grill")
 
-def _compact(text: str, limit: int = 900) -> str:
-    return re.sub(r"\s+", " ", text or "").strip()[:limit]
+EXCLUDE_CATEGORY_WORDS = {
+    "condiment", "dressing", "beverage", "milk", "fruit", "vegetable",
+    "veggie side", "side dish", "sauce", "topping",
+}
 
-
-def _shape(value: Any, depth: int = 0) -> str:
-    if depth >= 3:
-        if isinstance(value, dict):
-            return "{…}"
-        if isinstance(value, list):
-            return f"[{len(value)} items…]"
-        return repr(value)[:80]
-    if isinstance(value, dict):
-        parts = []
-        for k, v in list(value.items())[:14]:
-            parts.append(f"{k}: {_shape(v, depth + 1)}")
-        if len(value) > 14:
-            parts.append("…")
-        return "{" + ", ".join(parts) + "}"
-    if isinstance(value, list):
-        if not value:
-            return "[]"
-        return f"[{len(value)} items; first={_shape(value[0], depth + 1)}]"
-    return repr(value)[:100]
+OBVIOUS_NON_ENTREES = {
+    "ketchup", "mustard", "mayonnaise", "mayo", "ranch dressing",
+    "bbq sauce", "barbecue sauce", "hot sauce", "syrup",
+}
 
 
-def _graphql_records(driver):
-    requests = {}
-    responses = []
+def _compact(text: Any) -> str:
+    return re.sub(r"\s+", " ", str(text or "")).strip()
+
+
+def _dispatch_change(driver, element) -> None:
+    driver.execute_script(
+        """
+        const el = arguments[0];
+        el.dispatchEvent(new Event('input', {bubbles:true}));
+        el.dispatchEvent(new Event('change', {bubbles:true}));
+        """,
+        element,
+    )
+
+
+def _find_option(select_obj, wanted: str) -> str:
+    """Return the real visible text for an option, tolerating UI ellipses."""
+    wanted_norm = _compact(wanted).casefold()
+    options = [(_compact(opt.text), opt) for opt in select_obj.options]
+
+    for text, _ in options:
+        if text.casefold() == wanted_norm:
+            return text
+
+    # The current SNAF UI truncates two HS labels with literal "...".
+    # Match by the stable leading phrase instead of hard-coding the truncation.
+    wanted_prefix = wanted_norm.rstrip(" .…")
+    for text, _ in options:
+        text_norm = text.casefold().rstrip(" .…")
+        if text_norm.startswith(wanted_prefix) or wanted_prefix.startswith(text_norm):
+            return text
+
+    # Last chance: all meaningful words from the wanted label appear in option text.
+    tokens = [t for t in re.findall(r"[a-z0-9]+", wanted_norm) if len(t) > 2]
+    for text, _ in options:
+        low = text.casefold()
+        if tokens and all(t in low for t in tokens[:3]):
+            return text
+
+    raise RuntimeError(
+        f"Unit 4 menu option {wanted!r} not found; "
+        f"available={[text for text, _ in options if text]!r}"
+    )
+
+
+def _select_visible(select_obj, wanted: str) -> str:
+    actual = _find_option(select_obj, wanted)
+    select_obj.select_by_visible_text(actual)
+    return actual
+
+
+def _graphql_menu_payloads(driver) -> list[dict[str, Any]]:
+    payloads: list[dict[str, Any]] = []
 
     for entry in driver.get_log("performance"):
         try:
@@ -58,64 +96,229 @@ def _graphql_records(driver):
         except Exception:
             continue
 
-        method = msg.get("method")
+        if msg.get("method") != "Network.responseReceived":
+            continue
+
         params = msg.get("params", {})
+        response = params.get("response", {})
+        url = response.get("url", "")
+        if GRAPHQL_URL not in url or response.get("status") != 200:
+            continue
 
-        if method == "Network.requestWillBeSent":
-            req = params.get("request", {})
-            url = req.get("url", "")
-            if "api.schoolnutritionandfitness.com/graphql" not in url:
-                continue
-            request_id = params.get("requestId")
-            post_data = req.get("postData", "")
-            parsed = None
-            if post_data:
-                try:
-                    parsed = json.loads(post_data)
-                except Exception:
-                    parsed = post_data
-            requests[request_id] = {
-                "url": url,
-                "post": parsed,
+        request_id = params.get("requestId")
+        if not request_id:
+            continue
+
+        try:
+            raw = driver.execute_cdp_cmd(
+                "Network.getResponseBody", {"requestId": request_id}
+            ).get("body", "")
+            payload = json.loads(raw)
+        except Exception:
+            continue
+
+        menu = (payload.get("data") or {}).get("menu") if isinstance(payload, dict) else None
+        if isinstance(menu, dict) and isinstance(menu.get("items"), list):
+            payloads.append(menu)
+
+    return payloads
+
+
+def _item_date(item: dict[str, Any], menu: dict[str, Any]) -> str | None:
+    """Convert SNAF's JS-style zero-based month into YYYY-MM-DD."""
+    try:
+        year = int(item.get("year", menu.get("year")))
+        month_raw = int(item.get("month", menu.get("month")))
+        day = int(item.get("day"))
+    except (TypeError, ValueError):
+        return None
+
+    # The observed September 2026 menu reports month=8, so SNAF is zero-based.
+    month = month_raw + 1 if 0 <= month_raw <= 11 else month_raw
+    try:
+        return date(year, month, day).isoformat()
+    except ValueError:
+        return None
+
+
+def _product_name(item: dict[str, Any]) -> str | None:
+    product = item.get("product")
+    if not isinstance(product, dict):
+        return None
+    name = _compact(product.get("name"))
+    if not name:
+        return None
+    if name.casefold() in OBVIOUS_NON_ENTREES:
+        return None
+    return name
+
+
+def _category_text(item: dict[str, Any]) -> str:
+    product = item.get("product") if isinstance(item.get("product"), dict) else {}
+    parts = []
+    for source in (item, product):
+        for key in ("category", "meal", "food_group", "type", "section", "station"):
+            value = source.get(key)
+            if isinstance(value, str) and value.strip():
+                parts.append(value)
+            elif isinstance(value, dict):
+                for subkey in ("name", "label", "title"):
+                    subvalue = value.get(subkey)
+                    if isinstance(subvalue, str) and subvalue.strip():
+                        parts.append(subvalue)
+    return " ".join(parts).casefold()
+
+
+def _keep_item(item: dict[str, Any]) -> bool:
+    product = item.get("product")
+    if not isinstance(product, dict):
+        return False
+
+    # Respect the menu application's own hidden/disabled flags when present.
+    if product.get("enabled") is False:
+        return False
+    if product.get("hide_on_calendars") is True or product.get("hide_on_mobile") is True:
+        return False
+
+    category = _category_text(item)
+    if category and any(word in category for word in EXCLUDE_CATEGORY_WORDS):
+        return False
+    return True
+
+
+def _menu_to_days(menu: dict[str, Any]) -> dict[str, list[str]]:
+    found: dict[str, list[str]] = defaultdict(list)
+
+    for item in menu.get("items") or []:
+        if not isinstance(item, dict) or not _keep_item(item):
+            continue
+        day = _item_date(item, menu)
+        name = _product_name(item)
+        if not day or not name:
+            continue
+        if name not in found[day]:
+            found[day].append(name)
+
+    return dict(found)
+
+
+def _meal_records(group: str, days: dict[str, list[str]]) -> list[dict[str, Any]]:
+    today = date.today()
+    earliest = today - timedelta(days=45)
+    latest = today + timedelta(days=120)
+    out = []
+
+    for day, items in sorted(days.items()):
+        try:
+            parsed = date.fromisoformat(day)
+        except ValueError:
+            continue
+        if not (earliest <= parsed <= latest) or not items:
+            continue
+        out.append(
+            {
+                "date": day,
+                "group": group,
+                "items": items,
+                "status": "live",
+                "label": "Live Unit 4 menu",
+                "source": SOURCE_NAME,
+                "sourceUrl": MENU_URL,
             }
-
-        elif method == "Network.responseReceived":
-            resp = params.get("response", {})
-            url = resp.get("url", "")
-            if "api.schoolnutritionandfitness.com/graphql" not in url:
-                continue
-            request_id = params.get("requestId")
-            body = None
-            try:
-                raw = driver.execute_cdp_cmd(
-                    "Network.getResponseBody", {"requestId": request_id}
-                ).get("body", "")
-                if raw:
-                    try:
-                        body = json.loads(raw)
-                    except Exception:
-                        body = raw
-            except Exception:
-                pass
-            responses.append(
-                {
-                    "request_id": request_id,
-                    "status": resp.get("status"),
-                    "request": requests.get(request_id),
-                    "body": body,
-                }
-            )
-    return responses
+        )
+    return out
 
 
-def discover_unit4_menu(*, wait_seconds: float = 5.0) -> list[dict]:
+def _split_pizza_home(days: dict[str, list[str]]) -> tuple[dict[str, list[str]], dict[str, list[str]]]:
+    """The source combines Pizzeria + Taste of Home; preserve the site's two cards."""
+    pizza: dict[str, list[str]] = {}
+    home: dict[str, list[str]] = {}
+
+    for day, items in days.items():
+        pizza_items = []
+        home_items = []
+        for name in items:
+            low = name.casefold()
+            if "pizza" in low or "pizzeria" in low:
+                pizza_items.append(name)
+            else:
+                home_items.append(name)
+        if pizza_items:
+            pizza[day] = pizza_items
+        if home_items:
+            home[day] = home_items
+
+    return pizza, home
+
+
+def _fetch_target(driver, group: str, grade_band: str, school: str, menu_name: str, *, wait_seconds: float) -> dict[str, list[str]]:
+    from selenium.webdriver.common.by import By
+    from selenium.webdriver.support.ui import Select
+
+    driver.get(MENU_URL)
+    time.sleep(2.0)
+
+    selects = driver.find_elements(By.TAG_NAME, "select")
+    if not selects:
+        raise RuntimeError("Unit 4 grade-band dropdown not found")
+    grade_select = Select(selects[0])
+    actual_grade = _select_visible(grade_select, grade_band)
+    _dispatch_change(driver, selects[0])
+    time.sleep(2.0)
+
+    selects = driver.find_elements(By.TAG_NAME, "select")
+    if len(selects) < 2:
+        raise RuntimeError(f"Unit 4 school dropdown did not appear for {grade_band}")
+    school_select = Select(selects[1])
+    actual_school = _select_visible(school_select, school)
+    _dispatch_change(driver, selects[1])
+    time.sleep(2.0)
+
+    selects = driver.find_elements(By.TAG_NAME, "select")
+    if len(selects) < 3:
+        raise RuntimeError(f"Unit 4 menu dropdown did not appear for {school}")
+    menu_select = Select(selects[2])
+    actual_menu = _select_visible(menu_select, menu_name)
+
+    # Clear prior GraphQL traffic so only this actual menu selection is parsed.
+    try:
+        driver.get_log("performance")
+    except Exception:
+        pass
+
+    menu_select.select_by_visible_text(actual_menu)
+    _dispatch_change(driver, selects[2])
+    time.sleep(wait_seconds)
+
+    menus = _graphql_menu_payloads(driver)
+    if not menus:
+        raise RuntimeError(
+            f"Unit 4 GraphQL returned no menu payload for {actual_school} / {actual_menu}"
+        )
+
+    # The menu request is the payload with the largest items array.
+    menu = max(menus, key=lambda m: len(m.get("items") or []))
+    days = _menu_to_days(menu)
+    if not days:
+        raise RuntimeError(
+            f"Unit 4 menu payload contained no dated food items for {actual_school} / {actual_menu}"
+        )
+
+    sample_days = ", ".join(sorted(days)[:6])
+    item_count = sum(len(v) for v in days.values())
+    print(
+        f"unit4-menus detail: {group} live via {actual_school} / {actual_menu}; "
+        f"{len(days)} dates, {item_count} food items; first dates {sample_days}"
+    )
+    return days
+
+
+def fetch_unit4_menus(*, wait_seconds: float = 5.0) -> list[dict[str, Any]]:
     try:
         from selenium import webdriver
         from selenium.webdriver.chrome.options import Options
-        from selenium.webdriver.common.by import By
-        from selenium.webdriver.support.ui import Select
     except ImportError as exc:
-        raise RuntimeError("Selenium is required for Unit 4 menu discovery") from exc
+        raise RuntimeError("Selenium is required for Unit 4 menus") from exc
 
     options = Options()
     options.add_argument("--headless=new")
@@ -126,118 +329,46 @@ def discover_unit4_menu(*, wait_seconds: float = 5.0) -> list[dict]:
     options.set_capability("goog:loggingPrefs", {"performance": "ALL"})
 
     driver = webdriver.Chrome(options=options)
+    all_records: list[dict[str, Any]] = []
+
     try:
         driver.execute_cdp_cmd("Network.enable", {})
 
-        for group, school, menus in TARGETS:
-            for menu in menus:
-                print(f"unit4-menus target: {group} -> {school} -> {menu}")
+        for group, grade_band, school, menu_name in TARGETS:
+            days = _fetch_target(
+                driver,
+                group,
+                grade_band,
+                school,
+                menu_name,
+                wait_seconds=wait_seconds,
+            )
 
-                driver.get(MENU_URL)
-                time.sleep(2)
-
-                selects = driver.find_elements(By.TAG_NAME, "select")
-                Select(selects[0]).select_by_visible_text(group)
-                driver.execute_script(
-                    """
-                    const el = arguments[0];
-                    el.dispatchEvent(new Event('input', {bubbles:true}));
-                    el.dispatchEvent(new Event('change', {bubbles:true}));
-                    """,
-                    selects[0],
+            if group == "u4combo":
+                pizza_days, home_days = _split_pizza_home(days)
+                all_records.extend(_meal_records("u4pizza", pizza_days))
+                all_records.extend(_meal_records("u4home", home_days))
+                print(
+                    f"unit4-menus detail: split combined HS feed into "
+                    f"u4pizza={len(pizza_days)} dates and u4home={len(home_days)} dates"
                 )
-                time.sleep(2)
+            else:
+                all_records.extend(_meal_records(group, days))
 
-                selects = driver.find_elements(By.TAG_NAME, "select")
-                Select(selects[1]).select_by_visible_text(school)
-                driver.execute_script(
-                    """
-                    const el = arguments[0];
-                    el.dispatchEvent(new Event('input', {bubbles:true}));
-                    el.dispatchEvent(new Event('change', {bubbles:true}));
-                    """,
-                    selects[1],
-                )
-                time.sleep(2)
-
-                selects = driver.find_elements(By.TAG_NAME, "select")
-                if len(selects) < 3:
-                    raise RuntimeError(f"menu dropdown not found for {school}")
-
-                menu_select = Select(selects[2])
-                available = [o.text.strip() for o in menu_select.options if o.text.strip()]
-                print(f"unit4-menus detail: available menus for {school}: {available}")
-
-                if menu not in available:
-                    raise RuntimeError(
-                        f"{menu!r} not found for {school}; options={available!r}"
-                    )
-
-                # Clear all old network events immediately before the menu selection.
-                try:
-                    driver.get_log("performance")
-                except Exception:
-                    pass
-
-                menu_select.select_by_visible_text(menu)
-                driver.execute_script(
-                    """
-                    const el = arguments[0];
-                    el.dispatchEvent(new Event('input', {bubbles:true}));
-                    el.dispatchEvent(new Event('change', {bubbles:true}));
-                    """,
-                    selects[2],
-                )
-                time.sleep(wait_seconds)
-
-                records = _graphql_records(driver)
-                print(f"unit4-menus GraphQL calls for {school} / {menu}: {len(records)}")
-
-                for i, record in enumerate(records[:8], 1):
-                    req = record.get("request") or {}
-                    post = req.get("post")
-                    print(f"unit4-menus GraphQL call {i}: status={record.get('status')}")
-                    if isinstance(post, dict):
-                        if "operationName" in post:
-                            print(
-                                "  operationName:",
-                                post.get("operationName"),
-                            )
-                        if "variables" in post:
-                            print(
-                                "  variables:",
-                                json.dumps(post.get("variables"), ensure_ascii=False)[:1200],
-                            )
-                        query = post.get("query")
-                        if query:
-                            print(
-                                "  query sample:",
-                                _compact(query, 1000),
-                            )
-                    elif post:
-                        print("  request body:", _compact(str(post), 1200))
-
-                    body = record.get("body")
-                    if isinstance(body, (dict, list)):
-                        print("  response shape:", _shape(body))
-                    elif body:
-                        print("  response sample:", _compact(str(body), 1200))
-
-                # Rendered text after selecting the actual menu can be useful too.
-                try:
-                    body_text = _compact(
-                        driver.find_element(By.TAG_NAME, "body").text, 2600
-                    )
-                except Exception:
-                    body_text = ""
-                if body_text:
-                    print(
-                        f"unit4-menus rendered menu sample for {school} / {menu}:"
-                    )
-                    print(body_text)
-
-        raise RuntimeError(
-            "Unit 4 GraphQL discovery completed; live parser not configured yet"
-        )
     finally:
         driver.quit()
+
+    if not all_records:
+        raise RuntimeError("Unit 4 collector returned zero live menu records")
+
+    groups_found = sorted({m["group"] for m in all_records})
+    print(
+        f"unit4-menus detail: live groups {', '.join(groups_found)}; "
+        f"{len(all_records)} group-day records"
+    )
+    return all_records
+
+
+# Backward-compatible name used by the discovery-era build_data.py.
+def discover_unit4_menu(*, wait_seconds: float = 5.0) -> list[dict[str, Any]]:
+    return fetch_unit4_menus(wait_seconds=wait_seconds)
