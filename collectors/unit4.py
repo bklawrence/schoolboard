@@ -4,98 +4,72 @@ import json
 import re
 import time
 from typing import Any
-from urllib.parse import urlparse
+
+SID = "1465843288260"
+CANDIDATE_URLS = [
+    f"https://champaignschoolsfoodservices.org/index.php?sid={SID}&page=menus",
+    f"https://www.schoolnutritionandfitness.com/index.php?sid={SID}&page=menus",
+    f"https://www.schoolnutritionandfitness.com/mobile/?sid={SID}",
+]
 
 
-FOOD_SERVICE_URL = "https://www.champaignschools.org/page/food-service"
-MOBILE_MENU_URL = "https://www.schoolnutritionandfitness.com/mobile/"
-
-
-def _compact(text: str, limit: int = 1400) -> str:
+def _compact(text: str, limit: int = 2200) -> str:
     return re.sub(r"\s+", " ", text or "").strip()[:limit]
-
-
-def _json_shape(value: Any, depth: int = 0) -> str:
-    if depth >= 2:
-        if isinstance(value, dict):
-            return "{…}"
-        if isinstance(value, list):
-            return f"[{len(value)} items…]"
-        return repr(value)[:80]
-    if isinstance(value, dict):
-        parts = []
-        for key, child in list(value.items())[:10]:
-            parts.append(f"{key}: {_json_shape(child, depth + 1)}")
-        return "{" + ", ".join(parts) + (", …" if len(value) > 10 else "") + "}"
-    if isinstance(value, list):
-        if not value:
-            return "[]"
-        return f"[{len(value)} items; first={_json_shape(value[0], depth + 1)}]"
-    return repr(value)[:80]
 
 
 def _interesting(url: str) -> bool:
     low = (url or "").casefold()
     if not low:
         return False
-    if any(noise in low for noise in (
-        "google-analytics", "googletagmanager", "fonts.googleapis",
-        "fonts.gstatic", "doubleclick", "facebook", "cloudflareinsights",
+    if any(x in low for x in (
+        "google-analytics", "googletagmanager", "doubleclick",
+        "fonts.googleapis", "fonts.gstatic", "facebook",
     )):
         return False
-    return any(token in low for token in (
-        "schoolnutrition", "webmenus", "/menu", "menus", "meal",
-        "nutrition", "district.", "api", "champaignschools",
+    return any(x in low for x in (
+        "schoolnutrition", "champaignschoolsfoodservices",
+        "menu", "meal", "nutrition", "webmenu", "sid=",
     ))
 
 
-def _collect_network(driver) -> tuple[list[str], list[tuple[str, Any]]]:
-    urls: list[str] = []
-    payloads: list[tuple[str, Any]] = []
+def _collect_urls(driver) -> list[str]:
+    urls = []
     for entry in driver.get_log("performance"):
         try:
-            message = json.loads(entry["message"])["message"]
-        except (KeyError, TypeError, json.JSONDecodeError):
-            continue
-        if message.get("method") != "Network.responseReceived":
-            continue
-        params = message.get("params", {})
-        response = params.get("response", {})
-        url = response.get("url", "")
-        request_id = params.get("requestId")
-        mime = (response.get("mimeType") or "").casefold()
-        rtype = (params.get("type") or "").casefold()
-        if not _interesting(url):
-            continue
-        if url not in urls:
-            urls.append(url)
-        if not request_id:
-            continue
-        if rtype not in {"xhr", "fetch"} and "json" not in mime and "api" not in url.casefold():
-            continue
-        try:
-            body = driver.execute_cdp_cmd("Network.getResponseBody", {"requestId": request_id}).get("body", "")
+            msg = json.loads(entry["message"])["message"]
         except Exception:
             continue
-        text = (body or "").strip()
-        if not text or text[0] not in "[{":
+        if msg.get("method") != "Network.responseReceived":
             continue
+        url = msg.get("params", {}).get("response", {}).get("url", "")
+        if _interesting(url) and url not in urls:
+            urls.append(url)
+    return urls
+
+
+def _select_options(driver):
+    from selenium.webdriver.common.by import By
+
+    found = []
+    for select in driver.find_elements(By.TAG_NAME, "select"):
         try:
-            payload = json.loads(text)
-        except json.JSONDecodeError:
+            opts = [_compact(o.text, 90) for o in select.find_elements(By.TAG_NAME, "option")]
+        except Exception:
             continue
-        payloads.append((url, payload))
-    return urls, payloads
+        opts = [o for o in opts if o]
+        if opts:
+            found.append(opts)
+    return found
 
 
-def discover_unit4_menu(*, wait_seconds: float = 6.0) -> list[dict]:
-    """Discovery collector. It deliberately returns no meals until Unit 4's live menu identifiers are known."""
+def discover_unit4_menu(*, wait_seconds: float = 5.0) -> list[dict]:
+    """Targeted Unit 4 discovery using the district's known SchoolNutritionAndFitness SID."""
     try:
         from selenium import webdriver
         from selenium.webdriver.chrome.options import Options
         from selenium.webdriver.common.by import By
     except ImportError as exc:
-        raise RuntimeError("Selenium is required for the Unit 4 menu discovery collector") from exc
+        raise RuntimeError("Selenium is required for Unit 4 menu discovery") from exc
 
     options = Options()
     options.add_argument("--headless=new")
@@ -107,129 +81,84 @@ def discover_unit4_menu(*, wait_seconds: float = 6.0) -> list[dict]:
 
     driver = webdriver.Chrome(options=options)
     try:
-        driver.execute_cdp_cmd("Network.enable", {})
-        print("unit4-menus detail: opening Unit 4 Food Service page")
-        driver.get(FOOD_SERVICE_URL)
-        time.sleep(wait_seconds)
+        best = None
 
-        links = []
-        for element in driver.find_elements(By.TAG_NAME, "a"):
+        for target in CANDIDATE_URLS:
             try:
-                href = element.get_attribute("href") or ""
-                label = _compact(element.text, 120)
+                driver.get_log("performance")
             except Exception:
-                continue
-            if _interesting(href) or "menu" in label.casefold():
-                links.append((label, href))
+                pass
 
-        iframes = []
-        for frame in driver.find_elements(By.TAG_NAME, "iframe"):
+            print(f"unit4-menus detail: trying {target}")
             try:
-                src = frame.get_attribute("src") or ""
-            except Exception:
+                driver.get(target)
+                time.sleep(wait_seconds)
+            except Exception as exc:
+                print(f"unit4-menus detail: navigation failed: {type(exc).__name__}: {exc}")
                 continue
-            if src:
-                iframes.append(src)
 
-        urls1, payloads1 = _collect_network(driver)
+            final_url = driver.current_url
+            title = driver.title or ""
+            try:
+                body = _compact(driver.find_element(By.TAG_NAME, "body").text)
+            except Exception:
+                body = ""
 
-        print("unit4-menus detail: relevant links from district page:")
-        for label, href in links[:12]:
-            print(f"  - {label!r}: {href}")
-        if iframes:
-            print("unit4-menus detail: iframe sources:")
-            for src in iframes[:12]:
-                print(f"  - {src}")
-        if urls1:
-            print("unit4-menus detail: relevant district-page requests:")
-            for url in urls1[:15]:
-                print(f"  - {url}")
-        if payloads1:
-            print("unit4-menus detail: district-page JSON shapes:")
-            for i, (url, payload) in enumerate(payloads1[:5], 1):
-                print(f"  payload {i} {url}: {_json_shape(payload)}")
+            selects = _select_options(driver)
+            urls = _collect_urls(driver)
 
-        target = None
-        for label, href in links:
-            low = href.casefold()
-            if "schoolnutritionandfitness.com/mobile" in low:
-                target = href
+            score = len(body) + 500 * len(selects)
+            candidate = (score, target, final_url, title, body, selects, urls)
+            if best is None or candidate[0] > best[0]:
+                best = candidate
+
+            # Stop early if this clearly looks like the Unit 4 menu application.
+            low = body.casefold()
+            if (
+                ("breakfast" in low or "lunch" in low)
+                and (
+                    "barkstall" in low
+                    or "centennial" in low
+                    or "central" in low
+                    or "champaign" in low
+                )
+            ):
                 break
-        if not target:
-            for label, href in links:
-                if "schoolnutritionandfitness.com" in href.casefold():
-                    target = href
-                    break
-        target = target or MOBILE_MENU_URL
 
-        # Clear old performance records before opening the menu application.
-        try:
-            driver.get_log("performance")
-        except Exception:
-            pass
+        if best is None:
+            raise RuntimeError("none of the Unit 4 SID menu URLs could be opened")
 
-        print(f"unit4-menus detail: opening menu application {target}")
-        driver.get(target)
-        time.sleep(wait_seconds)
+        _, target, final_url, title, body, selects, urls = best
 
-        print(f"unit4-menus detail: menu application final URL: {driver.current_url}")
-        title = driver.title or ""
+        print(f"unit4-menus detail: best target: {target}")
+        print(f"unit4-menus detail: final URL: {final_url}")
         if title:
-            print(f"unit4-menus detail: menu application title: {title}")
+            print(f"unit4-menus detail: title: {title}")
 
-        body = _compact(driver.find_element(By.TAG_NAME, "body").text, 2200)
+        if selects:
+            print("unit4-menus select options:")
+            for i, opts in enumerate(selects[:6], 1):
+                print(f"  select {i}: {opts[:30]}")
+        else:
+            print("unit4-menus select options: none found")
+
         if body:
             print("unit4-menus rendered-text sample:")
             print(body)
 
-        menu_links = []
-        for element in driver.find_elements(By.TAG_NAME, "a"):
-            try:
-                href = element.get_attribute("href") or ""
-                label = _compact(element.text, 100)
-            except Exception:
-                continue
-            if _interesting(href) or "menu" in label.casefold():
-                if (label, href) not in menu_links:
-                    menu_links.append((label, href))
-        if menu_links:
-            print("unit4-menus detail: menu-app links:")
-            for label, href in menu_links[:15]:
-                print(f"  - {label!r}: {href}")
+        focused = [
+            u for u in urls
+            if SID in u or any(x in u.casefold() for x in ("menu", "meal", "webmenu"))
+        ]
+        if focused:
+            print("unit4-menus focused requests:")
+            for u in focused[:12]:
+                print(f"  - {u}")
+        else:
+            print("unit4-menus focused requests: none found")
 
-        selects = []
-        for element in driver.find_elements(By.TAG_NAME, "select"):
-            try:
-                options_text = [_compact(opt.text, 80) for opt in element.find_elements(By.TAG_NAME, "option")]
-            except Exception:
-                continue
-            if options_text:
-                selects.append(options_text)
-        if selects:
-            print("unit4-menus detail: select options:")
-            for idx, opts in enumerate(selects[:8], 1):
-                print(f"  select {idx}: {opts[:20]}")
-
-        urls2, payloads2 = _collect_network(driver)
-        if urls2:
-            print("unit4-menus observed requests:")
-            for url in urls2[:20]:
-                print(f"  - {url}")
-        if payloads2:
-            print("unit4-menus JSON shapes:")
-            for i, (url, payload) in enumerate(payloads2[:8], 1):
-                print(f"  payload {i} {url}: {_json_shape(payload)}")
-
-        # Helpful identifiers from any discovered URL.
-        ids = set()
-        for url in [target, driver.current_url, *urls1, *urls2, *iframes]:
-            for match in re.findall(r"(?:id=|/)([0-9a-f]{12,32})(?:[&#/?]|$)", url, re.I):
-                ids.add(match)
-        if ids:
-            print("unit4-menus detail: possible menu/district identifiers:")
-            for value in sorted(ids):
-                print(f"  - {value}")
-
-        raise RuntimeError("Unit 4 discovery completed; live menu parser not configured yet")
+        raise RuntimeError(
+            f"Unit 4 SID discovery completed for sid={SID}; live parser not configured yet"
+        )
     finally:
         driver.quit()
