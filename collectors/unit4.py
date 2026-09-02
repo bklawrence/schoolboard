@@ -3,62 +3,109 @@ from __future__ import annotations
 import json
 import re
 import time
+from typing import Any
 
 SID = "1465843288260"
 MENU_URL = f"https://champaignschoolsfoodservices.org/index.php?sid={SID}&page=menus"
 
 TARGETS = [
-    ("Elementary Schools", "Barkstall Elementary"),
-    ("Middle School Menus", "Edison Middle"),
-    ("High School Menus", "Central High"),
+    ("Elementary Schools", "Barkstall Elementary", ["Elementary Lunch Menu"]),
+    ("Middle School Menus", "Edison Middle", ["Middle Lunch"]),
+    (
+        "High School Menus",
+        "Central High",
+        [
+            "HS - Around the World Menu",
+            "HS - Grill Zone & Garden Marke...",
+            "HS - Pizzeria & Taste of Home ...",
+        ],
+    ),
 ]
 
 
-def _compact(text: str, limit: int = 2200) -> str:
+def _compact(text: str, limit: int = 900) -> str:
     return re.sub(r"\s+", " ", text or "").strip()[:limit]
 
 
-def _interesting_href(href: str) -> bool:
-    low = (href or "").casefold()
-    if any(x in low for x in (
-        "google-analytics", "googletagmanager", "doubleclick",
-        "fonts.googleapis", "fonts.gstatic",
-    )):
-        return False
-    return any(token in low for token in (
-        ".pdf", "menu", "meal", "webmenu", "snaf-assets",
-        "isitesoftware", "nutrition", "automenu",
-    ))
+def _shape(value: Any, depth: int = 0) -> str:
+    if depth >= 3:
+        if isinstance(value, dict):
+            return "{…}"
+        if isinstance(value, list):
+            return f"[{len(value)} items…]"
+        return repr(value)[:80]
+    if isinstance(value, dict):
+        parts = []
+        for k, v in list(value.items())[:14]:
+            parts.append(f"{k}: {_shape(v, depth + 1)}")
+        if len(value) > 14:
+            parts.append("…")
+        return "{" + ", ".join(parts) + "}"
+    if isinstance(value, list):
+        if not value:
+            return "[]"
+        return f"[{len(value)} items; first={_shape(value[0], depth + 1)}]"
+    return repr(value)[:100]
 
 
-def _capture_network(driver) -> list[str]:
-    urls = []
+def _graphql_records(driver):
+    requests = {}
+    responses = []
+
     for entry in driver.get_log("performance"):
         try:
             msg = json.loads(entry["message"])["message"]
         except Exception:
             continue
-        if msg.get("method") != "Network.responseReceived":
-            continue
-        url = msg.get("params", {}).get("response", {}).get("url", "")
-        if url and _interesting_href(url) and url not in urls:
-            urls.append(url)
-    return urls
 
+        method = msg.get("method")
+        params = msg.get("params", {})
 
-def _dump_selects(driver, label: str):
-    from selenium.webdriver.common.by import By
+        if method == "Network.requestWillBeSent":
+            req = params.get("request", {})
+            url = req.get("url", "")
+            if "api.schoolnutritionandfitness.com/graphql" not in url:
+                continue
+            request_id = params.get("requestId")
+            post_data = req.get("postData", "")
+            parsed = None
+            if post_data:
+                try:
+                    parsed = json.loads(post_data)
+                except Exception:
+                    parsed = post_data
+            requests[request_id] = {
+                "url": url,
+                "post": parsed,
+            }
 
-    selects = driver.find_elements(By.TAG_NAME, "select")
-    print(f"unit4-menus select state for {label}:")
-    for i, select in enumerate(selects, 1):
-        try:
-            opts = [_compact(o.text, 90) for o in select.find_elements(By.TAG_NAME, "option")]
-            value = select.get_attribute("value")
-        except Exception:
-            continue
-        print(f"  select {i} value={value!r}: {opts[:30]}")
-    return selects
+        elif method == "Network.responseReceived":
+            resp = params.get("response", {})
+            url = resp.get("url", "")
+            if "api.schoolnutritionandfitness.com/graphql" not in url:
+                continue
+            request_id = params.get("requestId")
+            body = None
+            try:
+                raw = driver.execute_cdp_cmd(
+                    "Network.getResponseBody", {"requestId": request_id}
+                ).get("body", "")
+                if raw:
+                    try:
+                        body = json.loads(raw)
+                    except Exception:
+                        body = raw
+            except Exception:
+                pass
+            responses.append(
+                {
+                    "request_id": request_id,
+                    "status": resp.get("status"),
+                    "request": requests.get(request_id),
+                    "body": body,
+                }
+            )
+    return responses
 
 
 def discover_unit4_menu(*, wait_seconds: float = 5.0) -> list[dict]:
@@ -82,121 +129,115 @@ def discover_unit4_menu(*, wait_seconds: float = 5.0) -> list[dict]:
     try:
         driver.execute_cdp_cmd("Network.enable", {})
 
-        for group, school in TARGETS:
-            print(f"unit4-menus target: {group} -> {school}")
-            driver.get(MENU_URL)
-            time.sleep(2)
+        for group, school, menus in TARGETS:
+            for menu in menus:
+                print(f"unit4-menus target: {group} -> {school} -> {menu}")
 
-            # Select grade band.
-            selects = driver.find_elements(By.TAG_NAME, "select")
-            if not selects:
-                raise RuntimeError("grade-band dropdown not found")
-            Select(selects[0]).select_by_visible_text(group)
-            driver.execute_script(
-                """
-                const el = arguments[0];
-                el.dispatchEvent(new Event('input', {bubbles:true}));
-                el.dispatchEvent(new Event('change', {bubbles:true}));
-                """,
-                selects[0],
-            )
-            time.sleep(3)
+                driver.get(MENU_URL)
+                time.sleep(2)
 
-            selects = _dump_selects(driver, f"{group} after group selection")
-            if len(selects) < 2:
-                raise RuntimeError(f"school dropdown did not appear for {group}")
-
-            school_select = Select(selects[1])
-            available = [o.text.strip() for o in school_select.options if o.text.strip()]
-            if school not in available:
-                raise RuntimeError(
-                    f"{school!r} not found for {group}; options were {available!r}"
+                selects = driver.find_elements(By.TAG_NAME, "select")
+                Select(selects[0]).select_by_visible_text(group)
+                driver.execute_script(
+                    """
+                    const el = arguments[0];
+                    el.dispatchEvent(new Event('input', {bubbles:true}));
+                    el.dispatchEvent(new Event('change', {bubbles:true}));
+                    """,
+                    selects[0],
                 )
+                time.sleep(2)
 
-            # Clear network log right before selecting a school.
-            try:
-                driver.get_log("performance")
-            except Exception:
-                pass
+                selects = driver.find_elements(By.TAG_NAME, "select")
+                Select(selects[1]).select_by_visible_text(school)
+                driver.execute_script(
+                    """
+                    const el = arguments[0];
+                    el.dispatchEvent(new Event('input', {bubbles:true}));
+                    el.dispatchEvent(new Event('change', {bubbles:true}));
+                    """,
+                    selects[1],
+                )
+                time.sleep(2)
 
-            school_select.select_by_visible_text(school)
-            driver.execute_script(
-                """
-                const el = arguments[0];
-                el.dispatchEvent(new Event('input', {bubbles:true}));
-                el.dispatchEvent(new Event('change', {bubbles:true}));
-                """,
-                selects[1],
-            )
-            time.sleep(wait_seconds)
+                selects = driver.find_elements(By.TAG_NAME, "select")
+                if len(selects) < 3:
+                    raise RuntimeError(f"menu dropdown not found for {school}")
 
-            print(f"unit4-menus detail: {school} final URL: {driver.current_url}")
-            _dump_selects(driver, f"{school} after school selection")
+                menu_select = Select(selects[2])
+                available = [o.text.strip() for o in menu_select.options if o.text.strip()]
+                print(f"unit4-menus detail: available menus for {school}: {available}")
 
-            # Links that appear after the individual school is chosen.
-            links = []
-            for a in driver.find_elements(By.TAG_NAME, "a"):
+                if menu not in available:
+                    raise RuntimeError(
+                        f"{menu!r} not found for {school}; options={available!r}"
+                    )
+
+                # Clear all old network events immediately before the menu selection.
                 try:
-                    href = a.get_attribute("href") or ""
-                    text = _compact(a.text, 180)
+                    driver.get_log("performance")
                 except Exception:
-                    continue
-                if href and _interesting_href(href):
-                    pair = (text, href)
-                    if pair not in links:
-                        links.append(pair)
+                    pass
 
-            if links:
-                print(f"unit4-menus links after selecting {school}:")
-                for text, href in links[:40]:
-                    print(f"  - {text!r}: {href}")
-            else:
-                print(f"unit4-menus links after selecting {school}: none found")
+                menu_select.select_by_visible_text(menu)
+                driver.execute_script(
+                    """
+                    const el = arguments[0];
+                    el.dispatchEvent(new Event('input', {bubbles:true}));
+                    el.dispatchEvent(new Event('change', {bubbles:true}));
+                    """,
+                    selects[2],
+                )
+                time.sleep(wait_seconds)
 
-            # Iframes/embedded documents.
-            frames = []
-            for frame in driver.find_elements(By.TAG_NAME, "iframe"):
+                records = _graphql_records(driver)
+                print(f"unit4-menus GraphQL calls for {school} / {menu}: {len(records)}")
+
+                for i, record in enumerate(records[:8], 1):
+                    req = record.get("request") or {}
+                    post = req.get("post")
+                    print(f"unit4-menus GraphQL call {i}: status={record.get('status')}")
+                    if isinstance(post, dict):
+                        if "operationName" in post:
+                            print(
+                                "  operationName:",
+                                post.get("operationName"),
+                            )
+                        if "variables" in post:
+                            print(
+                                "  variables:",
+                                json.dumps(post.get("variables"), ensure_ascii=False)[:1200],
+                            )
+                        query = post.get("query")
+                        if query:
+                            print(
+                                "  query sample:",
+                                _compact(query, 1000),
+                            )
+                    elif post:
+                        print("  request body:", _compact(str(post), 1200))
+
+                    body = record.get("body")
+                    if isinstance(body, (dict, list)):
+                        print("  response shape:", _shape(body))
+                    elif body:
+                        print("  response sample:", _compact(str(body), 1200))
+
+                # Rendered text after selecting the actual menu can be useful too.
                 try:
-                    src = frame.get_attribute("src") or ""
+                    body_text = _compact(
+                        driver.find_element(By.TAG_NAME, "body").text, 2600
+                    )
                 except Exception:
-                    continue
-                if src and src not in frames:
-                    frames.append(src)
-            if frames:
-                print(f"unit4-menus iframes after selecting {school}:")
-                for src in frames[:20]:
-                    print(f"  - {src}")
-
-            # Buttons can sometimes launch a PDF/menu without an anchor href.
-            buttons = []
-            for selector in ("button", "input[type=button]", "input[type=submit]"):
-                for el in driver.find_elements(By.CSS_SELECTOR, selector):
-                    try:
-                        text = _compact(el.text or el.get_attribute("value") or "", 120)
-                        onclick = el.get_attribute("onclick") or ""
-                    except Exception:
-                        continue
-                    if text or onclick:
-                        buttons.append((text, onclick))
-            if buttons:
-                print(f"unit4-menus buttons after selecting {school}:")
-                for text, onclick in buttons[:25]:
-                    print(f"  - text={text!r} onclick={onclick!r}")
-
-            body = _compact(driver.find_element(By.TAG_NAME, "body").text, 2600)
-            print(f"unit4-menus rendered sample after selecting {school}:")
-            print(body)
-
-            urls = _capture_network(driver)
-            if urls:
-                print(f"unit4-menus focused requests after selecting {school}:")
-                for url in urls[:35]:
-                    print(f"  - {url}")
-            else:
-                print(f"unit4-menus focused requests after selecting {school}: none found")
+                    body_text = ""
+                if body_text:
+                    print(
+                        f"unit4-menus rendered menu sample for {school} / {menu}:"
+                    )
+                    print(body_text)
 
         raise RuntimeError(
-            "Unit 4 representative-school discovery completed; live parser not configured yet"
+            "Unit 4 GraphQL discovery completed; live parser not configured yet"
         )
     finally:
         driver.quit()
