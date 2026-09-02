@@ -51,6 +51,14 @@ UNIT4_CALENDARS = (
     Unit4Calendar("centennial", "Centennial High School", "https://www.champaignschools.org/o/centennial/events"),
 )
 
+UNIT4_SCHOOL_IDS = tuple(calendar.school_id for calendar in UNIT4_CALENDARS)
+DISTRICT_SOURCE = "Unit 4 District Calendar"
+DISTRICT_CALENDAR = Unit4Calendar(
+    "district",
+    "Champaign Unit 4 School District",
+    "https://www.champaignschools.org/events",
+)
+
 
 class _HrefParser(HTMLParser):
     def __init__(self) -> None:
@@ -417,3 +425,27 @@ def fetch_unit4_calendar(
         f"{len(events)} events"
     )
     return events
+
+def fetch_unit4_district_calendar(
+    *,
+    timeout: int = 30,
+    opener=urlopen,
+) -> list[dict]:
+    """Fetch Unit 4's root district calendar and attach events to all U4 schools."""
+    events = fetch_unit4_calendar(
+        DISTRICT_CALENDAR,
+        timeout=timeout,
+        opener=opener,
+    )
+
+    district_events: list[dict] = []
+    for event in events:
+        event = dict(event)
+        event["schools"] = list(UNIT4_SCHOOL_IDS)
+        event["scope"] = "district"
+        event["source"] = DISTRICT_SOURCE
+        event["sourceUrl"] = DISTRICT_CALENDAR.events_url
+        district_events.append(event)
+
+    return district_events
+
