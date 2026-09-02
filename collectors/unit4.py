@@ -2,163 +2,161 @@ from __future__ import annotations
 
 import json
 import re
-import time
 from typing import Any
+from urllib.request import Request, urlopen
 
 SID = "1465843288260"
-CANDIDATE_URLS = [
-    f"https://champaignschoolsfoodservices.org/index.php?sid={SID}&page=menus",
-    f"https://www.schoolnutritionandfitness.com/index.php?sid={SID}&page=menus",
-    f"https://www.schoolnutritionandfitness.com/mobile/?sid={SID}",
-]
+API_URL = f"https://champaignschoolsfoodservices.org/ngApi/index.php/read?sid={SID}"
 
 
-def _compact(text: str, limit: int = 2200) -> str:
-    return re.sub(r"\s+", " ", text or "").strip()[:limit]
+def _short(value: Any, limit: int = 180) -> str:
+    text = re.sub(r"\s+", " ", str(value)).strip()
+    return text[:limit] + ("…" if len(text) > limit else "")
 
 
-def _interesting(url: str) -> bool:
-    low = (url or "").casefold()
-    if not low:
-        return False
-    if any(x in low for x in (
-        "google-analytics", "googletagmanager", "doubleclick",
-        "fonts.googleapis", "fonts.gstatic", "facebook",
-    )):
-        return False
-    return any(x in low for x in (
-        "schoolnutrition", "champaignschoolsfoodservices",
-        "menu", "meal", "nutrition", "webmenu", "sid=",
+def _shape(value: Any, depth: int = 0) -> str:
+    if depth >= 3:
+        if isinstance(value, dict):
+            return "{…}"
+        if isinstance(value, list):
+            return f"[{len(value)} items…]"
+        return repr(value)[:80]
+
+    if isinstance(value, dict):
+        parts = []
+        for key, child in list(value.items())[:14]:
+            parts.append(f"{key}: {_shape(child, depth + 1)}")
+        if len(value) > 14:
+            parts.append("…")
+        return "{" + ", ".join(parts) + "}"
+
+    if isinstance(value, list):
+        if not value:
+            return "[]"
+        return f"[{len(value)} items; first={_shape(value[0], depth + 1)}]"
+
+    return repr(value)[:100]
+
+
+def _walk(value: Any, path: str = "$"):
+    if isinstance(value, dict):
+        for key, child in value.items():
+            child_path = f"{path}.{key}"
+            yield child_path, child
+            yield from _walk(child, child_path)
+    elif isinstance(value, list):
+        for i, child in enumerate(value[:50]):
+            child_path = f"{path}[{i}]"
+            yield child_path, child
+            yield from _walk(child, child_path)
+
+
+def _interesting_path(path: str) -> bool:
+    low = path.casefold()
+    return any(token in low for token in (
+        "menu", "site", "group", "school", "location", "meal",
+        "category", "calendar", "program",
     ))
 
 
-def _collect_urls(driver) -> list[str]:
-    urls = []
-    for entry in driver.get_log("performance"):
-        try:
-            msg = json.loads(entry["message"])["message"]
-        except Exception:
-            continue
-        if msg.get("method") != "Network.responseReceived":
-            continue
-        url = msg.get("params", {}).get("response", {}).get("url", "")
-        if _interesting(url) and url not in urls:
-            urls.append(url)
-    return urls
+def _looks_like_group_list(value: Any) -> bool:
+    if not isinstance(value, list) or not value:
+        return False
+    sample = value[:5]
+    if not all(isinstance(x, dict) for x in sample):
+        return False
+    keys = {str(k).casefold() for item in sample for k in item.keys()}
+    return bool(keys & {"id", "name", "title", "label", "siteid", "site_id", "groupid", "group_id"})
 
 
-def _select_options(driver):
-    from selenium.webdriver.common.by import By
-
-    found = []
-    for select in driver.find_elements(By.TAG_NAME, "select"):
-        try:
-            opts = [_compact(o.text, 90) for o in select.find_elements(By.TAG_NAME, "option")]
-        except Exception:
-            continue
-        opts = [o for o in opts if o]
-        if opts:
-            found.append(opts)
-    return found
+def _looks_like_url(value: Any) -> bool:
+    return isinstance(value, str) and value.startswith(("http://", "https://"))
 
 
-def discover_unit4_menu(*, wait_seconds: float = 5.0) -> list[dict]:
-    """Targeted Unit 4 discovery using the district's known SchoolNutritionAndFitness SID."""
+def discover_unit4_menu() -> list[dict]:
+    req = Request(
+        API_URL,
+        headers={
+            "User-Agent": "Mozilla/5.0 SchoolBoard/1.0",
+            "Accept": "application/json,text/plain,*/*",
+            "Referer": f"https://champaignschoolsfoodservices.org/index.php?sid={SID}&page=menus",
+        },
+    )
+
+    print(f"unit4-menus detail: requesting {API_URL}")
+    with urlopen(req, timeout=30) as response:
+        body = response.read()
+        content_type = response.headers.get("content-type", "")
+        status = getattr(response, "status", None)
+
+    print(f"unit4-menus detail: HTTP {status}; content-type={content_type}; bytes={len(body)}")
+
+    text = body.decode("utf-8", errors="replace").strip()
     try:
-        from selenium import webdriver
-        from selenium.webdriver.chrome.options import Options
-        from selenium.webdriver.common.by import By
-    except ImportError as exc:
-        raise RuntimeError("Selenium is required for Unit 4 menu discovery") from exc
+        payload = json.loads(text)
+    except json.JSONDecodeError:
+        print("unit4-menus response sample:")
+        print(_short(text, 1800))
+        raise RuntimeError("Unit 4 ngApi/read endpoint did not return JSON")
 
-    options = Options()
-    options.add_argument("--headless=new")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--window-size=1440,1200")
-    options.add_argument("--lang=en-US")
-    options.set_capability("goog:loggingPrefs", {"performance": "ALL"})
+    print("unit4-menus JSON shape:")
+    print(_shape(payload))
 
-    driver = webdriver.Chrome(options=options)
-    try:
-        best = None
+    top = list(payload.keys()) if isinstance(payload, dict) else []
+    if top:
+        print("unit4-menus top-level keys:")
+        print("  " + ", ".join(map(str, top[:40])))
 
-        for target in CANDIDATE_URLS:
-            try:
-                driver.get_log("performance")
-            except Exception:
-                pass
-
-            print(f"unit4-menus detail: trying {target}")
-            try:
-                driver.get(target)
-                time.sleep(wait_seconds)
-            except Exception as exc:
-                print(f"unit4-menus detail: navigation failed: {type(exc).__name__}: {exc}")
-                continue
-
-            final_url = driver.current_url
-            title = driver.title or ""
-            try:
-                body = _compact(driver.find_element(By.TAG_NAME, "body").text)
-            except Exception:
-                body = ""
-
-            selects = _select_options(driver)
-            urls = _collect_urls(driver)
-
-            score = len(body) + 500 * len(selects)
-            candidate = (score, target, final_url, title, body, selects, urls)
-            if best is None or candidate[0] > best[0]:
-                best = candidate
-
-            # Stop early if this clearly looks like the Unit 4 menu application.
-            low = body.casefold()
-            if (
-                ("breakfast" in low or "lunch" in low)
-                and (
-                    "barkstall" in low
-                    or "centennial" in low
-                    or "central" in low
-                    or "champaign" in low
-                )
-            ):
+    # Print only useful group-like arrays so we can identify elementary/middle/high IDs.
+    seen_lists = 0
+    for path, value in _walk(payload):
+        if _interesting_path(path) and _looks_like_group_list(value):
+            print(f"unit4-menus candidate group list at {path}:")
+            for item in value[:20]:
+                fields = []
+                for key in (
+                    "id", "site_id", "siteId", "group_id", "groupId",
+                    "name", "title", "label", "description", "slug",
+                ):
+                    if key in item:
+                        fields.append(f"{key}={_short(item[key], 100)!r}")
+                if not fields:
+                    fields = [f"{k}={_short(v, 80)!r}" for k, v in list(item.items())[:6]]
+                print("  - " + ", ".join(fields))
+            seen_lists += 1
+            if seen_lists >= 8:
                 break
 
-        if best is None:
-            raise RuntimeError("none of the Unit 4 SID menu URLs could be opened")
+    # Print menu/API URLs found inside the payload.
+    urls = []
+    for path, value in _walk(payload):
+        if _looks_like_url(value) and (
+            "menu" in value.casefold()
+            or "api" in value.casefold()
+            or "nutrition" in value.casefold()
+        ):
+            pair = (path, value)
+            if pair not in urls:
+                urls.append(pair)
 
-        _, target, final_url, title, body, selects, urls = best
+    if urls:
+        print("unit4-menus embedded menu/API URLs:")
+        for path, value in urls[:20]:
+            print(f"  - {path}: {value}")
 
-        print(f"unit4-menus detail: best target: {target}")
-        print(f"unit4-menus detail: final URL: {final_url}")
-        if title:
-            print(f"unit4-menus detail: title: {title}")
+    # Print scalar values at paths whose names strongly suggest IDs/configuration.
+    scalars = []
+    for path, value in _walk(payload):
+        if isinstance(value, (str, int, float, bool)) and _interesting_path(path):
+            low = path.casefold()
+            if any(token in low for token in ("id", "endpoint", "url", "slug", "name", "title")):
+                entry = (path, value)
+                if entry not in scalars:
+                    scalars.append(entry)
 
-        if selects:
-            print("unit4-menus select options:")
-            for i, opts in enumerate(selects[:6], 1):
-                print(f"  select {i}: {opts[:30]}")
-        else:
-            print("unit4-menus select options: none found")
+    if scalars:
+        print("unit4-menus useful scalar fields:")
+        for path, value in scalars[:60]:
+            print(f"  - {path} = {_short(value, 140)!r}")
 
-        if body:
-            print("unit4-menus rendered-text sample:")
-            print(body)
-
-        focused = [
-            u for u in urls
-            if SID in u or any(x in u.casefold() for x in ("menu", "meal", "webmenu"))
-        ]
-        if focused:
-            print("unit4-menus focused requests:")
-            for u in focused[:12]:
-                print(f"  - {u}")
-        else:
-            print("unit4-menus focused requests: none found")
-
-        raise RuntimeError(
-            f"Unit 4 SID discovery completed for sid={SID}; live parser not configured yet"
-        )
-    finally:
-        driver.quit()
+    raise RuntimeError("Unit 4 ngApi structure discovered; live menu parser not configured yet")
