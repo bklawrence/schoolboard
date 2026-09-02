@@ -11,6 +11,7 @@ from collectors.quest import QUEST_GROUPS, fetch_quest_group
 from collectors.snap import fetch_snap
 from collectors.unit4 import UNIT4_GROUPS, fetch_unit4_menus
 from collectors.countryside import SOURCE_NAME as COUNTRYSIDE_SOURCE, fetch_countryside_calendar
+from collectors.stmatthew import SOURCE_NAME as STMATTHEW_SOURCE, fetch_stmatthew_calendar
 from collectors.usd116_calendar import SOURCE_NAME as USD116_CALENDAR_SOURCE, fetch_usd116_calendar
 from collectors.usd116_schoolfeeds import SCHOOL_FEEDS, SOURCE_PREFIX as USD116_SCHOOLFEED_PREFIX, fetch_school_feed
 from collectors.apptegy_calendars import (
@@ -500,6 +501,46 @@ def build(*, offline: bool = False) -> dict:
                 "error": f"{type(exc).__name__}: {exc}",
             })
 
+    # St. Matthew Catholic School public School/Athletics calendars.
+    if offline:
+        stmatthew_events = previous_source_events(STMATTHEW_SOURCE)
+        stmatthew_events, _, _ = filter_events_to_rolling_window(
+            stmatthew_events,
+            reference=today,
+        )
+        source_status.append({
+            "id": "stmatthew-calendar",
+            "status": "cached" if stmatthew_events else "live",
+            "count": len(stmatthew_events),
+            "unit": "events",
+        })
+    else:
+        try:
+            stmatthew_events = fetch_stmatthew_calendar(reference=today)
+            stmatthew_events, _, _ = filter_events_to_rolling_window(
+                stmatthew_events,
+                reference=today,
+            )
+            source_status.append({
+                "id": "stmatthew-calendar",
+                "status": "live",
+                "count": len(stmatthew_events),
+                "unit": "events",
+            })
+        except Exception as exc:
+            stmatthew_events = previous_source_events(STMATTHEW_SOURCE)
+            stmatthew_events, _, _ = filter_events_to_rolling_window(
+                stmatthew_events,
+                reference=today,
+            )
+            source_status.append({
+                "id": "stmatthew-calendar",
+                "status": "cached" if stmatthew_events else "failed",
+                "count": len(stmatthew_events),
+                "unit": "events",
+                "error": f"{type(exc).__name__}: {exc}",
+            })
+
     # Countryside School (independent K-8) public Finalsite calendar.
     if offline:
         countryside_events = previous_source_events(COUNTRYSIDE_SOURCE)
@@ -594,6 +635,7 @@ def build(*, offline: bool = False) -> dict:
         + usd116_school_events
         + unit4_school_events
         + stm_events
+        + stmatthew_events
         + countryside_events
     )
 
