@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from datetime import date
 from html import unescape
 from html.parser import HTMLParser
-from urllib.parse import urljoin
+from urllib.parse import parse_qs, urljoin, urlparse
 from urllib.request import Request, urlopen
 
 
@@ -28,10 +28,19 @@ SCHOOL_FEEDS = [
 ]
 
 SOURCE_PREFIX = "USD 116 School Feed"
-ARTICLE_RE = re.compile(
-    r"""href=["']([^"']*index\.php\?articleID=\d+(?:&amp;|&)pageID=smartSiteFeed(?:&amp;|&)psqFeed=true[^"']*)["']""",
-    re.I,
-)
+
+
+class _HrefParser(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__()
+        self.hrefs: list[str] = []
+
+    def handle_starttag(self, tag: str, attrs) -> None:
+        if tag.casefold() != "a":
+            return
+        for key, value in attrs:
+            if key.casefold() == "href" and value:
+                self.hrefs.append(unescape(value))
 
 MONTHS = {
     "jan": 1, "january": 1,
@@ -161,16 +170,81 @@ def _request(url: str, *, timeout: int = 30, opener=urlopen) -> str:
     return body.decode(charset, errors="replace")
 
 
+def _is_public_schoolfeed_url(url: str) -> bool:
+    try:
+        parsed = urlparse(url)
+        query = parse_qs(parsed.query)
+    except Exception:
+        return False
+
+    article_ids = query.get("articleID") or query.get("articleId") or []
+    page_ids = query.get("pageID") or query.get("pageId") or []
+    psq_values = query.get("psqFeed") or []
+
+    return (
+        bool(article_ids)
+        and any(str(value).isdigit() for value in article_ids)
+        and any(str(value).casefold() == "smartsitefeed" for value in page_ids)
+        and any(str(value).casefold() == "true" for value in psq_values)
+    )
+
+
 def _article_urls(home_html: str, home_url: str, *, limit: int = 12) -> list[str]:
-    urls = []
-    for raw in ARTICLE_RE.findall(home_html):
-        href = unescape(raw)
+    """Find public ParentSquare SmartSite post links in any query-parameter order."""
+    parser = _HrefParser()
+    parser.feed(home_html)
+
+    urls: list[str] = []
+    for href in parser.hrefs:
         url = urljoin(home_url, href)
+        if not _is_public_schoolfeed_url(url):
+            continue
         if url not in urls:
             urls.append(url)
         if len(urls) >= limit:
             break
     return urls
+
+
+def _rendered_article_urls(home_url: str, *, limit: int = 12, wait_seconds: float = 4.0) -> list[str]:
+    """Browser fallback for a SmartSite that injects its Latest News links with JavaScript."""
+    try:
+        from selenium import webdriver
+        from selenium.webdriver.chrome.options import Options
+        from selenium.webdriver.common.by import By
+    except ImportError as exc:
+        raise RuntimeError("Selenium is required for rendered school-feed fallback") from exc
+
+    options = Options()
+    options.add_argument("--headless=new")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--window-size=1440,1200")
+    options.add_argument("--lang=en-US")
+
+    driver = webdriver.Chrome(options=options)
+    try:
+        driver.get(home_url)
+
+        # SmartSites generally render quickly, but GitHub runners vary.
+        import time
+        time.sleep(wait_seconds)
+
+        urls: list[str] = []
+        for anchor in driver.find_elements(By.TAG_NAME, "a"):
+            try:
+                href = anchor.get_attribute("href") or ""
+            except Exception:
+                continue
+            if not _is_public_schoolfeed_url(href):
+                continue
+            if href not in urls:
+                urls.append(href)
+            if len(urls) >= limit:
+                break
+        return urls
+    finally:
+        driver.quit()
 
 
 def _year_for_month(month: int, reference: date) -> int:
@@ -309,9 +383,19 @@ def fetch_school_feed(
     reference = reference or date.today()
     home_html = _request(school.home, timeout=timeout, opener=opener)
     urls = _article_urls(home_html, school.home, limit=article_limit)
+    discovery_method = "homepage HTML"
+
+    if not urls:
+        urls = _rendered_article_urls(school.home, limit=article_limit)
+        discovery_method = "rendered homepage"
 
     if not urls:
         raise RuntimeError(f"{school.name} homepage returned no public ParentSquare article links")
+
+    print(
+        f"usd-feed-{school.id} detail: found {len(urls)} public ParentSquare posts "
+        f"via {discovery_method}"
+    )
 
     events = []
     seen = set()
