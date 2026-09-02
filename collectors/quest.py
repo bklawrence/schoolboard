@@ -28,6 +28,9 @@ _STOP_VALUES = {
     "lunch", "breakfast", "dinner", "menu", "menus", "main", "main line",
     "daily menu", "view menus", "nutrition", "allergens", "allergen",
     "calories", "serving size", "station", "stations", "category", "categories",
+    "total fat", "saturated fat", "trans fat", "cholesterol", "sodium",
+    "total carbohydrate", "dietary fiber", "total sugars", "added sugars",
+    "protein", "vitamin d", "vitamin d (d2 + d3)", "calcium", "iron", "potassium",
     "yankee ridge elementary", "yankee ridge multilingual school",
 }
 
@@ -88,6 +91,77 @@ def _clean_item(value: Any) -> str | None:
     return text
 
 
+
+
+_NUTRITION_LABEL_NORMALIZED = {
+    "calories", "servingsize", "totalfat", "saturatedfat", "transfat",
+    "cholesterol", "sodium", "totalcarbohydrate", "dietaryfiber",
+    "totalsugars", "addedsugars", "protein", "vitamind",
+    "vitamindd2d3", "calcium", "iron", "potassium",
+}
+
+def _is_nutrition_label(value: str) -> bool:
+    norm = re.sub(r"[^a-z0-9]", "", value.casefold())
+    return norm in _NUTRITION_LABEL_NORMALIZED
+
+def _sanitize_items(items: list[str]) -> list[str]:
+    cleaned: list[str] = []
+    for raw in items:
+        item = _clean_item(raw)
+        if not item or _is_nutrition_label(item):
+            continue
+        if item not in cleaned:
+            cleaned.append(item)
+    return cleaned
+
+def _extract_rendered_lunch(body_text: str, dates: list[str]) -> dict[str, list[str]]:
+    """Parse the visible Quest week view as a safe fallback.
+
+    Quest renders each entree as `Entrée N` followed by `Main Entree` and the
+    food name. Nutrition details are not part of this normal week-view text.
+    """
+    text = re.sub(r"\s+", " ", body_text or "").strip()
+    if not text or not dates:
+        return {}
+
+    # Split around weekday headings. Quest sometimes prefixes today's heading
+    # with `Today`, so accept that too.
+    day_re = re.compile(
+        r"(?:Today|Monday|Tuesday|Wednesday|Thursday|Friday)\s+"
+        r"(January|February|March|April|May|June|July|August|September|October|November|December)\s+"
+        r"(\d{1,2})(?:st|nd|rd|th)?\s+",
+        re.I,
+    )
+    matches = list(day_re.finditer(text))
+    if not matches:
+        return {}
+
+    by_date: dict[str, list[str]] = {}
+    for idx, match in enumerate(matches):
+        if idx >= len(dates):
+            break
+        start = match.end()
+        end = matches[idx + 1].start() if idx + 1 < len(matches) else len(text)
+        segment = text[start:end]
+
+        # Stop at footer/navigation if this is the final day.
+        for stop in (" Home View Menus ", " CONSUMING RAW OR UNDERCOOKED "):
+            pos = segment.find(stop)
+            if pos >= 0:
+                segment = segment[:pos]
+
+        entree_re = re.compile(
+            r"(?:Entr[ée]e|Entree)\s*\d+\s+Main Entree\s+"
+            r"(.+?)"
+            r"(?=(?:Entr[ée]e|Entree)\s*\d+\s+Main Entree|Shared Items|Vegetable|Fruit|Milk|Condiment|$)",
+            re.I,
+        )
+        items = _sanitize_items([m.group(1).strip() for m in entree_re.finditer(segment)])
+        if items:
+            by_date[dates[idx]] = items
+    return by_date
+
+
 def _meal_hint_from_dict(obj: dict[str, Any], inherited: str | None) -> str | None:
     hint = inherited
     for key, value in obj.items():
@@ -135,55 +209,101 @@ def _select_lunch_node(day_menu: Any, meal_periods: Any) -> Any:
 
 
 def _extract_main_entrees(node: Any) -> list[str]:
-    """Extract Quest's Main Entree choices from a Lunch menu subtree.
+    """Extract actual Main Entree food names from a Quest Lunch subtree.
 
-    Quest's week endpoint groups the response as parallel ``dates`` and ``menus``
-    arrays. Inside a Lunch subtree, category objects label the entree section as
-    ``Main Entree``. We propagate that category context down to item objects and
-    collect their human-readable names.
+    Quest item objects may contain nested nutrition dictionaries whose labels use
+    generic fields such as ``name`` or ``label``.  Do not propagate entree context
+    indiscriminately into those descendants; only accept names from objects that
+    are themselves entree items, or from immediate children of a Main Entree
+    category container.
     """
     out: list[str] = []
+    strong_keys = {_norm_key(x) for x in _STRONG_ITEM_KEYS}
+    generic_keys = {_norm_key(x) for x in _GENERIC_ITEM_KEYS}
+    nutrition_words = {
+        "nutrition", "nutrient", "nutrients", "allergen", "allergens",
+        "totalfat", "saturatedfat", "transfat", "cholesterol", "sodium",
+        "totalcarbohydrate", "dietaryfiber", "totalsugars", "addedsugars",
+        "protein", "vitamind", "calcium", "iron", "potassium", "calories",
+    }
 
     def add(value: Any) -> None:
         item = _clean_item(value)
         if not item:
             return
         lower = item.casefold()
-        if lower in {"main entree", "main entrée", "entrée 1", "entrée 2", "entrée 3", "entree 4"}:
+        if lower in {"main entree", "main entrée"}:
             return
         if re.fullmatch(r"(?:entr[eé]e|entree)\s*\d+", lower):
             return
         if item not in out:
             out.append(item)
 
-    def walk(value: Any, in_main: bool = False) -> None:
-        if isinstance(value, dict):
-            direct_strings = [v for v in value.values() if isinstance(v, str)]
-            direct_lower = [re.sub(r"\s+", " ", v).strip().casefold() for v in direct_strings]
-            category_labels: list[str] = []
-            for key, child in value.items():
-                if "category" not in _norm_key(str(key)):
-                    continue
-                if isinstance(child, str):
-                    category_labels.append(child)
-                elif isinstance(child, dict):
-                    category_labels.extend(v for v in child.values() if isinstance(v, str))
-            category_lower = [re.sub(r"\s+", " ", v).strip().casefold() for v in category_labels]
-            local_main = in_main or any(v in {"main entree", "main entrée"} for v in direct_lower + category_lower)
+    def category_strings(obj: dict[str, Any]) -> list[str]:
+        labels: list[str] = []
+        for key, child in obj.items():
+            if "category" not in _norm_key(str(key)):
+                continue
+            if isinstance(child, str):
+                labels.append(child)
+            elif isinstance(child, dict):
+                labels.extend(v for v in child.values() if isinstance(v, str))
+        return labels
 
-            if local_main:
-                for key, child in value.items():
-                    nk = _norm_key(str(key))
-                    if nk in {_norm_key(x) for x in _STRONG_ITEM_KEYS | _GENERIC_ITEM_KEYS}:
-                        # Avoid re-adding the category label itself.
-                        if isinstance(child, str) and child.strip().casefold() not in {"main entree", "main entrée", "lunch"}:
-                            add(child)
+    def object_is_main(obj: dict[str, Any]) -> bool:
+        vals = [v for v in obj.values() if isinstance(v, str)] + category_strings(obj)
+        return any(re.sub(r"\s+", " ", v).strip().casefold() in {"main entree", "main entrée"} for v in vals)
 
-            for child in value.values():
-                walk(child, local_main)
-        elif isinstance(value, list):
+    def is_nutrition_branch(key: str, child: Any) -> bool:
+        nk = _norm_key(key)
+        if any(word in nk for word in nutrition_words):
+            return True
+        if isinstance(child, dict):
+            direct = {_norm_key(str(k)) for k in child.keys()}
+            # Nutrition objects commonly contain several of these fields together.
+            hits = sum(any(word in k for word in nutrition_words) for k in direct)
+            if hits >= 2:
+                return True
+        return False
+
+    def collect_item_name(obj: dict[str, Any]) -> bool:
+        """Collect one likely food name from this object; return whether found."""
+        # Strong item-name keys first.
+        for key, child in obj.items():
+            if _norm_key(str(key)) in strong_keys and isinstance(child, str):
+                before = len(out)
+                add(child)
+                if len(out) > before:
+                    return True
+        # Quest sometimes uses a plain `name`/`title` on the menu item itself.
+        for key, child in obj.items():
+            if _norm_key(str(key)) in generic_keys and isinstance(child, str):
+                before = len(out)
+                add(child)
+                if len(out) > before:
+                    return True
+        return False
+
+    def walk(value: Any, parent_main: bool = False) -> None:
+        if isinstance(value, list):
             for child in value:
-                walk(child, in_main)
+                walk(child, parent_main)
+            return
+        if not isinstance(value, dict):
+            return
+
+        this_main = object_is_main(value)
+
+        # An object explicitly categorized Main Entree is usually an item object.
+        # An immediate child of a Main Entree container may also be an item object.
+        if this_main or parent_main:
+            collect_item_name(value)
+
+        for key, child in value.items():
+            if is_nutrition_branch(str(key), child):
+                continue
+            # Only pass entree context one level down from a recognized container.
+            walk(child, this_main)
 
     walk(node)
     return out
@@ -207,7 +327,7 @@ def _extract_parallel_quest_days(payload: Any) -> dict[str, list[str]]:
         if not day:
             continue
         lunch_node = _select_lunch_node(menus[idx], meal_periods)
-        items = _extract_main_entrees(lunch_node)
+        items = _sanitize_items(_extract_main_entrees(lunch_node))
         if items:
             parsed[day] = items
     return parsed
@@ -222,10 +342,15 @@ def extract_menu_days(payloads: list[Any], *, source_url: str = YANKEE_RIDGE_MEN
     found: dict[str, list[str]] = defaultdict(list)
 
     # Quest's current API returns parallel dates/menus arrays. Parse that
-    # explicitly first; retain the generic walker below as a compatibility
-    # fallback for future response changes.
+    # explicitly first. If a payload matches this known structure, do NOT run
+    # the broad compatibility walker over it: menu-item objects contain nested
+    # nutrition metadata that can otherwise look like food labels.
+    known_payload_ids: set[int] = set()
     for payload in payloads:
-        for day, items in _extract_parallel_quest_days(payload).items():
+        parsed_days = _extract_parallel_quest_days(payload)
+        if parsed_days:
+            known_payload_ids.add(id(payload))
+        for day, items in parsed_days.items():
             for item in items:
                 if item not in found[day]:
                     found[day].append(item)
@@ -262,7 +387,8 @@ def extract_menu_days(payloads: list[Any], *, source_url: str = YANKEE_RIDGE_MEN
                 walk(value, current_date, meal_hint, path + (str(idx),))
 
     for payload in payloads:
-        walk(payload)
+        if id(payload) not in known_payload_ids:
+            walk(payload)
 
     today = date.today()
     earliest = today - timedelta(days=45)
@@ -275,6 +401,7 @@ def extract_menu_days(payloads: list[Any], *, source_url: str = YANKEE_RIDGE_MEN
             continue
         if not (earliest <= d <= latest):
             continue
+        items = _sanitize_items(items)
         if not items:
             continue
         meals.append({
@@ -471,6 +598,43 @@ def fetch_yankee_k5(*, url: str = YANKEE_RIDGE_MENU_URL, wait_seconds: float = 8
                 payloads.append(parsed)
 
         meals = extract_menu_days(payloads, source_url=url)
+
+        # Independently parse the visible weekly menu. This is deliberately a
+        # fallback/validator so nested nutrition objects can never poison the
+        # public menu even if Quest changes its JSON internals.
+        response_dates: list[str] = []
+        for payload in payloads:
+            if isinstance(payload, dict) and isinstance(payload.get("dates"), list):
+                response_dates = [d for d in (_parse_date(x) for x in payload["dates"]) if d]
+                if response_dates:
+                    break
+        raw_body_text = driver.find_element("tag name", "body").text
+        rendered_days = _extract_rendered_lunch(raw_body_text, response_dates)
+        if rendered_days:
+            rendered_meals = [
+                {
+                    "date": day,
+                    "group": "k5",
+                    "items": items,
+                    "status": "live",
+                    "label": "Live Quest menu",
+                    "source": SOURCE_NAME,
+                    "sourceUrl": url,
+                }
+                for day, items in sorted(rendered_days.items())
+            ]
+            # Prefer rendered extraction whenever JSON contains suspicious
+            # nutrient labels or disagrees substantially with the visible page.
+            json_bad = any(any(_is_nutrition_label(x) for x in m.get("items", [])) for m in meals)
+            if not meals or json_bad or any(len(m.get("items", [])) > 8 for m in meals):
+                meals = rendered_meals
+                print("quest-k5 detail: used rendered Lunch page as clean fallback")
+            else:
+                # Replace corresponding days with rendered items as a validator.
+                rendered_map = {m["date"]: m for m in rendered_meals}
+                meals = [rendered_map.get(m["date"], m) for m in meals]
+                print("quest-k5 detail: validated JSON menu against rendered Lunch page")
+
         if meals:
             dates = ", ".join(m["date"] for m in meals[:6])
             suffix = "…" if len(meals) > 6 else ""
