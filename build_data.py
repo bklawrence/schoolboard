@@ -10,6 +10,7 @@ from collectors.quest import QUEST_GROUPS, fetch_quest_group
 from collectors.snap import fetch_snap
 from collectors.unit4 import UNIT4_GROUPS, fetch_unit4_menus
 from collectors.usd116_calendar import SOURCE_NAME as USD116_CALENDAR_SOURCE, fetch_usd116_calendar
+from collectors.usd116_schoolfeeds import SCHOOL_FEEDS, SOURCE_PREFIX as USD116_SCHOOLFEED_PREFIX, fetch_school_feed
 
 ROOT = Path(__file__).resolve().parent
 STATIC_PATH = ROOT / "data" / "static-events.json"
@@ -96,6 +97,16 @@ def previous_group_meals(group: str) -> list[dict]:
     return [m for m in old.get("meals", []) if m.get("group") == group]
 
 
+def previous_schoolfeed_events(school_id: str) -> list[dict]:
+    old = load_json(OUTPUT_PATH, {})
+    prefix = f"{USD116_SCHOOLFEED_PREFIX} — "
+    return [
+        event for event in old.get("events", [])
+        if str(event.get("source", "")).startswith(prefix)
+        and school_id in (event.get("schools") or [])
+    ]
+
+
 def build(*, offline: bool = False) -> dict:
     static = load_json(STATIC_PATH, {"events": [], "meals": []})
     static_events = [
@@ -169,6 +180,49 @@ def build(*, offline: bool = False) -> dict:
                 "error": f"{type(exc).__name__}: {exc}",
             })
 
+    # Recent public ParentSquare posts mirrored on each USD 116 school site.
+    # Only explicit date-led lines are parsed. Previously collected future
+    # events remain cached even after an older post rolls off the homepage.
+    usd116_school_events: list[dict] = []
+    today = datetime.now().date()
+
+    for school in SCHOOL_FEEDS:
+        cached = previous_schoolfeed_events(school.id)
+        cached_future = [
+            event for event in cached
+            if event.get("date") and event.get("date") >= today.isoformat()
+        ]
+
+        if offline:
+            source_events = cached_future
+            source_status.append({
+                "id": f"usd-feed-{school.id}",
+                "status": "cached" if source_events else "live",
+                "count": len(source_events),
+                "unit": "events",
+            })
+        else:
+            try:
+                fresh = fetch_school_feed(school, reference=today)
+                source_events = merge_unique(cached_future + fresh)
+                source_status.append({
+                    "id": f"usd-feed-{school.id}",
+                    "status": "live",
+                    "count": len(source_events),
+                    "unit": "events",
+                })
+            except Exception as exc:
+                source_events = cached_future
+                source_status.append({
+                    "id": f"usd-feed-{school.id}",
+                    "status": "cached" if source_events else "failed",
+                    "count": len(source_events),
+                    "unit": "events",
+                    "error": f"{type(exc).__name__}: {exc}",
+                })
+
+        usd116_school_events.extend(source_events)
+
     quest_meals: list[dict] = []
     for group_id, cfg in QUEST_GROUPS.items():
         if offline:
@@ -228,7 +282,7 @@ def build(*, offline: bool = False) -> dict:
                 "error": f"{type(exc).__name__}: {exc}",
             })
 
-    events = merge_unique(static_events + snap_events + usd116_calendar_events)
+    events = merge_unique(static_events + snap_events + usd116_calendar_events + usd116_school_events)
     meals = merge_meals(static_meals + quest_meals + unit4_meals)
     now = datetime.now(ZoneInfo("America/Chicago")).isoformat(timespec="seconds")
     return {
