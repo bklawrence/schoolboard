@@ -7,15 +7,36 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from collectors.quest import QUEST_GROUPS, fetch_quest_group
-from collectors.snap import fetch_uni_snap
+from collectors.snap import fetch_snap
 from collectors.unit4 import UNIT4_GROUPS, fetch_unit4_menus
 
 ROOT = Path(__file__).resolve().parent
 STATIC_PATH = ROOT / "data" / "static-events.json"
 OUTPUT_PATH = ROOT / "schoolboard-data.json"
 
-UNI_SNAP_FEED = "https://manage.snap.app/ical/link/Uni/2026-2027/ALL/CDT/athletic%2Cactivities/0/0"
-UNI_SOURCE = "Uni High Athletics — Snap!"
+SNAP_SOURCES = [
+    {
+        "id": "uni-athletics",
+        "feed": "https://manage.snap.app/ical/link/Uni/2026-2027/ALL/CDT/athletic%2Cactivities/0/0",
+        "source": "Uni High Athletics — Snap!",
+        "schools": ["uni"],
+        "id_prefix": "uni-snap",
+    },
+    {
+        "id": "uhs-athletics",
+        "feed": "https://manage.snap.app/ical/link/Urbana/2026-2027/ALL/CDT/athletic%2Cactivities/0/0",
+        "source": "Urbana High Athletics — Snap!",
+        "schools": ["uhs"],
+        "id_prefix": "uhs-snap",
+    },
+    {
+        "id": "ums-sgc-athletics",
+        "feed": "https://manage.snap.app/ical/link/urbanams/2026-2027/ALL/CDT/athletic%2Cactivities/0/0",
+        "source": "Urbana Middle / SGC Athletics — Snap!",
+        "schools": ["ums", "sgc"],
+        "id_prefix": "ums-sgc-snap",
+    },
+]
 
 
 def load_json(path: Path, default):
@@ -80,24 +101,42 @@ def build(*, offline: bool = False) -> dict:
     static_meals = list(static.get("meals", []))
     source_status = []
 
-    if offline:
-        snap_events = previous_source_events(UNI_SOURCE)
-        source_status.append({"id": "uni-athletics", "status": "cached", "count": len(snap_events), "unit": "events"})
-    else:
-        try:
-            snap_events = fetch_uni_snap(UNI_SNAP_FEED)
-            if not snap_events:
-                raise RuntimeError("Snap feed returned zero VEVENT records")
-            source_status.append({"id": "uni-athletics", "status": "live", "count": len(snap_events), "unit": "events"})
-        except Exception as exc:
-            snap_events = previous_source_events(UNI_SOURCE)
+    snap_events: list[dict] = []
+    for cfg in SNAP_SOURCES:
+        if offline:
+            source_events = previous_source_events(cfg["source"])
             source_status.append({
-                "id": "uni-athletics",
-                "status": "cached" if snap_events else "failed",
-                "count": len(snap_events),
+                "id": cfg["id"],
+                "status": "cached" if source_events else "failed",
+                "count": len(source_events),
                 "unit": "events",
-                "error": f"{type(exc).__name__}: {exc}",
             })
+        else:
+            try:
+                source_events = fetch_snap(
+                    cfg["feed"],
+                    school_ids=cfg["schools"],
+                    source=cfg["source"],
+                    id_prefix=cfg["id_prefix"],
+                )
+                if not source_events:
+                    raise RuntimeError("Snap feed returned zero VEVENT records")
+                source_status.append({
+                    "id": cfg["id"],
+                    "status": "live",
+                    "count": len(source_events),
+                    "unit": "events",
+                })
+            except Exception as exc:
+                source_events = previous_source_events(cfg["source"])
+                source_status.append({
+                    "id": cfg["id"],
+                    "status": "cached" if source_events else "failed",
+                    "count": len(source_events),
+                    "unit": "events",
+                    "error": f"{type(exc).__name__}: {exc}",
+                })
+        snap_events.extend(source_events)
 
     quest_meals: list[dict] = []
     for group_id, cfg in QUEST_GROUPS.items():
