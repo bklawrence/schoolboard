@@ -186,8 +186,21 @@ def fetch_snap(
     with opener(request, timeout=timeout) as response:
         body = response.read()
         charset = response.headers.get_content_charset() or "utf-8"
+
+    text = body.decode(charset, errors="replace")
+
+    # A valid Snap calendar may legitimately contain zero VEVENT records
+    # (for example, between seasons). Distinguish that from an HTML error
+    # page or other malformed response.
+    if "BEGIN:VCALENDAR" not in text.upper():
+        sample = " ".join(text.split())[:180]
+        raise RuntimeError(
+            "Snap response was not a valid iCalendar feed"
+            + (f": {sample}" if sample else "")
+        )
+
     return parse_ics(
-        body.decode(charset, errors="replace"),
+        text,
         school_ids=school_ids,
         source=source,
         id_prefix=id_prefix,
