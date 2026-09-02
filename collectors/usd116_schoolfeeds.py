@@ -283,6 +283,47 @@ def _extract_time(title: str) -> tuple[str, str | None, str | None]:
     return title.strip(), None, None
 
 
+HIGH_CONFIDENCE_EVENT_TITLES = (
+    ("curriculum night", "Curriculum Night"),
+    ("picture day", "Picture Day"),
+    ("open house", "Open House"),
+)
+
+
+def _clean_school_event_title(title: str, school: SchoolFeed) -> str:
+    """Remove obvious attachment/school-name noise without broadly rewriting events."""
+    clean = re.sub(r"\s+", " ", title).strip(" -–:,.")
+    low = clean.casefold()
+
+    # ParentSquare attachment titles sometimes arrive as things like:
+    # "LEAL CURRICULUM NIGHT - HELLO LEAL FAMILIES!.PDF".
+    for phrase, canonical in HIGH_CONFIDENCE_EVENT_TITLES:
+        if phrase in low:
+            return canonical
+
+    clean = re.sub(r"\.pdf\s*$", "", clean, flags=re.I).strip(" -–:,.")
+
+    aliases = {
+        "yankee": ("YRM", "Yankee Ridge", "Yankee Ridge Multilingual"),
+        "leal": ("Leal", "Leal Elementary"),
+        "paine": ("Paine", "Thomas Paine", "Thomas Paine Elementary"),
+        "williams": ("Dr. Williams", "Williams", "Dr. Williams Elementary"),
+        "king": ("King", "MLK", "Dr. King", "Dr. Martin Luther King Jr."),
+        "sgc": ("SGC", "Urbana Sixth Grade Center"),
+        "ums": ("UMS", "Urbana Middle School"),
+        "uhs": ("UHS", "Urbana High School"),
+    }.get(school.id, ())
+
+    for alias in sorted(aliases, key=len, reverse=True):
+        pattern = rf"^{re.escape(alias)}\s*[-–:]\s*(.+)$"
+        m = re.match(pattern, clean, flags=re.I)
+        if m:
+            clean = m.group(1).strip()
+            break
+
+    return clean
+
+
 def _event_from_line(line: str, school: SchoolFeed, article_url: str, reference: date):
     match = DATE_LINE_RE.match(line)
     if not match:
@@ -315,6 +356,7 @@ def _event_from_line(line: str, school: SchoolFeed, article_url: str, reference:
         return None
 
     title, start, end = _extract_time(raw_title)
+    title = _clean_school_event_title(title, school)
     if not title:
         return None
 
