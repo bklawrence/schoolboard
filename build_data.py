@@ -25,9 +25,8 @@ ROOT = Path(__file__).resolve().parent
 STATIC_PATH = ROOT / "data" / "static-events.json"
 OUTPUT_PATH = ROOT / "schoolboard-data.json"
 
-# Keep a modest amount of recent history for debugging/context and a little
-# more than one year ahead so newly published next-school-year calendars
-# appear automatically. These bounds move forward on every build.
+# Keep recent context plus a short forward planning window. These bounds
+# move forward automatically on every build.
 EVENT_HISTORY_DAYS = 30
 EVENT_HORIZON_DAYS = 60
 
@@ -125,27 +124,32 @@ def merge_unique(events: list[dict]) -> list[dict]:
     return sorted(result, key=lambda e: (e.get("date", ""), e.get("start", ""), e.get("title", "")))
 
 
-def conservative_event_title(title: str) -> str:
+def _unit4_district_title_key(title: str) -> str:
+    """Conservative normalization for district-vs-school duplicate detection."""
     clean = re.sub(r"\s+", " ", str(title or "")).strip().casefold()
     clean = re.sub(r"[^a-z0-9]+", " ", clean)
     return re.sub(r"\s+", " ", clean).strip()
 
 
-def district_event_signature(event: dict) -> tuple:
+def _unit4_district_signature(event: dict) -> tuple:
     return (
         event.get("date", ""),
         event.get("start", ""),
         event.get("end", ""),
-        conservative_event_title(event.get("title", "")),
+        _unit4_district_title_key(event.get("title", "")),
     )
 
 
 def collapse_unit4_district_duplicates(
-    events: list[dict],
+    candidates: list[dict],
     district_events: list[dict],
 ) -> tuple[list[dict], int]:
+    """
+    Prefer the single district record only when a Unit 4 school/static record
+    has the same date, start/end time, and normalized title.
+    """
     district_signatures = {
-        district_event_signature(event)
+        _unit4_district_signature(event)
         for event in district_events
     }
     unit4_ids = set(UNIT4_SCHOOL_IDS)
@@ -153,13 +157,13 @@ def collapse_unit4_district_duplicates(
     kept: list[dict] = []
     removed = 0
 
-    for event in events:
+    for event in candidates:
         schools = set(event.get("schools") or [])
-        is_unit4_event = bool(schools) and schools.issubset(unit4_ids)
+        is_unit4_record = bool(schools) and schools.issubset(unit4_ids)
 
         if (
-            is_unit4_event
-            and district_event_signature(event) in district_signatures
+            is_unit4_record
+            and _unit4_district_signature(event) in district_signatures
         ):
             removed += 1
             continue
@@ -413,7 +417,8 @@ def build(*, offline: bool = False) -> dict:
 
         unit4_school_events.extend(source_events)
 
-    # Unit 4 root district calendar.
+    # Unit 4 district-wide Apptegy calendar. A successful live fetch replaces
+    # the prior district snapshot; cached data is used only if the source fails.
     if offline:
         unit4_district_events = previous_source_events(UNIT4_DISTRICT_SOURCE)
         unit4_district_events, _, _ = filter_events_to_rolling_window(
@@ -548,6 +553,7 @@ def build(*, offline: bool = False) -> dict:
         + unit4_school_events
         + countryside_events
     )
+
     event_candidates, unit4_district_duplicates_removed = (
         collapse_unit4_district_duplicates(
             event_candidates,
@@ -556,8 +562,8 @@ def build(*, offline: bool = False) -> dict:
     )
     print(
         "u4-district-calendar detail: removed "
-        f"{unit4_district_duplicates_removed} exact duplicate U4 school/static "
-        "event records in favor of district records"
+        f"{unit4_district_duplicates_removed} exact Unit 4 duplicate records "
+        "in favor of district records"
     )
 
     events = merge_unique(event_candidates + unit4_district_events)
