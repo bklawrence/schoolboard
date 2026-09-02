@@ -21,6 +21,9 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Install collector dependencies
+        run: python -m pip install --disable-pip-version-check selenium
+
       - name: Build current data
         run: python build_data.py
 
