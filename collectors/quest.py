@@ -1,0 +1,267 @@
+from __future__ import annotations
+
+import json
+import re
+import time
+from collections import defaultdict
+from datetime import date, datetime, timedelta
+from typing import Any
+
+YANKEE_RIDGE_MENU_URL = "https://www.myschoolquest.com/yankee-ridge-elementary/menus"
+SOURCE_NAME = "MySchoolQuest — USD 116 K–5"
+
+_DATE_KEYS = {
+    "date", "menudate", "service_date", "servicedate", "servingdate",
+    "calendar_date", "calendardate", "daydate", "startdate",
+}
+_STRONG_ITEM_KEYS = {
+    "itemname", "menuitemname", "recipename", "productname", "foodname",
+    "dishname", "displayname", "item_name", "menu_item_name", "recipe_name",
+}
+_GENERIC_ITEM_KEYS = {"name", "title", "description", "label"}
+_MEAL_HINT_KEYS = {
+    "meal", "mealname", "mealtype", "mealperiod", "mealperiodname",
+    "service", "servicename", "period", "periodname",
+}
+_PATH_FOOD_WORDS = ("item", "recipe", "food", "product", "dish", "entree", "offering")
+_STOP_VALUES = {
+    "lunch", "breakfast", "dinner", "menu", "menus", "main", "main line",
+    "daily menu", "view menus", "nutrition", "allergens", "allergen",
+    "calories", "serving size", "station", "stations", "category", "categories",
+    "yankee ridge elementary", "yankee ridge multilingual school",
+}
+
+
+def _norm_key(value: str) -> str:
+    return re.sub(r"[^a-z0-9_]", "", value.casefold())
+
+
+def _parse_date(value: Any) -> str | None:
+    if isinstance(value, (int, float)):
+        # Accept millisecond/second Unix timestamps in a plausible school-year range.
+        try:
+            seconds = float(value) / 1000 if float(value) > 10_000_000_000 else float(value)
+            d = datetime.fromtimestamp(seconds).date()
+            if 2025 <= d.year <= 2028:
+                return d.isoformat()
+        except (OverflowError, OSError, ValueError):
+            return None
+        return None
+
+    if not isinstance(value, str):
+        return None
+    text = value.strip()
+    if not text:
+        return None
+
+    # ISO dates/timestamps.
+    m = re.match(r"^(20\d{2})-(\d{2})-(\d{2})", text)
+    if m:
+        try:
+            return date(int(m.group(1)), int(m.group(2)), int(m.group(3))).isoformat()
+        except ValueError:
+            return None
+
+    for fmt in ("%m/%d/%Y", "%m/%d/%y", "%Y/%m/%d"):
+        try:
+            return datetime.strptime(text, fmt).date().isoformat()
+        except ValueError:
+            pass
+    return None
+
+
+def _clean_item(value: Any) -> str | None:
+    if not isinstance(value, str):
+        return None
+    text = re.sub(r"\s+", " ", value).strip(" \t\r\n·•-|:")
+    if len(text) < 3 or len(text) > 140:
+        return None
+    lower = text.casefold()
+    if lower in _STOP_VALUES:
+        return None
+    if lower.startswith(("http://", "https://")):
+        return None
+    if re.fullmatch(r"[\d\s.,/%$-]+", text):
+        return None
+    if "@" in text and "." in text:
+        return None
+    return text
+
+
+def _meal_hint_from_dict(obj: dict[str, Any], inherited: str | None) -> str | None:
+    hint = inherited
+    for key, value in obj.items():
+        nk = _norm_key(str(key))
+        if nk not in {_norm_key(x) for x in _MEAL_HINT_KEYS}:
+            continue
+        if isinstance(value, str):
+            lower = value.casefold()
+            if "lunch" in lower:
+                return "lunch"
+            if "breakfast" in lower:
+                hint = "breakfast"
+    return hint
+
+
+def extract_menu_days(payloads: list[Any], *, source_url: str = YANKEE_RIDGE_MENU_URL) -> list[dict]:
+    """Best-effort extraction from MySchoolQuest JSON responses.
+
+    The site is a JavaScript application. Rather than hard-code a private API endpoint,
+    the collector observes its public browser requests and walks JSON responses for
+    dated menu-item structures. This makes the first version tolerant of endpoint changes.
+    """
+    found: dict[str, list[str]] = defaultdict(list)
+
+    def walk(node: Any, current_date: str | None = None, meal_hint: str | None = None, path: tuple[str, ...] = ()) -> None:
+        if isinstance(node, dict):
+            local_date = current_date
+            for key, value in node.items():
+                if _norm_key(str(key)) in {_norm_key(x) for x in _DATE_KEYS}:
+                    parsed = _parse_date(value)
+                    if parsed:
+                        local_date = parsed
+                        break
+
+            local_meal = _meal_hint_from_dict(node, meal_hint)
+            path_lower = "/".join(p.casefold() for p in path)
+
+            if local_date and local_meal != "breakfast":
+                for key, value in node.items():
+                    nk = _norm_key(str(key))
+                    strong = nk in {_norm_key(x) for x in _STRONG_ITEM_KEYS}
+                    generic = nk in {_norm_key(x) for x in _GENERIC_ITEM_KEYS}
+                    food_path = any(word in path_lower for word in _PATH_FOOD_WORDS)
+                    if strong or (generic and food_path):
+                        item = _clean_item(value)
+                        if item and item not in found[local_date]:
+                            found[local_date].append(item)
+
+            for key, value in node.items():
+                walk(value, local_date, local_meal, path + (str(key),))
+
+        elif isinstance(node, list):
+            for idx, value in enumerate(node):
+                walk(value, current_date, meal_hint, path + (str(idx),))
+
+    for payload in payloads:
+        walk(payload)
+
+    today = date.today()
+    earliest = today - timedelta(days=45)
+    latest = today + timedelta(days=120)
+    meals = []
+    for day, items in sorted(found.items()):
+        try:
+            d = date.fromisoformat(day)
+        except ValueError:
+            continue
+        if not (earliest <= d <= latest):
+            continue
+        if not items:
+            continue
+        meals.append({
+            "date": day,
+            "group": "k5",
+            "items": items,
+            "status": "live",
+            "label": "Live Quest menu",
+            "source": SOURCE_NAME,
+            "sourceUrl": source_url,
+        })
+    return meals
+
+
+def _json_from_body(body: str) -> Any | None:
+    text = body.strip()
+    if not text or text[0] not in "[{":
+        return None
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        return None
+
+
+def fetch_yankee_k5(*, url: str = YANKEE_RIDGE_MENU_URL, wait_seconds: float = 8.0) -> list[dict]:
+    """Load MySchoolQuest in headless Chrome and inspect public JSON responses."""
+    try:
+        from selenium import webdriver
+        from selenium.webdriver.chrome.options import Options
+    except ImportError as exc:  # pragma: no cover - GitHub Actions installs Selenium.
+        raise RuntimeError("Selenium is required for the Quest collector") from exc
+
+    options = Options()
+    options.add_argument("--headless=new")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--window-size=1440,1200")
+    options.add_argument("--lang=en-US")
+    options.set_capability("goog:loggingPrefs", {"performance": "ALL"})
+
+    driver = webdriver.Chrome(options=options)
+    response_meta: dict[str, dict[str, Any]] = {}
+    payloads: list[Any] = []
+    diagnostic_urls: list[str] = []
+
+    try:
+        driver.execute_cdp_cmd("Network.enable", {})
+        driver.get(url)
+        time.sleep(wait_seconds)
+
+        for entry in driver.get_log("performance"):
+            try:
+                message = json.loads(entry["message"])["message"]
+            except (KeyError, TypeError, json.JSONDecodeError):
+                continue
+            if message.get("method") != "Network.responseReceived":
+                continue
+            params = message.get("params", {})
+            response = params.get("response", {})
+            request_id = params.get("requestId")
+            response_url = response.get("url", "")
+            mime = (response.get("mimeType") or "").casefold()
+            rtype = (params.get("type") or "").casefold()
+            if not request_id or not response_url:
+                continue
+            if rtype in {"xhr", "fetch"} or "json" in mime or any(token in response_url.casefold() for token in ("api", "menu", "meal")):
+                response_meta[request_id] = {"url": response_url, "mime": mime, "type": rtype}
+
+        for request_id, meta in response_meta.items():
+            if len(diagnostic_urls) < 12:
+                diagnostic_urls.append(meta["url"])
+            try:
+                result = driver.execute_cdp_cmd("Network.getResponseBody", {"requestId": request_id})
+            except Exception:
+                continue
+            parsed = _json_from_body(result.get("body", ""))
+            if parsed is not None:
+                payloads.append(parsed)
+
+        # Some frameworks embed initial JSON state directly in script tags.
+        source = driver.page_source
+        for match in re.finditer(r"<script[^>]*>(.*?)</script>", source, flags=re.I | re.S):
+            script_text = re.sub(r"^\s+|\s+$", "", match.group(1))
+            parsed = _json_from_body(script_text)
+            if parsed is not None:
+                payloads.append(parsed)
+
+        meals = extract_menu_days(payloads, source_url=url)
+        if meals:
+            dates = ", ".join(m["date"] for m in meals[:6])
+            suffix = "…" if len(meals) > 6 else ""
+            print(f"quest-k5 detail: captured {len(payloads)} JSON payloads; menu dates {dates}{suffix}")
+            return meals
+
+        # Give the workflow log enough information for the next parser refinement,
+        # without committing raw third-party payloads into the repository.
+        print(f"quest-k5 detail: captured {len(payloads)} JSON payloads but extracted no dated menu items")
+        if diagnostic_urls:
+            print("quest-k5 observed requests:")
+            for observed in diagnostic_urls:
+                print(f"  - {observed}")
+        body_text = re.sub(r"\s+", " ", driver.find_element("tag name", "body").text).strip()
+        if body_text:
+            print("quest-k5 rendered-text sample:")
+            print(body_text[:1200].replace("\n", " | "))
+        raise RuntimeError("MySchoolQuest loaded, but its menu JSON structure was not recognized")
+    finally:
+        driver.quit()
