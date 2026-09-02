@@ -205,14 +205,35 @@
     .picker-grid{
       display:grid;
       grid-template-columns:repeat(3,minmax(0,1fr));
-      gap:7px 16px;
+      gap:18px;
+      align-items:start;
     }
-
-    .picker-grid label{
+    .picker-column{
+      min-width:0;
+    }
+    .picker-column-title{
+      margin:0 0 9px;
+      padding-bottom:5px;
+      border-bottom:1.5px solid var(--ink);
+      font:900 11px ui-monospace, SFMono-Regular, Menlo, monospace;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+    }
+    .picker-subtitle{
+      margin:14px 0 7px;
+      padding-top:8px;
+      border-top:1px solid rgba(31,42,68,.28);
+      font:900 9px ui-monospace, SFMono-Regular, Menlo, monospace;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      color:var(--muted);
+    }
+    .picker-column label{
       display:grid;
       grid-template-columns:auto 12px 1fr;
       align-items:start;
       gap:8px;
+      margin-bottom:7px;
       font-size:14px;
       line-height:1.25;
     }
@@ -1030,7 +1051,15 @@
     "full": "The High School of Saint Thomas More",
     "system": "Private",
     "level": "High School",
-    "color": "#2F5D3A"
+    "color": "#4D8B57"
+  },
+  {
+    "id": "stmatthew",
+    "short": "St. Matthew",
+    "full": "St. Matthew Catholic School",
+    "system": "Private",
+    "level": "PK–8",
+    "color": "#4D8B57"
   },
   {
     "id": "barkstall",
@@ -1280,6 +1309,15 @@
       "stm"
     ],
     "url": "https://www.hs-stm.org/events"
+  },
+  {
+    "id": "stmatthew-calendar",
+    "kind": "School + athletics calendar",
+    "name": "St. Matthew School Calendar",
+    "schools": [
+      "stmatthew"
+    ],
+    "url": "https://www.stmatt.net/school-news/calendar"
   },
   {
     "id": "u4-calendar",
@@ -15690,9 +15728,27 @@
 
     const grid = document.getElementById("pickerGrid");
     grid.innerHTML = "";
-    SCHOOLS.forEach(s => {
+
+    const levelRank = {
+      "Preschool": 0,
+      "Elementary": 1,
+      "PK–8": 2,
+      "K–8": 2,
+      "Sixth Grade": 3,
+      "Middle School": 4,
+      "High School": 5
+    };
+
+    const byAgeThenName = (a, b) => {
+      const ar = levelRank[a.level] ?? 99;
+      const br = levelRank[b.level] ?? 99;
+      return ar - br || a.full.localeCompare(b.full);
+    };
+
+    function makePickerLabel(s){
       const label = document.createElement("label");
       label.style.setProperty("--school-color", s.color);
+
       const input = document.createElement("input");
       input.type = "checkbox";
       input.checked = selected.includes(s.id);
@@ -15703,13 +15759,74 @@
         saveSelected();
         renderAll();
       });
+
       const swatch = document.createElement("span");
       swatch.className = "picker-swatch";
+
       const text = document.createElement("span");
       text.innerHTML = `<span class="picker-school-name">${escapeHtml(s.full)}</span><span class="picker-school-meta">${escapeHtml(s.system)} · ${escapeHtml(s.level)}</span>`;
+
       label.append(input, swatch, text);
-      grid.appendChild(label);
-    });
+      return label;
+    }
+
+    function makeColumn(title){
+      const column = document.createElement("div");
+      column.className = "picker-column";
+
+      const heading = document.createElement("div");
+      heading.className = "picker-column-title";
+      heading.textContent = title;
+      column.appendChild(heading);
+      return column;
+    }
+
+    function addSubtitle(column, title){
+      const subtitle = document.createElement("div");
+      subtitle.className = "picker-subtitle";
+      subtitle.textContent = title;
+      column.appendChild(subtitle);
+    }
+
+    // Column 1: Champaign Unit 4, youngest-serving schools first.
+    const unit4Column = makeColumn("Champaign Unit 4 Schools");
+    SCHOOLS
+      .filter(s => s.system === "Champaign Unit 4")
+      .sort(byAgeThenName)
+      .forEach(s => unit4Column.appendChild(makePickerLabel(s)));
+    grid.appendChild(unit4Column);
+
+    // Column 2: Urbana SD 116, youngest to oldest; Uni High stays at
+    // the bottom as a separate public school outside either district.
+    const urbanaColumn = makeColumn("Urbana SD 116 Schools");
+    SCHOOLS
+      .filter(s => s.system === "USD 116")
+      .sort(byAgeThenName)
+      .forEach(s => urbanaColumn.appendChild(makePickerLabel(s)));
+
+    const uni = SCHOOLS.find(s => s.id === "uni");
+    if (uni){
+      addSubtitle(urbanaColumn, "Other public");
+      urbanaColumn.appendChild(makePickerLabel(uni));
+    }
+    grid.appendChild(urbanaColumn);
+
+    // Column 3: preschools first, then the regular private schools.
+    const privateColumn = makeColumn("Preschools");
+    SCHOOLS
+      .filter(s => s.level === "Preschool")
+      .sort((a, b) => a.full.localeCompare(b.full))
+      .forEach(s => privateColumn.appendChild(makePickerLabel(s)));
+
+    const privateSchools = SCHOOLS
+      .filter(s => ["countryside", "stm", "stmatthew"].includes(s.id))
+      .sort(byAgeThenName);
+
+    if (privateSchools.length){
+      addSubtitle(privateColumn, "Private schools");
+      privateSchools.forEach(s => privateColumn.appendChild(makePickerLabel(s)));
+    }
+    grid.appendChild(privateColumn);
   }
 
   function sourceFeedApplies(feed){
