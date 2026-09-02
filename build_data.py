@@ -9,6 +9,7 @@ from zoneinfo import ZoneInfo
 from collectors.quest import QUEST_GROUPS, fetch_quest_group
 from collectors.snap import fetch_snap
 from collectors.unit4 import UNIT4_GROUPS, fetch_unit4_menus
+from collectors.usd116_calendar import SOURCE_NAME as USD116_CALENDAR_SOURCE, fetch_usd116_calendar
 
 ROOT = Path(__file__).resolve().parent
 STATIC_PATH = ROOT / "data" / "static-events.json"
@@ -97,7 +98,10 @@ def previous_group_meals(group: str) -> list[dict]:
 
 def build(*, offline: bool = False) -> dict:
     static = load_json(STATIC_PATH, {"events": [], "meals": []})
-    static_events = list(static.get("events", []))
+    static_events = [
+        event for event in static.get("events", [])
+        if "USD 116" not in str(event.get("source", ""))
+    ]
     static_meals = list(static.get("meals", []))
     source_status = []
 
@@ -135,6 +139,35 @@ def build(*, offline: bool = False) -> dict:
                     "error": f"{type(exc).__name__}: {exc}",
                 })
         snap_events.extend(source_events)
+
+    # USD 116 district school-year calendar. This replaces the hand-entered
+    # USD 116 schedule records while leaving school-specific events untouched.
+    if offline:
+        usd116_calendar_events = previous_source_events(USD116_CALENDAR_SOURCE)
+        source_status.append({
+            "id": "usd-calendar",
+            "status": "cached" if usd116_calendar_events else "failed",
+            "count": len(usd116_calendar_events),
+            "unit": "events",
+        })
+    else:
+        try:
+            usd116_calendar_events = fetch_usd116_calendar()
+            source_status.append({
+                "id": "usd-calendar",
+                "status": "live",
+                "count": len(usd116_calendar_events),
+                "unit": "events",
+            })
+        except Exception as exc:
+            usd116_calendar_events = previous_source_events(USD116_CALENDAR_SOURCE)
+            source_status.append({
+                "id": "usd-calendar",
+                "status": "cached" if usd116_calendar_events else "failed",
+                "count": len(usd116_calendar_events),
+                "unit": "events",
+                "error": f"{type(exc).__name__}: {exc}",
+            })
 
     quest_meals: list[dict] = []
     for group_id, cfg in QUEST_GROUPS.items():
@@ -195,7 +228,7 @@ def build(*, offline: bool = False) -> dict:
                 "error": f"{type(exc).__name__}: {exc}",
             })
 
-    events = merge_unique(static_events + snap_events)
+    events = merge_unique(static_events + snap_events + usd116_calendar_events)
     meals = merge_meals(static_meals + quest_meals + unit4_meals)
     now = datetime.now(ZoneInfo("America/Chicago")).isoformat(timespec="seconds")
     return {
