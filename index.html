@@ -831,6 +831,7 @@
         <div class="picker-head">
           <div class="eyebrow" style="margin:0">Choose the schools your household follows</div>
           <div class="picker-actions">
+            <button type="button" id="doneChoosingSchools">Done</button>
             <button type="button" id="selectAllSchools">All</button>
             <button type="button" id="clearAllSchools">None</button>
           </div>
@@ -16086,6 +16087,10 @@
   function escapeAttr(value){
     return escapeHtml(value).replace(/`/g, "&#096;");
   }
+
+  document.getElementById("doneChoosingSchools").addEventListener("click", () => {
+    document.getElementById("schoolPicker").classList.remove("open");
+  });
 
   document.getElementById("selectAllSchools").addEventListener("click", () => {
     selected = SCHOOLS.map(s => s.id);
