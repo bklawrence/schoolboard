@@ -6,7 +6,7 @@ from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from collectors.quest import SOURCE_NAME as QUEST_SOURCE, fetch_yankee_k5
+from collectors.quest import QUEST_GROUPS, fetch_quest_group
 from collectors.snap import fetch_uni_snap
 
 ROOT = Path(__file__).resolve().parent
@@ -42,7 +42,6 @@ def merge_unique(events: list[dict]) -> list[dict]:
             by_id[event_id] = event
         else:
             no_id.append(event)
-
     merged = list(by_id.values()) + no_id
     seen: set[tuple] = set()
     result: list[dict] = []
@@ -69,9 +68,9 @@ def previous_source_events(source: str) -> list[dict]:
     return [e for e in old.get("events", []) if e.get("source") == source]
 
 
-def previous_source_meals(source: str) -> list[dict]:
+def previous_group_meals(group: str) -> list[dict]:
     old = load_json(OUTPUT_PATH, {})
-    return [m for m in old.get("meals", []) if m.get("source") == source]
+    return [m for m in old.get("meals", []) if m.get("group") == group]
 
 
 def build(*, offline: bool = False) -> dict:
@@ -80,7 +79,6 @@ def build(*, offline: bool = False) -> dict:
     static_meals = list(static.get("meals", []))
     source_status = []
 
-    # Uni High athletics: direct public iCalendar feed.
     if offline:
         snap_events = previous_source_events(UNI_SOURCE)
         source_status.append({"id": "uni-athletics", "status": "cached", "count": len(snap_events), "unit": "events"})
@@ -100,26 +98,27 @@ def build(*, offline: bool = False) -> dict:
                 "error": f"{type(exc).__name__}: {exc}",
             })
 
-    # USD 116 K–5 lunches: load the public MySchoolQuest page in headless Chrome
-    # and inspect the same JSON responses used by the browser.
-    if offline:
-        quest_meals = previous_source_meals(QUEST_SOURCE)
-        source_status.append({"id": "quest-k5", "status": "cached", "count": len(quest_meals), "unit": "menu days"})
-    else:
-        try:
-            quest_meals = fetch_yankee_k5()
-            if not quest_meals:
-                raise RuntimeError("Quest collector returned zero dated menu records")
-            source_status.append({"id": "quest-k5", "status": "live", "count": len(quest_meals), "unit": "menu days"})
-        except Exception as exc:
-            quest_meals = previous_source_meals(QUEST_SOURCE)
-            source_status.append({
-                "id": "quest-k5",
-                "status": "cached" if quest_meals else "failed",
-                "count": len(quest_meals),
-                "unit": "menu days",
-                "error": f"{type(exc).__name__}: {exc}",
-            })
+    quest_meals: list[dict] = []
+    for group_id, cfg in QUEST_GROUPS.items():
+        if offline:
+            group_meals = previous_group_meals(group_id)
+            source_status.append({"id": cfg.log_id, "status": "cached", "count": len(group_meals), "unit": "menu days"})
+        else:
+            try:
+                group_meals = fetch_quest_group(group_id)
+                if not group_meals:
+                    raise RuntimeError(f"Quest collector returned zero {group_id} menu records")
+                source_status.append({"id": cfg.log_id, "status": "live", "count": len(group_meals), "unit": "menu days"})
+            except Exception as exc:
+                group_meals = previous_group_meals(group_id)
+                source_status.append({
+                    "id": cfg.log_id,
+                    "status": "cached" if group_meals else "failed",
+                    "count": len(group_meals),
+                    "unit": "menu days",
+                    "error": f"{type(exc).__name__}: {exc}",
+                })
+        quest_meals.extend(group_meals)
 
     events = merge_unique(static_events + snap_events)
     meals = merge_meals(static_meals + quest_meals)
@@ -137,7 +136,6 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Build schoolboard-data.json from public source collectors.")
     parser.add_argument("--offline", action="store_true", help="Do not request remote sources; retain cached live records.")
     args = parser.parse_args()
-
     payload = build(offline=args.offline)
     OUTPUT_PATH.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
