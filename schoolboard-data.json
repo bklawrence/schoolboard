@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-02T10:58:35-05:00",
+  "updated": "2026-09-02T11:04:30-05:00",
   "mode": "live-collector",
   "sources": [
     {
@@ -22,16 +22,17 @@
     },
     {
       "id": "quest-high",
-      "status": "live",
+      "status": "cached",
       "count": 5,
-      "unit": "menu days"
+      "unit": "menu days",
+      "error": "WebDriverException: Message: unknown error: net::ERR_CONNECTION_RESET\n  (Session info: chrome=151.0.7922.173)\nStacktrace:\n#0 0x55cd0614e36a <unknown>\n#1 0x55cd05ac1f49 <unknown>\n#2 0x55cd05ab8d9c <unknown>\n#3 0x55cd05aa9e81 <unknown>\n#4 0x55cd05aabbf5 <unknown>\n#5 0x55cd05aaa37a <unknown>\n#6 0x55cd05aa99f9 <unknown>\n#7 0x55cd05aa9616 <unknown>\n#8 0x55cd05aa71fe <unknown>\n#9 0x55cd05aa7a40 <unknown>\n#10 0x55cd05ac59fd <unknown>\n#11 0x55cd05b60dcb <unknown>\n#12 0x55cd05b600c3 <unknown>\n#13 0x55cd05b0ac92 <unknown>\n#14 0x55cd05b0bb11 <unknown>\n#15 0x55cd061138d0 <unknown>\n#16 0x55cd06111f3a <unknown>\n#17 0x55cd060fc9b5 <unknown>\n#18 0x55cd06112c0a <unknown>\n#19 0x55cd060e4740 <unknown>\n#20 0x55cd061399a8 <unknown>\n#21 0x55cd06139b45 <unknown>\n#22 0x55cd0614cf1e <unknown>\n#23 0x7f8e7e89cb84 <unknown>\n#24 0x7f8e7e929d6c <unknown>\n"
     },
     {
       "id": "unit4-menus",
       "status": "failed",
       "count": 0,
       "unit": "menu days",
-      "error": "RuntimeError: Unit 4 GraphQL returned no menu payload for Central High / "
+      "error": "RuntimeError: Unit 4 menu option 'Elementary Schools' not found; available=['Select a site group']"
     }
   ],
   "events": [
