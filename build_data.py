@@ -3,7 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
-from datetime import datetime
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -18,6 +18,12 @@ from collectors.unit4_events import UNIT4_CALENDARS, fetch_unit4_calendar
 ROOT = Path(__file__).resolve().parent
 STATIC_PATH = ROOT / "data" / "static-events.json"
 OUTPUT_PATH = ROOT / "schoolboard-data.json"
+
+# Keep a modest amount of recent history for debugging/context and a little
+# more than one year ahead so newly published next-school-year calendars
+# appear automatically. These bounds move forward on every build.
+EVENT_HISTORY_DAYS = 30
+EVENT_HORIZON_DAYS = 60
 
 SNAP_SOURCES = [
     {
@@ -113,6 +119,47 @@ def merge_unique(events: list[dict]) -> list[dict]:
     return sorted(result, key=lambda e: (e.get("date", ""), e.get("start", ""), e.get("title", "")))
 
 
+def rolling_event_window(reference: date) -> tuple[date, date]:
+    return (
+        reference - timedelta(days=EVENT_HISTORY_DAYS),
+        reference + timedelta(days=EVENT_HORIZON_DAYS),
+    )
+
+
+def filter_events_to_rolling_window(
+    events: list[dict],
+    *,
+    reference: date,
+) -> tuple[list[dict], date, date]:
+    window_start, window_end = rolling_event_window(reference)
+    kept: list[dict] = []
+
+    for event in events:
+        raw_start = str(event.get("date") or "")
+        try:
+            event_start = date.fromisoformat(raw_start)
+        except ValueError:
+            continue
+
+        raw_end = str(event.get("endDate") or "")
+        try:
+            event_end = date.fromisoformat(raw_end) if raw_end else event_start
+        except ValueError:
+            event_end = event_start
+
+        # Keep events that overlap the rolling window, including multi-day
+        # events that began shortly before it.
+        if event_end < window_start or event_start > window_end:
+            continue
+        kept.append(event)
+
+    kept = sorted(
+        kept,
+        key=lambda e: (e.get("date", ""), e.get("start", ""), e.get("title", "")),
+    )
+    return kept, window_start, window_end
+
+
 def merge_meals(meals: list[dict]) -> list[dict]:
     by_key: dict[tuple[str, str], dict] = {}
     for meal in meals:
@@ -150,6 +197,7 @@ def build(*, offline: bool = False) -> dict:
     ]
     static_meals = list(static.get("meals", []))
     source_status = []
+    today = datetime.now(ZoneInfo("America/Chicago")).date()
 
     snap_events: list[dict] = []
     for cfg in SNAP_SOURCES:
@@ -219,8 +267,6 @@ def build(*, offline: bool = False) -> dict:
     # Only explicit date-led lines are parsed. Previously collected future
     # events remain cached even after an older post rolls off the homepage.
     usd116_school_events: list[dict] = []
-    today = datetime.now().date()
-
     for school in SCHOOL_FEEDS:
         cached = previous_schoolfeed_events(school.id)
         cached_future = [
@@ -238,8 +284,22 @@ def build(*, offline: bool = False) -> dict:
             })
         else:
             try:
-                fresh = fetch_school_feed(school, reference=today)
-                source_events = merge_unique(cached_future + fresh)
+                fresh, refreshed_urls = fetch_school_feed(
+                    school,
+                    reference=today,
+                    return_refreshed_urls=True,
+                )
+
+                # A successfully refreshed ParentSquare post is authoritative:
+                # remove its prior cached events before adding the fresh parse.
+                # Future events from older posts that have rolled off the
+                # homepage remain cached.
+                retained_cached = [
+                    event for event in cached_future
+                    if event.get("sourceUrl") not in refreshed_urls
+                ]
+                source_events = merge_unique(retained_cached + fresh)
+
                 source_status.append({
                     "id": f"usd-feed-{school.id}",
                     "status": "live",
@@ -264,6 +324,10 @@ def build(*, offline: bool = False) -> dict:
     for calendar in UNIT4_CALENDARS:
         if offline:
             source_events = previous_source_events(calendar.source)
+            source_events, _, _ = filter_events_to_rolling_window(
+                source_events,
+                reference=today,
+            )
             source_status.append({
                 "id": calendar.log_id,
                 "status": "cached" if source_events else "live",
@@ -273,6 +337,10 @@ def build(*, offline: bool = False) -> dict:
         else:
             try:
                 source_events = fetch_unit4_calendar(calendar)
+                source_events, _, _ = filter_events_to_rolling_window(
+                    source_events,
+                    reference=today,
+                )
                 source_status.append({
                     "id": calendar.log_id,
                     "status": "live",
@@ -281,6 +349,10 @@ def build(*, offline: bool = False) -> dict:
                 })
             except Exception as exc:
                 source_events = previous_source_events(calendar.source)
+                source_events, _, _ = filter_events_to_rolling_window(
+                    source_events,
+                    reference=today,
+                )
                 source_status.append({
                     "id": calendar.log_id,
                     "status": "cached" if source_events else "failed",
@@ -378,7 +450,25 @@ def build(*, offline: bool = False) -> dict:
                 "error": f"{type(exc).__name__}: {exc}",
             })
 
-    events = merge_unique(static_events + snap_events + usd116_calendar_events + usd116_school_events + unit4_school_events + countryside_events)
+    events = merge_unique(
+        static_events
+        + snap_events
+        + usd116_calendar_events
+        + usd116_school_events
+        + unit4_school_events
+        + countryside_events
+    )
+    unfiltered_event_count = len(events)
+    events, window_start, window_end = filter_events_to_rolling_window(
+        events,
+        reference=today,
+    )
+    print(
+        f"rolling-window detail: {window_start.isoformat()} through "
+        f"{window_end.isoformat()}; kept {len(events)} of "
+        f"{unfiltered_event_count} merged events"
+    )
+
     meals = merge_meals(static_meals + quest_meals + unit4_meals)
     now = datetime.now(ZoneInfo("America/Chicago")).isoformat(timespec="seconds")
     return {
