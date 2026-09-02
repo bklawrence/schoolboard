@@ -15766,7 +15766,23 @@
     return U4_ROTATION_ORDER[idx];
   }
 
+  function liveLunchFor(groupId, dateString){
+    const meals = Array.isArray(data.meals) ? data.meals : [];
+    const live = meals.find(m => m.group === groupId && m.date === dateString);
+    if (!live || !Array.isArray(live.items) || !live.items.length) return null;
+    return {
+      items: live.items,
+      status: live.status || "live",
+      label: live.label || "Live published menu",
+      source: live.source || "Live menu source",
+      sourceUrl: live.sourceUrl || ""
+    };
+  }
+
   function lunchFor(groupId, dateString){
+    const live = liveLunchFor(groupId, dateString);
+    if (live) return live;
+
     const d = parseDateOnly(dateString);
     const weekday = (d.getDay() + 6) % 7; // Mon=0
     if (weekday > 4) return {items:[], status:"weekend", label:"No school lunch"};
@@ -15849,7 +15865,7 @@
 
     host.innerHTML = `
       <div class="menu-source-note">
-        Published district menus when available · later dates use inferred rotations · prediction note below
+        Live collected menus when available · published fallback/predictions remain in place if a source cannot be reached
       </div>
       ${blocks}
     `;
