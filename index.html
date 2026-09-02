@@ -558,6 +558,40 @@
       margin-bottom:7px;
       line-height:1.35;
     }
+    .menu-stations{
+      margin-top:4px;
+    }
+    .menu-station{
+      border-top:1px solid rgba(20,20,20,.32);
+      padding:8px 0 2px;
+      margin-top:7px;
+    }
+    .menu-station:first-child{
+      border-top:0;
+      padding-top:2px;
+      margin-top:0;
+    }
+    .menu-station-label{
+      font:900 10px ui-monospace, SFMono-Regular, Menlo, monospace;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      margin-bottom:3px;
+      color:var(--ink);
+    }
+    .week-meal-parent{
+      display:block;
+      margin-top:5px;
+    }
+    .week-meal-station{
+      display:block;
+      margin:3px 0 0 13px;
+      line-height:1.35;
+    }
+    .week-meal-station strong{
+      font-size:10px;
+      text-transform:uppercase;
+      letter-spacing:.04em;
+    }
     .menu-choice{
       font-size:16px;
       line-height:1.22;
@@ -982,6 +1016,14 @@
     "color": "#9D7AD2"
   },
   {
+    "id": "countryside",
+    "short": "Countryside",
+    "full": "Countryside School",
+    "system": "Independent",
+    "level": "K–8",
+    "color": "#4D8B57"
+  },
+  {
     "id": "barkstall",
     "short": "Barkstall",
     "full": "Barkstall Elementary",
@@ -1213,6 +1255,15 @@
     "url": "https://bulletins.illinois.edu/view/1277610798/"
   },
   {
+    "id": "countryside-calendar",
+    "kind": "School calendar",
+    "name": "Countryside School Calendar",
+    "schools": [
+      "countryside"
+    ],
+    "url": "https://www.countrysideschool.org/calendar"
+  },
+  {
     "id": "u4-calendar",
     "kind": "District calendar",
     "name": "Champaign Unit 4 District Calendar",
@@ -1376,6 +1427,8 @@
   },
   "u4world": {
     "label": "Unit 4 HS · Around the World",
+    "cafeteriaGroup": "u4hs",
+    "stationLabel": "Around the World",
     "schools": [
       "central",
       "centennial"
@@ -1385,6 +1438,8 @@
   },
   "u4pizza": {
     "label": "Unit 4 HS · Pizzeria",
+    "cafeteriaGroup": "u4hs",
+    "stationLabel": "Pizzeria",
     "schools": [
       "central",
       "centennial"
@@ -1394,6 +1449,8 @@
   },
   "u4home": {
     "label": "Unit 4 HS · Taste of Home",
+    "cafeteriaGroup": "u4hs",
+    "stationLabel": "Taste of Home",
     "schools": [
       "central",
       "centennial"
@@ -1403,6 +1460,8 @@
   },
   "u4grill": {
     "label": "Unit 4 HS · Grillzone",
+    "cafeteriaGroup": "u4hs",
+    "stationLabel": "Grillzone",
     "schools": [
       "central",
       "centennial"
@@ -15841,7 +15900,10 @@
     if (panel) panel.style.display = "block";
     if (hero) hero.classList.remove("no-meals");
 
-    const blocks = groups.map(g => {
+    const regularGroups = groups.filter(g => g.cafeteriaGroup !== "u4hs");
+    const highSchoolStations = groups.filter(g => g.cafeteriaGroup === "u4hs");
+
+    const regularBlocks = regularGroups.map(g => {
       const selectedGroupSchools = g.schools.filter(id => selected.includes(id));
       const nameList = selectedGroupSchools.map(id => SCHOOLS.find(s => s.id === id)?.short).filter(Boolean);
       const names = nameList.length > 4 ? `${nameList.length} selected schools` : nameList.join(" + ");
@@ -15851,14 +15913,44 @@
 
       return `
         <div class="menu-group">
-          <div class="menu-group-label">${schoolPips(g.schools.filter(id => selected.includes(id)))}${escapeHtml(g.label)} Lunch</div>
+          <div class="menu-group-label">${schoolPips(selectedGroupSchools)}${escapeHtml(g.label)} Lunch</div>
           <div class="menu-group-schools">${escapeHtml(names)}</div>
           ${lunch.items.length
             ? renderChoiceList(lunch.items, idPrefix)
             : `<div class="meal-empty" style="margin-top:6px">${escapeHtml(lunch.label)}</div>`}
           ${lunch.items.length ? `<div class="menu-confidence ${lunch.status === "predicted" ? "predicted" : ""}">${escapeHtml(lunch.label)}</div>` : ""}
         </div>`;
-    }).join("");
+    });
+
+    const highSchoolBlock = highSchoolStations.length ? (() => {
+      const schoolIds = [...new Set(
+        highSchoolStations.flatMap(g => g.schools.filter(id => selected.includes(id)))
+      )];
+      const schoolNames = schoolIds.map(id => schoolById(id)?.short).filter(Boolean);
+      const names = schoolNames.length > 4 ? `${schoolNames.length} selected schools` : schoolNames.join(" + ");
+
+      const stations = highSchoolStations.map(g => {
+        const lunch = lunchFor(g.id, TODAY);
+        const idPrefix = `today-${g.id}`;
+        return `
+          <div class="menu-station">
+            <div class="menu-station-label">${escapeHtml(g.stationLabel || g.label)}</div>
+            ${lunch.items.length
+              ? renderChoiceList(lunch.items, idPrefix)
+              : `<div class="meal-empty">${escapeHtml(lunch.label)}</div>`}
+            ${lunch.items.length ? `<div class="menu-confidence ${lunch.status === "predicted" ? "predicted" : ""}">${escapeHtml(lunch.label)}</div>` : ""}
+          </div>`;
+      }).join("");
+
+      return `
+        <div class="menu-group">
+          <div class="menu-group-label">${schoolPips(schoolIds)}Unit 4 High School Lunch</div>
+          <div class="menu-group-schools">${escapeHtml(names)}</div>
+          <div class="menu-stations">${stations}</div>
+        </div>`;
+    })() : "";
+
+    const blocks = [...regularBlocks, highSchoolBlock].filter(Boolean).join("");
 
     host.innerHTML = `
       <div class="menu-source-note">
@@ -15876,6 +15968,57 @@
         button.textContent = opening ? "Show fewer" : `+ ${extra.children.length} more choices`;
       });
     });
+  }
+
+  function renderWeekLunches(lunches){
+    const regular = lunches.filter(x => x.group.cafeteriaGroup !== "u4hs");
+    const highSchool = lunches.filter(x => x.group.cafeteriaGroup === "u4hs");
+
+    const regularHtml = regular.map(x => {
+      const mealSchoolIds = x.group.schools.filter(id => selected.includes(id));
+      const _mealList = mealSchoolIds.map(id => schoolById(id)?.short).filter(Boolean);
+      const mealNames = _mealList.length > 3 ? `${_mealList.length} selected schools` : (_mealList.join(" + ") || x.group.label);
+
+      if (x.lunch.status === "none"){
+        return `<span style="display:block;margin-top:5px">${schoolPips(mealSchoolIds)}<strong>${escapeHtml(mealNames)} · ${escapeHtml(x.group.label)}:</strong> ${escapeHtml(x.lunch.label)}</span>`;
+      }
+
+      const preview = x.lunch.items.slice(0,3).map(escapeHtml).join(" · ");
+      const more = Math.max(0, x.lunch.items.length - 3);
+      return `<span style="display:block;margin-top:5px">
+        ${schoolPips(mealSchoolIds)}<strong>${escapeHtml(mealNames)} · ${escapeHtml(x.group.label)}:</strong> ${preview}${more ? ` · +${more} more` : ""}
+        ${x.lunch.status === "predicted" ? `<span class="prediction-mark"> · predicted</span>` : ""}
+      </span>`;
+    }).join("");
+
+    let highSchoolHtml = "";
+    if (highSchool.length){
+      const schoolIds = [...new Set(
+        highSchool.flatMap(x => x.group.schools.filter(id => selected.includes(id)))
+      )];
+      const schoolList = schoolIds.map(id => schoolById(id)?.short).filter(Boolean);
+      const mealNames = schoolList.length > 3 ? `${schoolList.length} selected schools` : (schoolList.join(" + ") || "Unit 4 High School");
+
+      const stations = highSchool.map(x => {
+        const label = x.group.stationLabel || x.group.label;
+        if (x.lunch.status === "none"){
+          return `<span class="week-meal-station"><strong>${escapeHtml(label)}:</strong> ${escapeHtml(x.lunch.label)}</span>`;
+        }
+        const preview = x.lunch.items.slice(0,3).map(escapeHtml).join(" · ");
+        const more = Math.max(0, x.lunch.items.length - 3);
+        return `<span class="week-meal-station">
+          <strong>${escapeHtml(label)}:</strong> ${preview}${more ? ` · +${more} more` : ""}
+          ${x.lunch.status === "predicted" ? `<span class="prediction-mark"> · predicted</span>` : ""}
+        </span>`;
+      }).join("");
+
+      highSchoolHtml = `<span class="week-meal-parent">
+        ${schoolPips(schoolIds)}<strong>${escapeHtml(mealNames)} · Unit 4 High School:</strong>
+        ${stations}
+      </span>`;
+    }
+
+    return regularHtml + highSchoolHtml;
   }
 
   function renderWeekInto(offsetWeeks, subId, gridId){
@@ -15911,21 +16054,7 @@
             </div>`;
           }).join("") : `<div class="week-event"><div class="s">No events found</div></div>`}
 
-          ${lunches.length ? `<div class="week-meal"><b>Lunch</b><br>${lunches.map(x => {
-            if (x.lunch.status === "none"){
-              const mealSchoolIds = x.group.schools.filter(id => selected.includes(id));
-              const _mealList = mealSchoolIds.map(id => schoolById(id)?.short).filter(Boolean); const mealNames = _mealList.length > 3 ? `${_mealList.length} selected schools` : (_mealList.join(" + ") || x.group.label);
-              return `<span style="display:block;margin-top:5px">${schoolPips(mealSchoolIds)}<strong>${escapeHtml(mealNames)} · ${escapeHtml(x.group.label)}:</strong> ${escapeHtml(x.lunch.label)}</span>`;
-            }
-            const preview = x.lunch.items.slice(0,3).map(escapeHtml).join(" · ");
-            const more = Math.max(0, x.lunch.items.length - 3);
-            const mealSchoolIds = x.group.schools.filter(id => selected.includes(id));
-            const _mealList = mealSchoolIds.map(id => schoolById(id)?.short).filter(Boolean); const mealNames = _mealList.length > 3 ? `${_mealList.length} selected schools` : (_mealList.join(" + ") || x.group.label);
-            return `<span style="display:block;margin-top:5px">
-              ${schoolPips(mealSchoolIds)}<strong>${escapeHtml(mealNames)} · ${escapeHtml(x.group.label)}:</strong> ${preview}${more ? ` · +${more} more` : ""}
-              ${x.lunch.status === "predicted" ? `<span class="prediction-mark"> · predicted</span>` : ""}
-            </span>`;
-          }).join("")}</div>` : ""}
+          ${lunches.length ? `<div class="week-meal"><b>Lunch</b><br>${renderWeekLunches(lunches)}</div>` : ""}
         </article>
       `;
     }).join("");
