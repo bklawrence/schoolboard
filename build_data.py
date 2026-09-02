@@ -13,7 +13,7 @@ from collectors.unit4 import UNIT4_GROUPS, fetch_unit4_menus
 from collectors.countryside import SOURCE_NAME as COUNTRYSIDE_SOURCE, fetch_countryside_calendar
 from collectors.usd116_calendar import SOURCE_NAME as USD116_CALENDAR_SOURCE, fetch_usd116_calendar
 from collectors.usd116_schoolfeeds import SCHOOL_FEEDS, SOURCE_PREFIX as USD116_SCHOOLFEED_PREFIX, fetch_school_feed
-from collectors.unit4_events import (
+from collectors.apptegy_calendars import (
     DISTRICT_SOURCE as UNIT4_DISTRICT_SOURCE,
     STM_SOURCE,
     UNIT4_CALENDARS,
