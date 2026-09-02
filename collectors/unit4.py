@@ -89,6 +89,36 @@ def _select_visible(select_obj, wanted: str) -> str:
     return actual
 
 
+def _wait_for_select_option(driver, index: int, wanted: str, *, timeout: float = 15.0):
+    """Wait until a select exists and its async options include `wanted`."""
+    from selenium.webdriver.common.by import By
+    from selenium.webdriver.support.ui import Select
+
+    deadline = time.time() + timeout
+    last_available: list[str] = []
+    while time.time() < deadline:
+        try:
+            selects = driver.find_elements(By.TAG_NAME, "select")
+            if len(selects) > index:
+                select_obj = Select(selects[index])
+                last_available = [_compact(opt.text) for opt in select_obj.options if _compact(opt.text)]
+                try:
+                    actual = _find_option(select_obj, wanted)
+                    return selects[index], select_obj, actual
+                except RuntimeError:
+                    pass
+        except Exception:
+            # The old menu app frequently replaces the dropdown nodes while AJAX runs.
+            # Reacquire them on the next poll rather than treating a stale element as failure.
+            pass
+        time.sleep(0.35)
+
+    raise RuntimeError(
+        f"Unit 4 menu option {wanted!r} did not appear within {timeout:g}s; "
+        f"available={last_available!r}"
+    )
+
+
 def _graphql_menu_payloads(driver) -> list[dict[str, Any]]:
     payloads: list[dict[str, Any]] = []
 
@@ -306,29 +336,25 @@ def _fetch_target(driver, group: str, grade_band: str, school: str, menu_name: s
     from selenium.webdriver.support.ui import Select
 
     driver.get(MENU_URL)
-    time.sleep(2.0)
 
-    selects = driver.find_elements(By.TAG_NAME, "select")
-    if not selects:
-        raise RuntimeError("Unit 4 grade-band dropdown not found")
-    grade_select = Select(selects[0])
-    actual_grade = _select_visible(grade_select, grade_band)
-    _dispatch_change(driver, selects[0])
-    time.sleep(2.0)
+    # This legacy page fills each dropdown asynchronously. On GitHub runners the
+    # first dropdown sometimes exists for a moment with only "Select a site group".
+    # Wait for the option we need rather than relying on fixed sleeps.
+    grade_el, grade_select, actual_grade = _wait_for_select_option(
+        driver, 0, grade_band, timeout=18.0
+    )
+    grade_select.select_by_visible_text(actual_grade)
+    _dispatch_change(driver, grade_el)
 
-    selects = driver.find_elements(By.TAG_NAME, "select")
-    if len(selects) < 2:
-        raise RuntimeError(f"Unit 4 school dropdown did not appear for {grade_band}")
-    school_select = Select(selects[1])
-    actual_school = _select_visible(school_select, school)
-    _dispatch_change(driver, selects[1])
-    time.sleep(2.0)
+    school_el, school_select, actual_school = _wait_for_select_option(
+        driver, 1, school, timeout=18.0
+    )
+    school_select.select_by_visible_text(actual_school)
+    _dispatch_change(driver, school_el)
 
-    selects = driver.find_elements(By.TAG_NAME, "select")
-    if len(selects) < 3:
-        raise RuntimeError(f"Unit 4 menu dropdown did not appear for {school}")
-    menu_select = Select(selects[2])
-    actual_menu = _find_option(menu_select, menu_name)
+    menu_el, menu_select, actual_menu = _wait_for_select_option(
+        driver, 2, menu_name, timeout=18.0
+    )
 
     # Clear prior GraphQL traffic so only this actual menu selection is parsed.
     try:
@@ -337,7 +363,7 @@ def _fetch_target(driver, group: str, grade_band: str, school: str, menu_name: s
         pass
 
     menu_select.select_by_visible_text(actual_menu)
-    _dispatch_change(driver, selects[2])
+    _dispatch_change(driver, menu_el)
     time.sleep(wait_seconds)
 
     menus = _graphql_menu_payloads(driver)
