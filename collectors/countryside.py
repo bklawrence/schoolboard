@@ -163,9 +163,102 @@ def _make_event(
     return event
 
 
+TIME_FRAGMENT_RE = re.compile(r"^[0-9APMapm:.\-–\s]+$")
+ADDRESS_LIKE_RE = re.compile(
+    r"(?:\b\d{2,6}\s+\w+)|(?:\b(?:Ave|Avenue|St|Street|Rd|Road|Blvd|Boulevard|Dr|Drive|Ln|Lane)\b)|"
+    r"(?:\bChampaign\b)|(?:\bUrbana\b)|(?:\bIL\s+\d{5}\b)|(?:\bUSA\b)",
+    re.I,
+)
+
+
+def _normalize_time_text(value: str) -> str:
+    value = re.sub(r"\s+", " ", value).strip()
+    value = re.sub(r"\s*:\s*", ":", value)
+    value = re.sub(r"\s*[-–]\s*", " - ", value)
+    value = re.sub(r"\b([AP])\s+M\b", r"\1M", value, flags=re.I)
+    return value.strip()
+
+
+def _repair_fragmented_times(lines: list[str]) -> list[str]:
+    """Reassemble Finalsite times split across adjacent HTML text nodes."""
+    repaired: list[str] = []
+    i = 0
+
+    while i < len(lines):
+        current = _compact(lines[i])
+
+        # Already a complete time: keep it.
+        normalized = _normalize_time_text(current)
+        if TIME_RANGE_RE.match(normalized) or ONE_TIME_RE.match(normalized):
+            repaired.append(normalized)
+            i += 1
+            continue
+
+        # Only attempt joining when the first piece itself looks like a time token.
+        if not TIME_FRAGMENT_RE.match(current):
+            repaired.append(current)
+            i += 1
+            continue
+
+        found = None
+        pieces = []
+        # A range such as "4 : 30 PM - 6 : 00 PM" can span many tiny nodes.
+        for j in range(i, min(len(lines), i + 12)):
+            piece = _compact(lines[j])
+            if not TIME_FRAGMENT_RE.match(piece):
+                break
+            pieces.append(piece)
+            candidate = _normalize_time_text(" ".join(pieces))
+            if TIME_RANGE_RE.match(candidate) or ONE_TIME_RE.match(candidate):
+                found = (candidate, j + 1)
+
+        if found:
+            repaired.append(found[0])
+            i = found[1]
+        else:
+            repaired.append(current)
+            i += 1
+
+    return repaired
+
+
+def _can_be_all_day_title(line: str) -> bool:
+    """Reject HTML/time/location debris as standalone calendar events."""
+    clean = _compact(line)
+    if not clean:
+        return False
+
+    low = clean.casefold()
+    if low in {
+        "am", "pm", "a.m.", "p.m.", ":", "-", "–",
+        "all day", "calendar & category legend:", "calendar & category legend",
+    }:
+        return False
+
+    # Numbers or punctuation alone are never event names.
+    if re.fullmatch(r"[\d\s:.\-–]+", clean):
+        return False
+
+    # A stray time fragment should never be promoted to an all-day event.
+    normalized = _normalize_time_text(clean)
+    if (
+        TIME_FRAGMENT_RE.fullmatch(clean)
+        or TIME_RANGE_RE.match(normalized)
+        or ONE_TIME_RE.match(normalized)
+    ):
+        return False
+
+    # Locations belong to timed event cards, not to independent all-day events.
+    if ADDRESS_LIKE_RE.search(clean):
+        return False
+
+    return True
+
+
 def _parse_day_block(lines: list[str], event_day: date) -> list[dict]:
     """Parse one Finalsite day cell from its server-rendered text."""
     lines = [_compact(x) for x in lines if _compact(x)]
+    lines = _repair_fragmented_times(lines)
     if not lines:
         return []
 
@@ -270,6 +363,8 @@ def _parse_day_block(lines: list[str], event_day: date) -> list[dict]:
         }:
             continue
         if TIME_RANGE_RE.match(line) or ONE_TIME_RE.match(line):
+            continue
+        if not _can_be_all_day_title(line):
             continue
 
         events.append(_make_event(
