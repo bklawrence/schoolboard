@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import re
-import time
-from dataclasses import dataclass
 from datetime import date, datetime
+from html import unescape
+from html.parser import HTMLParser
 from typing import Any
+from urllib.request import Request, urlopen
 
 CALENDAR_URL = "https://www.countrysideschool.org/calendar"
 SOURCE_NAME = "Countryside School Calendar"
@@ -20,14 +21,29 @@ SPORT_CATEGORIES = {
 }
 KNOWN_CATEGORIES = SPORT_CATEGORIES | {"admissions", "alumni"}
 
-DAY_RE = re.compile(
-    r"^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),\s+"
-    r"(January|February|March|April|May|June|July|August|September|October|November|December)\s+"
-    r"(\d{1,2})$",
+MONTHS = {
+    "jan": 1, "january": 1,
+    "feb": 2, "february": 2,
+    "mar": 3, "march": 3,
+    "apr": 4, "april": 4,
+    "may": 5,
+    "jun": 6, "june": 6,
+    "jul": 7, "july": 7,
+    "aug": 8, "august": 8,
+    "sep": 9, "sept": 9, "september": 9,
+    "oct": 10, "october": 10,
+    "nov": 11, "november": 11,
+    "dec": 12, "december": 12,
+}
+
+MONTH_YEAR_RE = re.compile(
+    r"^(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{4})$",
     re.I,
 )
-MONTH_RE = re.compile(
-    r"^(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{4})$",
+DAY_RE = re.compile(
+    r"^(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),\s+"
+    r"(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|"
+    r"Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+(\d{1,2})$",
     re.I,
 )
 TIME_RANGE_RE = re.compile(
@@ -36,15 +52,35 @@ TIME_RANGE_RE = re.compile(
 )
 ONE_TIME_RE = re.compile(r"^(\d{1,2}:\d{2}\s*[AP]M)$", re.I)
 
-MONTHS = {
-    "january": 1, "february": 2, "march": 3, "april": 4,
-    "may": 5, "june": 6, "july": 7, "august": 8,
-    "september": 9, "october": 10, "november": 11, "december": 12,
-}
+
+class _VisibleTextParser(HTMLParser):
+    """Extract server-rendered visible text without relying on Finalsite JS."""
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.skip_depth = 0
+        self.lines: list[str] = []
+
+    def handle_starttag(self, tag: str, attrs) -> None:
+        low = tag.casefold()
+        if low in {"script", "style", "noscript", "svg"}:
+            self.skip_depth += 1
+
+    def handle_endtag(self, tag: str) -> None:
+        low = tag.casefold()
+        if low in {"script", "style", "noscript", "svg"} and self.skip_depth:
+            self.skip_depth -= 1
+
+    def handle_data(self, data: str) -> None:
+        if self.skip_depth:
+            return
+        for part in str(data or "").splitlines():
+            clean = re.sub(r"\s+", " ", unescape(part)).strip()
+            if clean:
+                self.lines.append(clean)
 
 
-def _compact(text: Any) -> str:
-    return re.sub(r"\s+", " ", str(text or "")).strip()
+def _compact(value: Any) -> str:
+    return re.sub(r"\s+", " ", str(value or "")).strip()
 
 
 def _to_24h(value: str) -> str:
@@ -52,7 +88,7 @@ def _to_24h(value: str) -> str:
 
 
 def _infer_year(month: int, visible_month: int, visible_year: int) -> int:
-    # Month grids include a few days from the prior/next month.
+    # Finalsite's month grid shows a few days from the month before/after.
     if visible_month == 1 and month == 12:
         return visible_year - 1
     if visible_month == 12 and month == 1:
@@ -67,7 +103,12 @@ def _category_for(title: str, category_label: str | None) -> str:
     if low_cat in SPORT_CATEGORIES:
         return "athletics"
     if any(token in low_title for token in (
-        "no school", "dismissal", "inservice", "first day", "no extended day",
+        "no school",
+        "dismissal",
+        "inservice",
+        "first day",
+        "no extended day",
+        "parent-teacher conference",
     )):
         return "schedule"
     return "general"
@@ -79,56 +120,15 @@ def _slug(day: date, title: str, start: str | None) -> str:
     return f"countryside-{day.isoformat()}-{stamp}-{core}"
 
 
-def _parse_event_text(
-    text: str,
+def _make_event(
     *,
     event_day: date,
-    event_url: str | None = None,
-) -> dict | None:
-    lines = [_compact(line) for line in str(text or "").splitlines()]
-    lines = [line for line in lines if line]
-    if not lines:
-        return None
-
-    category_label = None
-    if lines and lines[0].casefold() in KNOWN_CATEGORIES:
-        category_label = lines.pop(0)
-    if not lines:
-        return None
-
-    # Find time metadata anywhere in the event block.
-    start = end = None
-    time_index = None
-    for i, line in enumerate(lines):
-        m = TIME_RANGE_RE.match(line)
-        if m:
-            start = _to_24h(m.group(1))
-            end = _to_24h(m.group(2))
-            time_index = i
-            break
-        m = ONE_TIME_RE.match(line)
-        if m:
-            start = _to_24h(m.group(1))
-            time_index = i
-            break
-        if line.casefold() == "all day":
-            time_index = i
-            break
-
-    title_lines = lines if time_index is None else lines[:time_index]
-    tail = [] if time_index is None else lines[time_index + 1:]
-
-    # Finalsite event cards normally put title first. If a category label was
-    # present, it has already been removed.
-    if not title_lines:
-        return None
-    title = title_lines[0].strip(" -–")
-    if not title:
-        return None
-
-    # The remaining text after the time is generally the location.
-    location = " · ".join(tail[:2]) if tail else None
-
+    title: str,
+    category_label: str | None = None,
+    start: str | None = None,
+    end: str | None = None,
+    location: str | None = None,
+) -> dict:
     event = {
         "id": _slug(event_day, title, start),
         "title": title,
@@ -137,7 +137,7 @@ def _parse_event_text(
         "scope": "school",
         "category": _category_for(title, category_label),
         "source": SOURCE_NAME,
-        "sourceUrl": event_url or CALENDAR_URL,
+        "sourceUrl": CALENDAR_URL,
     }
     if start:
         event["start"] = start
@@ -150,196 +150,204 @@ def _parse_event_text(
     return event
 
 
-def _month_label(driver) -> tuple[int, int]:
-    # Prefer a compact visible heading matching "September 2026".
-    candidates = driver.execute_script(
-        """
-        return Array.from(document.querySelectorAll('button,h1,h2,h3,h4,div,span'))
-          .map(el => (el.innerText || '').trim())
-          .filter(t => /^(January|February|March|April|May|June|July|August|September|October|November|December)\\s+\\d{4}$/.test(t))
-          .slice(0, 20);
-        """
-    ) or []
+def _parse_day_block(lines: list[str], event_day: date) -> list[dict]:
+    """Parse one Finalsite day cell from its server-rendered text."""
+    lines = [_compact(x) for x in lines if _compact(x)]
+    if not lines:
+        return []
 
-    for value in candidates:
-        m = MONTH_RE.match(_compact(value))
-        if m:
-            return MONTHS[m.group(1).casefold()], int(m.group(2))
-    raise RuntimeError("Countryside calendar month heading was not found")
+    # Identify all time-bearing events first. The line immediately before a
+    # time is the title; a recognized category immediately before that title
+    # is metadata, not a separate event.
+    timed = []
+    title_indices: set[int] = set()
+    time_indices: set[int] = set()
+    category_indices: set[int] = set()
 
-
-def _extract_month(driver) -> list[dict]:
-    visible_month, visible_year = _month_label(driver)
-
-    raw = driver.execute_script(
-        """
-        const boxes = Array.from(document.querySelectorAll(
-          '.fsCalendarDaybox, [class~="fsCalendarDaybox"]'
-        ));
-
-        return boxes.map(box => {
-          const allText = (box.innerText || '').trim();
-          const dateEl = box.querySelector(
-            '.fsCalendarDayboxDate, [class~="fsCalendarDayboxDate"], time'
-          );
-          const dateText = dateEl ? (dateEl.innerText || '').trim() : '';
-
-          let eventEls = Array.from(box.querySelectorAll('.fsCalendarEvent'));
-          if (!eventEls.length) {
-            eventEls = Array.from(box.querySelectorAll('article[class*="CalendarEvent"], li[class*="CalendarEvent"]'));
-          }
-
-          return {
-            text: allText,
-            dateText,
-            events: eventEls.map(ev => ({
-              text: (ev.innerText || '').trim(),
-              href: (ev.querySelector('a[href]') || {}).href || ''
-            }))
-          };
-        });
-        """
-    ) or []
-
-    events: list[dict] = []
-    for box in raw:
-        text = str(box.get("text") or "")
-        date_text = _compact(box.get("dateText"))
-
-        if not DAY_RE.match(date_text):
-            # Finalsite often keeps the complete weekday/date as the first
-            # line of the day box even when its dedicated date element is terse.
-            first_line = next((line.strip() for line in text.splitlines() if line.strip()), "")
-            if DAY_RE.match(first_line):
-                date_text = first_line
-
-        m = DAY_RE.match(date_text)
-        if not m:
+    for i, line in enumerate(lines):
+        range_match = TIME_RANGE_RE.match(line)
+        one_match = ONE_TIME_RE.match(line)
+        if not range_match and not one_match:
             continue
 
-        month = MONTHS[m.group(2).casefold()]
+        title_i = i - 1
+        while title_i >= 0 and lines[title_i].casefold() in KNOWN_CATEGORIES:
+            category_indices.add(title_i)
+            title_i -= 1
+        if title_i < 0:
+            continue
+
+        title = lines[title_i]
+        title_indices.add(title_i)
+        time_indices.add(i)
+
+        category = None
+        if title_i - 1 >= 0 and lines[title_i - 1].casefold() in KNOWN_CATEGORIES:
+            category = lines[title_i - 1]
+            category_indices.add(title_i - 1)
+
+        if range_match:
+            start = _to_24h(range_match.group(1))
+            end = _to_24h(range_match.group(2))
+        else:
+            start = _to_24h(one_match.group(1))
+            end = None
+
+        timed.append({
+            "title_i": title_i,
+            "time_i": i,
+            "title": title,
+            "category": category,
+            "start": start,
+            "end": end,
+        })
+
+    consumed: set[int] = set(title_indices) | set(time_indices) | set(category_indices)
+    events: list[dict] = []
+
+    # Attach obvious location text following each time until the next event title,
+    # time, or category. In the public Countryside calendar this captures entries
+    # such as "in our backyard" and full away-game addresses.
+    all_title_indices = sorted(title_indices)
+    for record in timed:
+        i = record["time_i"] + 1
+        boundary = len(lines)
+        later_titles = [idx for idx in all_title_indices if idx > record["time_i"]]
+        if later_titles:
+            boundary = min(boundary, later_titles[0])
+
+        location_parts = []
+        while i < boundary:
+            low = lines[i].casefold()
+            if (
+                i in consumed
+                or low in KNOWN_CATEGORIES
+                or TIME_RANGE_RE.match(lines[i])
+                or ONE_TIME_RE.match(lines[i])
+            ):
+                break
+            location_parts.append(lines[i])
+            consumed.add(i)
+            i += 1
+
+        events.append(_make_event(
+            event_day=event_day,
+            title=record["title"],
+            category_label=record["category"],
+            start=record["start"],
+            end=record["end"],
+            location=" · ".join(location_parts) if location_parts else None,
+        ))
+
+    # Anything still unconsumed is an all-day event. This correctly handles
+    # days such as Aug. 18, where "Inservice - faculty/staff" is followed by
+    # the separately timed "Welcome Back Night".
+    current_category = None
+    for i, line in enumerate(lines):
+        if i in consumed:
+            continue
+        low = line.casefold()
+        if low in KNOWN_CATEGORIES:
+            current_category = line
+            continue
+        if low in {
+            "all day",
+            "calendar & category legend:",
+            "calendar & category legend",
+        }:
+            continue
+        if TIME_RANGE_RE.match(line) or ONE_TIME_RE.match(line):
+            continue
+
+        events.append(_make_event(
+            event_day=event_day,
+            title=line,
+            category_label=current_category,
+        ))
+        current_category = None
+
+    return events
+
+
+def parse_countryside_html(html: str) -> list[dict]:
+    parser = _VisibleTextParser()
+    parser.feed(html)
+    lines = parser.lines
+
+    visible_month = visible_year = None
+    for line in lines:
+        m = MONTH_YEAR_RE.match(line)
+        if m:
+            visible_month = MONTHS[m.group(1).casefold()]
+            visible_year = int(m.group(2))
+            break
+    if visible_month is None or visible_year is None:
+        raise RuntimeError("Countryside calendar month heading was not found in server HTML")
+
+    # Stop before the legend/footer so those labels never become events.
+    stop_at = len(lines)
+    for i, line in enumerate(lines):
+        if line.casefold().startswith("calendar & category legend"):
+            stop_at = i
+            break
+    lines = lines[:stop_at]
+
+    day_markers: list[tuple[int, date]] = []
+    for i, line in enumerate(lines):
+        m = DAY_RE.match(line)
+        if not m:
+            continue
+        month = MONTHS[m.group(1).casefold()]
         year = _infer_year(month, visible_month, visible_year)
-        event_day = date(year, month, int(m.group(3)))
+        try:
+            event_day = date(year, month, int(m.group(2)))
+        except ValueError:
+            continue
+        day_markers.append((i, event_day))
 
-        for raw_event in box.get("events") or []:
-            event = _parse_event_text(
-                raw_event.get("text") or "",
-                event_day=event_day,
-                event_url=raw_event.get("href") or CALENDAR_URL,
-            )
-            if event:
-                events.append(event)
+    if not day_markers:
+        raise RuntimeError("Countryside calendar contained no dated day cells")
 
-    if events or raw:
-        return events
+    events: list[dict] = []
+    for pos, (line_index, event_day) in enumerate(day_markers):
+        next_index = day_markers[pos + 1][0] if pos + 1 < len(day_markers) else len(lines)
+        block = lines[line_index + 1:next_index]
+        events.extend(_parse_day_block(block, event_day))
 
-    # Diagnostic: if Finalsite changes class names, report enough information
-    # to adjust without dumping the entire page.
-    class_samples = driver.execute_script(
-        """
-        const values = new Set();
-        for (const el of document.querySelectorAll('[class*="Calendar"],[class*="calendar"]')) {
-          if (el.className && typeof el.className === 'string') values.add(el.className);
-          if (values.size >= 25) break;
-        }
-        return Array.from(values);
-        """
-    ) or []
-    raise RuntimeError(
-        "Countryside calendar rendered but no calendar day boxes were found; "
-        f"class samples={class_samples[:12]!r}"
+    # Finalsite can duplicate content for responsive layouts. Stable IDs remove
+    # those duplicates while keeping same-day events with different titles/times.
+    by_id: dict[str, dict] = {}
+    for event in events:
+        by_id[event["id"]] = event
+
+    return sorted(
+        by_id.values(),
+        key=lambda e: (e.get("date", ""), e.get("start", ""), e.get("title", "")),
     )
 
 
-def _click_next_month(driver, old_label: tuple[int, int], *, timeout: float = 8.0) -> None:
-    from selenium.webdriver.common.by import By
+def fetch_countryside_calendar(*, timeout: int = 30, opener=urlopen) -> list[dict]:
+    request = Request(
+        CALENDAR_URL,
+        headers={
+            "User-Agent": "ChambanaSchoolboard/1.0 (+public school calendar aggregator)",
+            "Accept": "text/html,application/xhtml+xml",
+        },
+    )
+    with opener(request, timeout=timeout) as response:
+        body = response.read()
+        charset = response.headers.get_content_charset() or "utf-8"
 
-    buttons = driver.find_elements(By.TAG_NAME, "button")
-    next_button = None
-    for button in buttons:
-        try:
-            text = _compact(button.text)
-            aria = _compact(button.get_attribute("aria-label"))
-            title = _compact(button.get_attribute("title"))
-        except Exception:
-            continue
-        if text == ">" or "next" in aria.casefold() or "next" in title.casefold():
-            next_button = button
-            break
+    html = body.decode(charset, errors="replace")
+    events = parse_countryside_html(html)
 
-    if next_button is None:
-        raise RuntimeError("Countryside calendar next-month button was not found")
+    if not events:
+        raise RuntimeError("Countryside calendar loaded but no events were parsed")
 
-    driver.execute_script("arguments[0].click();", next_button)
-
-    deadline = time.time() + timeout
-    while time.time() < deadline:
-        time.sleep(0.35)
-        try:
-            if _month_label(driver) != old_label:
-                return
-        except Exception:
-            pass
-    raise RuntimeError("Countryside calendar did not advance to the next month")
-
-
-def fetch_countryside_calendar(*, months: int = 12) -> list[dict]:
-    """Collect the visible Countryside calendar month-by-month."""
-    try:
-        from selenium import webdriver
-        from selenium.webdriver.chrome.options import Options
-    except ImportError as exc:
-        raise RuntimeError("Selenium is required for Countryside calendar collection") from exc
-
-    options = Options()
-    options.add_argument("--headless=new")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--window-size=1600,1400")
-    options.add_argument("--lang=en-US")
-
-    driver = webdriver.Chrome(options=options)
-    try:
-        driver.get(CALENDAR_URL)
-
-        # Give Finalsite's calendar widget a moment to render.
-        deadline = time.time() + 12
-        while time.time() < deadline:
-            time.sleep(0.4)
-            try:
-                _month_label(driver)
-                break
-            except Exception:
-                continue
-        else:
-            raise RuntimeError("Countryside calendar page loaded but calendar widget did not render")
-
-        collected: list[dict] = []
-        labels_seen: list[str] = []
-
-        for i in range(max(1, months)):
-            month_no, year = _month_label(driver)
-            labels_seen.append(f"{year:04d}-{month_no:02d}")
-            collected.extend(_extract_month(driver))
-            if i < months - 1:
-                _click_next_month(driver, (month_no, year))
-
-        # Month grids repeat trailing/leading days, so collapse by stable ID.
-        by_id: dict[str, dict] = {}
-        for event in collected:
-            by_id[event["id"]] = event
-
-        events = sorted(
-            by_id.values(),
-            key=lambda e: (e.get("date", ""), e.get("start", ""), e.get("title", "")),
-        )
-
-        print(
-            f"countryside-calendar detail: collected {len(events)} events "
-            f"across {len(labels_seen)} months; "
-            f"months {', '.join(labels_seen[:3])}"
-            + (f" ... {labels_seen[-1]}" if len(labels_seen) > 3 else "")
-        )
-        return events
-    finally:
-        driver.quit()
+    first_dates = sorted({e["date"] for e in events})[:6]
+    print(
+        f"countryside-calendar detail: parsed {len(events)} events "
+        f"from server-rendered month grid; first event dates "
+        f"{', '.join(first_dates)}"
+    )
+    return events
