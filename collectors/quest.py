@@ -16,7 +16,7 @@ _DATE_KEYS = {
 }
 _STRONG_ITEM_KEYS = {
     "itemname", "menuitemname", "recipename", "productname", "foodname",
-    "dishname", "displayname", "item_name", "menu_item_name", "recipe_name",
+    "dishname", "displayname", "display_name", "item_name", "menu_item_name", "recipe_name",
 }
 _GENERIC_ITEM_KEYS = {"name", "title", "description", "label"}
 _MEAL_HINT_KEYS = {
@@ -103,6 +103,115 @@ def _meal_hint_from_dict(obj: dict[str, Any], inherited: str | None) -> str | No
     return hint
 
 
+
+
+def _strings_in(obj: Any) -> list[str]:
+    values: list[str] = []
+    if isinstance(obj, dict):
+        for value in obj.values():
+            values.extend(_strings_in(value))
+    elif isinstance(obj, list):
+        for value in obj:
+            values.extend(_strings_in(value))
+    elif isinstance(obj, str):
+        values.append(obj)
+    return values
+
+
+def _select_lunch_node(day_menu: Any, meal_periods: Any) -> Any:
+    """Pick the Lunch portion of one Quest day menu when possible."""
+    if isinstance(day_menu, list) and isinstance(meal_periods, list) and len(day_menu) == len(meal_periods):
+        for idx, period in enumerate(meal_periods):
+            if isinstance(period, str) and "lunch" in period.casefold():
+                return day_menu[idx]
+
+    # Fallback: search the day's children for an object whose own strings say Lunch.
+    if isinstance(day_menu, list):
+        for child in day_menu:
+            own = [x.casefold() for x in _strings_in(child)[:40]]
+            if any(x == "lunch" or x.endswith(" lunch") for x in own):
+                return child
+    return day_menu
+
+
+def _extract_main_entrees(node: Any) -> list[str]:
+    """Extract Quest's Main Entree choices from a Lunch menu subtree.
+
+    Quest's week endpoint groups the response as parallel ``dates`` and ``menus``
+    arrays. Inside a Lunch subtree, category objects label the entree section as
+    ``Main Entree``. We propagate that category context down to item objects and
+    collect their human-readable names.
+    """
+    out: list[str] = []
+
+    def add(value: Any) -> None:
+        item = _clean_item(value)
+        if not item:
+            return
+        lower = item.casefold()
+        if lower in {"main entree", "main entrée", "entrée 1", "entrée 2", "entrée 3", "entree 4"}:
+            return
+        if re.fullmatch(r"(?:entr[eé]e|entree)\s*\d+", lower):
+            return
+        if item not in out:
+            out.append(item)
+
+    def walk(value: Any, in_main: bool = False) -> None:
+        if isinstance(value, dict):
+            direct_strings = [v for v in value.values() if isinstance(v, str)]
+            direct_lower = [re.sub(r"\s+", " ", v).strip().casefold() for v in direct_strings]
+            category_labels: list[str] = []
+            for key, child in value.items():
+                if "category" not in _norm_key(str(key)):
+                    continue
+                if isinstance(child, str):
+                    category_labels.append(child)
+                elif isinstance(child, dict):
+                    category_labels.extend(v for v in child.values() if isinstance(v, str))
+            category_lower = [re.sub(r"\s+", " ", v).strip().casefold() for v in category_labels]
+            local_main = in_main or any(v in {"main entree", "main entrée"} for v in direct_lower + category_lower)
+
+            if local_main:
+                for key, child in value.items():
+                    nk = _norm_key(str(key))
+                    if nk in {_norm_key(x) for x in _STRONG_ITEM_KEYS | _GENERIC_ITEM_KEYS}:
+                        # Avoid re-adding the category label itself.
+                        if isinstance(child, str) and child.strip().casefold() not in {"main entree", "main entrée", "lunch"}:
+                            add(child)
+
+            for child in value.values():
+                walk(child, local_main)
+        elif isinstance(value, list):
+            for child in value:
+                walk(child, in_main)
+
+    walk(node)
+    return out
+
+
+def _extract_parallel_quest_days(payload: Any) -> dict[str, list[str]]:
+    """Parse Quest's current /v1/menus/week response shape."""
+    if not isinstance(payload, dict):
+        return {}
+    dates = payload.get("dates")
+    menus = payload.get("menus")
+    meal_periods = payload.get("meal_periods")
+    if not isinstance(dates, list) or not isinstance(menus, list):
+        return {}
+
+    parsed: dict[str, list[str]] = {}
+    for idx, raw_date in enumerate(dates):
+        if idx >= len(menus):
+            break
+        day = _parse_date(raw_date)
+        if not day:
+            continue
+        lunch_node = _select_lunch_node(menus[idx], meal_periods)
+        items = _extract_main_entrees(lunch_node)
+        if items:
+            parsed[day] = items
+    return parsed
+
 def extract_menu_days(payloads: list[Any], *, source_url: str = YANKEE_RIDGE_MENU_URL) -> list[dict]:
     """Best-effort extraction from MySchoolQuest JSON responses.
 
@@ -111,6 +220,15 @@ def extract_menu_days(payloads: list[Any], *, source_url: str = YANKEE_RIDGE_MEN
     dated menu-item structures. This makes the first version tolerant of endpoint changes.
     """
     found: dict[str, list[str]] = defaultdict(list)
+
+    # Quest's current API returns parallel dates/menus arrays. Parse that
+    # explicitly first; retain the generic walker below as a compatibility
+    # fallback for future response changes.
+    for payload in payloads:
+        for day, items in _extract_parallel_quest_days(payload).items():
+            for item in items:
+                if item not in found[day]:
+                    found[day].append(item)
 
     def walk(node: Any, current_date: str | None = None, meal_hint: str | None = None, path: tuple[str, ...] = ()) -> None:
         if isinstance(node, dict):
