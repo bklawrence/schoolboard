@@ -13,6 +13,7 @@ from collectors.unit4 import UNIT4_GROUPS, fetch_unit4_menus
 from collectors.countryside import SOURCE_NAME as COUNTRYSIDE_SOURCE, fetch_countryside_calendar
 from collectors.usd116_calendar import SOURCE_NAME as USD116_CALENDAR_SOURCE, fetch_usd116_calendar
 from collectors.usd116_schoolfeeds import SCHOOL_FEEDS, SOURCE_PREFIX as USD116_SCHOOLFEED_PREFIX, fetch_school_feed
+from collectors.unit4_events import UNIT4_CALENDARS, fetch_unit4_calendar
 
 ROOT = Path(__file__).resolve().parent
 STATIC_PATH = ROOT / "data" / "static-events.json"
@@ -257,6 +258,39 @@ def build(*, offline: bool = False) -> dict:
 
         usd116_school_events.extend(source_events)
 
+    # Unit 4 school-specific Apptegy calendars. Each school discovers its own
+    # public iCalendar URL from the Events page and caches independently.
+    unit4_school_events: list[dict] = []
+    for calendar in UNIT4_CALENDARS:
+        if offline:
+            source_events = previous_source_events(calendar.source)
+            source_status.append({
+                "id": calendar.log_id,
+                "status": "cached" if source_events else "live",
+                "count": len(source_events),
+                "unit": "events",
+            })
+        else:
+            try:
+                source_events = fetch_unit4_calendar(calendar)
+                source_status.append({
+                    "id": calendar.log_id,
+                    "status": "live",
+                    "count": len(source_events),
+                    "unit": "events",
+                })
+            except Exception as exc:
+                source_events = previous_source_events(calendar.source)
+                source_status.append({
+                    "id": calendar.log_id,
+                    "status": "cached" if source_events else "failed",
+                    "count": len(source_events),
+                    "unit": "events",
+                    "error": f"{type(exc).__name__}: {exc}",
+                })
+
+        unit4_school_events.extend(source_events)
+
     # Countryside School (independent K-8) public Finalsite calendar.
     if offline:
         countryside_events = previous_source_events(COUNTRYSIDE_SOURCE)
@@ -344,7 +378,7 @@ def build(*, offline: bool = False) -> dict:
                 "error": f"{type(exc).__name__}: {exc}",
             })
 
-    events = merge_unique(static_events + snap_events + usd116_calendar_events + usd116_school_events + countryside_events)
+    events = merge_unique(static_events + snap_events + usd116_calendar_events + usd116_school_events + unit4_school_events + countryside_events)
     meals = merge_meals(static_meals + quest_meals + unit4_meals)
     now = datetime.now(ZoneInfo("America/Chicago")).isoformat(timespec="seconds")
     return {
