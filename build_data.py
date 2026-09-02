@@ -13,7 +13,13 @@ from collectors.unit4 import UNIT4_GROUPS, fetch_unit4_menus
 from collectors.countryside import SOURCE_NAME as COUNTRYSIDE_SOURCE, fetch_countryside_calendar
 from collectors.usd116_calendar import SOURCE_NAME as USD116_CALENDAR_SOURCE, fetch_usd116_calendar
 from collectors.usd116_schoolfeeds import SCHOOL_FEEDS, SOURCE_PREFIX as USD116_SCHOOLFEED_PREFIX, fetch_school_feed
-from collectors.unit4_events import UNIT4_CALENDARS, fetch_unit4_calendar
+from collectors.unit4_events import (
+    DISTRICT_SOURCE as UNIT4_DISTRICT_SOURCE,
+    UNIT4_CALENDARS,
+    UNIT4_SCHOOL_IDS,
+    fetch_unit4_calendar,
+    fetch_unit4_district_calendar,
+)
 
 ROOT = Path(__file__).resolve().parent
 STATIC_PATH = ROOT / "data" / "static-events.json"
@@ -117,6 +123,50 @@ def merge_unique(events: list[dict]) -> list[dict]:
 
     result = [best_by_key[key] for key in order]
     return sorted(result, key=lambda e: (e.get("date", ""), e.get("start", ""), e.get("title", "")))
+
+
+def conservative_event_title(title: str) -> str:
+    clean = re.sub(r"\s+", " ", str(title or "")).strip().casefold()
+    clean = re.sub(r"[^a-z0-9]+", " ", clean)
+    return re.sub(r"\s+", " ", clean).strip()
+
+
+def district_event_signature(event: dict) -> tuple:
+    return (
+        event.get("date", ""),
+        event.get("start", ""),
+        event.get("end", ""),
+        conservative_event_title(event.get("title", "")),
+    )
+
+
+def collapse_unit4_district_duplicates(
+    events: list[dict],
+    district_events: list[dict],
+) -> tuple[list[dict], int]:
+    district_signatures = {
+        district_event_signature(event)
+        for event in district_events
+    }
+    unit4_ids = set(UNIT4_SCHOOL_IDS)
+
+    kept: list[dict] = []
+    removed = 0
+
+    for event in events:
+        schools = set(event.get("schools") or [])
+        is_unit4_event = bool(schools) and schools.issubset(unit4_ids)
+
+        if (
+            is_unit4_event
+            and district_event_signature(event) in district_signatures
+        ):
+            removed += 1
+            continue
+
+        kept.append(event)
+
+    return kept, removed
 
 
 def rolling_event_window(reference: date) -> tuple[date, date]:
@@ -363,6 +413,46 @@ def build(*, offline: bool = False) -> dict:
 
         unit4_school_events.extend(source_events)
 
+    # Unit 4 root district calendar.
+    if offline:
+        unit4_district_events = previous_source_events(UNIT4_DISTRICT_SOURCE)
+        unit4_district_events, _, _ = filter_events_to_rolling_window(
+            unit4_district_events,
+            reference=today,
+        )
+        source_status.append({
+            "id": "u4-district-calendar",
+            "status": "cached" if unit4_district_events else "live",
+            "count": len(unit4_district_events),
+            "unit": "events",
+        })
+    else:
+        try:
+            unit4_district_events = fetch_unit4_district_calendar()
+            unit4_district_events, _, _ = filter_events_to_rolling_window(
+                unit4_district_events,
+                reference=today,
+            )
+            source_status.append({
+                "id": "u4-district-calendar",
+                "status": "live",
+                "count": len(unit4_district_events),
+                "unit": "events",
+            })
+        except Exception as exc:
+            unit4_district_events = previous_source_events(UNIT4_DISTRICT_SOURCE)
+            unit4_district_events, _, _ = filter_events_to_rolling_window(
+                unit4_district_events,
+                reference=today,
+            )
+            source_status.append({
+                "id": "u4-district-calendar",
+                "status": "cached" if unit4_district_events else "failed",
+                "count": len(unit4_district_events),
+                "unit": "events",
+                "error": f"{type(exc).__name__}: {exc}",
+            })
+
     # Countryside School (independent K-8) public Finalsite calendar.
     if offline:
         countryside_events = previous_source_events(COUNTRYSIDE_SOURCE)
@@ -450,7 +540,7 @@ def build(*, offline: bool = False) -> dict:
                 "error": f"{type(exc).__name__}: {exc}",
             })
 
-    events = merge_unique(
+    event_candidates = (
         static_events
         + snap_events
         + usd116_calendar_events
@@ -458,6 +548,19 @@ def build(*, offline: bool = False) -> dict:
         + unit4_school_events
         + countryside_events
     )
+    event_candidates, unit4_district_duplicates_removed = (
+        collapse_unit4_district_duplicates(
+            event_candidates,
+            unit4_district_events,
+        )
+    )
+    print(
+        "u4-district-calendar detail: removed "
+        f"{unit4_district_duplicates_removed} exact duplicate U4 school/static "
+        "event records in favor of district records"
+    )
+
+    events = merge_unique(event_candidates + unit4_district_events)
     unfiltered_event_count = len(events)
     events, window_start, window_end = filter_events_to_rolling_window(
         events,
