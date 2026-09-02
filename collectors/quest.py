@@ -3,68 +3,62 @@ from __future__ import annotations
 import json
 import re
 import time
-from collections import defaultdict
+from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from typing import Any
 
-YANKEE_RIDGE_MENU_URL = "https://www.myschoolquest.com/yankee-ridge-elementary/menus"
-SOURCE_NAME = "MySchoolQuest — USD 116 K–5"
 
-_DATE_KEYS = {
-    "date", "menudate", "service_date", "servicedate", "servingdate",
-    "calendar_date", "calendardate", "daydate", "startdate",
-}
-_STRONG_ITEM_KEYS = {
-    "itemname", "menuitemname", "recipename", "productname", "foodname",
-    "dishname", "displayname", "display_name", "item_name", "menu_item_name", "recipe_name",
-}
-_GENERIC_ITEM_KEYS = {"name", "title", "description", "label"}
-_MEAL_HINT_KEYS = {
-    "meal", "mealname", "mealtype", "mealperiod", "mealperiodname",
-    "service", "servicename", "period", "periodname",
-}
-_PATH_FOOD_WORDS = ("item", "recipe", "food", "product", "dish", "entree", "offering")
-_STOP_VALUES = {
-    "lunch", "breakfast", "dinner", "menu", "menus", "main", "main line",
-    "daily menu", "view menus", "nutrition", "allergens", "allergen",
-    "calories", "serving size", "station", "stations", "category", "categories",
-    "total fat", "saturated fat", "trans fat", "cholesterol", "sodium",
-    "total carbohydrate", "dietary fiber", "total sugars", "added sugars",
-    "protein", "vitamin d", "vitamin d (d2 + d3)", "calcium", "iron", "potassium",
-    "yankee ridge elementary", "yankee ridge multilingual school",
-}
+@dataclass(frozen=True)
+class QuestGroup:
+    group: str
+    log_id: str
+    url: str
+    source: str
+    preferred_programs: tuple[str, ...]
 
 
-def _norm_key(value: str) -> str:
-    return re.sub(r"[^a-z0-9_]", "", value.casefold())
+QUEST_GROUPS: dict[str, QuestGroup] = {
+    "k5": QuestGroup(
+        group="k5",
+        log_id="quest-k5",
+        url="https://www.myschoolquest.com/yankee-ridge-elementary/menus",
+        source="MySchoolQuest — USD 116 K–5",
+        preferred_programs=("K-5 Lunch", "K–5 Lunch", "Lunch"),
+    ),
+    "middle": QuestGroup(
+        group="middle",
+        log_id="quest-middle",
+        url="https://www.myschoolquest.com/urbana-middle-school/menus",
+        source="MySchoolQuest — USD 116 6–8",
+        preferred_programs=("6-8 Lunch", "6–8 Lunch", "Lunch"),
+    ),
+    "high": QuestGroup(
+        group="high",
+        log_id="quest-high",
+        url="https://www.myschoolquest.com/urbana-high-school/menus",
+        source="MySchoolQuest — USD 116 9–12",
+        preferred_programs=("9-12 Lunch", "9–12 Lunch", "Lunch"),
+    ),
+}
+
+_NUTRITION_LABEL_NORMALIZED = {
+    "calories", "servingsize", "totalfat", "saturatedfat", "transfat",
+    "cholesterol", "sodium", "totalcarbohydrate", "dietaryfiber",
+    "totalsugars", "addedsugars", "protein", "vitamind",
+    "vitamindd2d3", "calcium", "iron", "potassium",
+}
 
 
 def _parse_date(value: Any) -> str | None:
-    if isinstance(value, (int, float)):
-        # Accept millisecond/second Unix timestamps in a plausible school-year range.
-        try:
-            seconds = float(value) / 1000 if float(value) > 10_000_000_000 else float(value)
-            d = datetime.fromtimestamp(seconds).date()
-            if 2025 <= d.year <= 2028:
-                return d.isoformat()
-        except (OverflowError, OSError, ValueError):
-            return None
-        return None
-
     if not isinstance(value, str):
         return None
     text = value.strip()
-    if not text:
-        return None
-
-    # ISO dates/timestamps.
     m = re.match(r"^(20\d{2})-(\d{2})-(\d{2})", text)
     if m:
         try:
             return date(int(m.group(1)), int(m.group(2)), int(m.group(3))).isoformat()
         except ValueError:
             return None
-
     for fmt in ("%m/%d/%Y", "%m/%d/%y", "%Y/%m/%d"):
         try:
             return datetime.strptime(text, fmt).date().isoformat()
@@ -77,55 +71,34 @@ def _clean_item(value: Any) -> str | None:
     if not isinstance(value, str):
         return None
     text = re.sub(r"\s+", " ", value).strip(" \t\r\n·•-|:")
-    if len(text) < 3 or len(text) > 140:
+    if len(text) < 3 or len(text) > 160:
         return None
-    lower = text.casefold()
-    if lower in _STOP_VALUES:
+    norm = re.sub(r"[^a-z0-9]", "", text.casefold())
+    if norm in _NUTRITION_LABEL_NORMALIZED:
         return None
-    if lower.startswith(("http://", "https://")):
-        return None
-    if re.fullmatch(r"[\d\s.,/%$-]+", text):
-        return None
-    if "@" in text and "." in text:
+    if text.casefold() in {
+        "lunch", "breakfast", "main entree", "main entrée", "shared items",
+        "vegetable", "fruit", "milk", "condiment", "nutrition", "allergens",
+    }:
         return None
     return text
 
 
-
-
-_NUTRITION_LABEL_NORMALIZED = {
-    "calories", "servingsize", "totalfat", "saturatedfat", "transfat",
-    "cholesterol", "sodium", "totalcarbohydrate", "dietaryfiber",
-    "totalsugars", "addedsugars", "protein", "vitamind",
-    "vitamindd2d3", "calcium", "iron", "potassium",
-}
-
-def _is_nutrition_label(value: str) -> bool:
-    norm = re.sub(r"[^a-z0-9]", "", value.casefold())
-    return norm in _NUTRITION_LABEL_NORMALIZED
-
 def _sanitize_items(items: list[str]) -> list[str]:
-    cleaned: list[str] = []
+    out: list[str] = []
     for raw in items:
         item = _clean_item(raw)
-        if not item or _is_nutrition_label(item):
-            continue
-        if item not in cleaned:
-            cleaned.append(item)
-    return cleaned
+        if item and item not in out:
+            out.append(item)
+    return out
+
 
 def _extract_rendered_lunch(body_text: str, dates: list[str]) -> dict[str, list[str]]:
-    """Parse the visible Quest week view as a safe fallback.
-
-    Quest renders each entree as `Entrée N` followed by `Main Entree` and the
-    food name. Nutrition details are not part of this normal week-view text.
-    """
+    """Extract only visible Entrée/Main Entree food names from Quest's week view."""
     text = re.sub(r"\s+", " ", body_text or "").strip()
     if not text or not dates:
         return {}
 
-    # Split around weekday headings. Quest sometimes prefixes today's heading
-    # with `Today`, so accept that too.
     day_re = re.compile(
         r"(?:Today|Monday|Tuesday|Wednesday|Thursday|Friday)\s+"
         r"(January|February|March|April|May|June|July|August|September|October|November|December)\s+"
@@ -143,8 +116,6 @@ def _extract_rendered_lunch(body_text: str, dates: list[str]) -> dict[str, list[
         start = match.end()
         end = matches[idx + 1].start() if idx + 1 < len(matches) else len(text)
         segment = text[start:end]
-
-        # Stop at footer/navigation if this is the final day.
         for stop in (" Home View Menus ", " CONSUMING RAW OR UNDERCOOKED "):
             pos = segment.find(stop)
             if pos >= 0:
@@ -162,23 +133,6 @@ def _extract_rendered_lunch(body_text: str, dates: list[str]) -> dict[str, list[
     return by_date
 
 
-def _meal_hint_from_dict(obj: dict[str, Any], inherited: str | None) -> str | None:
-    hint = inherited
-    for key, value in obj.items():
-        nk = _norm_key(str(key))
-        if nk not in {_norm_key(x) for x in _MEAL_HINT_KEYS}:
-            continue
-        if isinstance(value, str):
-            lower = value.casefold()
-            if "lunch" in lower:
-                return "lunch"
-            if "breakfast" in lower:
-                hint = "breakfast"
-    return hint
-
-
-
-
 def _strings_in(obj: Any) -> list[str]:
     values: list[str] = []
     if isinstance(obj, dict):
@@ -193,13 +147,10 @@ def _strings_in(obj: Any) -> list[str]:
 
 
 def _select_lunch_node(day_menu: Any, meal_periods: Any) -> Any:
-    """Pick the Lunch portion of one Quest day menu when possible."""
     if isinstance(day_menu, list) and isinstance(meal_periods, list) and len(day_menu) == len(meal_periods):
         for idx, period in enumerate(meal_periods):
             if isinstance(period, str) and "lunch" in period.casefold():
                 return day_menu[idx]
-
-    # Fallback: search the day's children for an object whose own strings say Lunch.
     if isinstance(day_menu, list):
         for child in day_menu:
             own = [x.casefold() for x in _strings_in(child)[:40]]
@@ -209,80 +160,49 @@ def _select_lunch_node(day_menu: Any, meal_periods: Any) -> Any:
 
 
 def _extract_main_entrees(node: Any) -> list[str]:
-    """Extract actual Main Entree food names from a Quest Lunch subtree.
-
-    Quest item objects may contain nested nutrition dictionaries whose labels use
-    generic fields such as ``name`` or ``label``.  Do not propagate entree context
-    indiscriminately into those descendants; only accept names from objects that
-    are themselves entree items, or from immediate children of a Main Entree
-    category container.
-    """
+    """Conservative JSON fallback: ignore nested nutrition branches."""
     out: list[str] = []
-    strong_keys = {_norm_key(x) for x in _STRONG_ITEM_KEYS}
-    generic_keys = {_norm_key(x) for x in _GENERIC_ITEM_KEYS}
-    nutrition_words = {
-        "nutrition", "nutrient", "nutrients", "allergen", "allergens",
-        "totalfat", "saturatedfat", "transfat", "cholesterol", "sodium",
-        "totalcarbohydrate", "dietaryfiber", "totalsugars", "addedsugars",
-        "protein", "vitamind", "calcium", "iron", "potassium", "calories",
+    strong_keys = {
+        "itemname", "menuitemname", "recipename", "productname", "foodname",
+        "dishname", "displayname", "display_name", "item_name", "menu_item_name", "recipe_name",
     }
+    generic_keys = {"name", "title", "description", "label"}
 
-    def add(value: Any) -> None:
-        item = _clean_item(value)
-        if not item:
-            return
-        lower = item.casefold()
-        if lower in {"main entree", "main entrée"}:
-            return
-        if re.fullmatch(r"(?:entr[eé]e|entree)\s*\d+", lower):
-            return
-        if item not in out:
-            out.append(item)
+    def norm_key(value: str) -> str:
+        return re.sub(r"[^a-z0-9_]", "", value.casefold())
 
-    def category_strings(obj: dict[str, Any]) -> list[str]:
-        labels: list[str] = []
-        for key, child in obj.items():
-            if "category" not in _norm_key(str(key)):
-                continue
-            if isinstance(child, str):
-                labels.append(child)
-            elif isinstance(child, dict):
-                labels.extend(v for v in child.values() if isinstance(v, str))
-        return labels
-
-    def object_is_main(obj: dict[str, Any]) -> bool:
-        vals = [v for v in obj.values() if isinstance(v, str)] + category_strings(obj)
+    def is_main(obj: dict[str, Any]) -> bool:
+        vals: list[str] = []
+        for key, value in obj.items():
+            if isinstance(value, str):
+                vals.append(value)
+            if "category" in norm_key(str(key)) and isinstance(value, dict):
+                vals.extend(v for v in value.values() if isinstance(v, str))
         return any(re.sub(r"\s+", " ", v).strip().casefold() in {"main entree", "main entrée"} for v in vals)
 
-    def is_nutrition_branch(key: str, child: Any) -> bool:
-        nk = _norm_key(key)
-        if any(word in nk for word in nutrition_words):
+    def nutrition_branch(key: str, child: Any) -> bool:
+        nk = norm_key(key)
+        words = (
+            "nutrition", "nutrient", "allergen", "totalfat", "saturatedfat", "transfat",
+            "cholesterol", "sodium", "carbohydrate", "fiber", "sugars", "protein",
+            "vitamind", "calcium", "iron", "potassium", "calories",
+        )
+        if any(word in nk for word in words):
             return True
         if isinstance(child, dict):
-            direct = {_norm_key(str(k)) for k in child.keys()}
-            # Nutrition objects commonly contain several of these fields together.
-            hits = sum(any(word in k for word in nutrition_words) for k in direct)
-            if hits >= 2:
+            keys = [norm_key(str(k)) for k in child]
+            if sum(any(word in k for word in words) for k in keys) >= 2:
                 return True
         return False
 
-    def collect_item_name(obj: dict[str, Any]) -> bool:
-        """Collect one likely food name from this object; return whether found."""
-        # Strong item-name keys first.
-        for key, child in obj.items():
-            if _norm_key(str(key)) in strong_keys and isinstance(child, str):
-                before = len(out)
-                add(child)
-                if len(out) > before:
-                    return True
-        # Quest sometimes uses a plain `name`/`title` on the menu item itself.
-        for key, child in obj.items():
-            if _norm_key(str(key)) in generic_keys and isinstance(child, str):
-                before = len(out)
-                add(child)
-                if len(out) > before:
-                    return True
-        return False
+    def add_name(obj: dict[str, Any]) -> None:
+        for keys in (strong_keys, generic_keys):
+            for key, value in obj.items():
+                if norm_key(str(key)) in keys and isinstance(value, str):
+                    item = _clean_item(value)
+                    if item and not re.fullmatch(r"(?:entr[eé]e|entree)\s*\d+", item.casefold()) and item not in out:
+                        out.append(item)
+                        return
 
     def walk(value: Any, parent_main: bool = False) -> None:
         if isinstance(value, list):
@@ -291,26 +211,19 @@ def _extract_main_entrees(node: Any) -> list[str]:
             return
         if not isinstance(value, dict):
             return
-
-        this_main = object_is_main(value)
-
-        # An object explicitly categorized Main Entree is usually an item object.
-        # An immediate child of a Main Entree container may also be an item object.
+        this_main = is_main(value)
         if this_main or parent_main:
-            collect_item_name(value)
-
+            add_name(value)
         for key, child in value.items():
-            if is_nutrition_branch(str(key), child):
+            if nutrition_branch(str(key), child):
                 continue
-            # Only pass entree context one level down from a recognized container.
             walk(child, this_main)
 
     walk(node)
-    return out
+    return _sanitize_items(out)
 
 
-def _extract_parallel_quest_days(payload: Any) -> dict[str, list[str]]:
-    """Parse Quest's current /v1/menus/week response shape."""
+def _extract_parallel_days(payload: Any) -> dict[str, list[str]]:
     if not isinstance(payload, dict):
         return {}
     dates = payload.get("dates")
@@ -318,7 +231,6 @@ def _extract_parallel_quest_days(payload: Any) -> dict[str, list[str]]:
     meal_periods = payload.get("meal_periods")
     if not isinstance(dates, list) or not isinstance(menus, list):
         return {}
-
     parsed: dict[str, list[str]] = {}
     for idx, raw_date in enumerate(dates):
         if idx >= len(menus):
@@ -327,93 +239,10 @@ def _extract_parallel_quest_days(payload: Any) -> dict[str, list[str]]:
         if not day:
             continue
         lunch_node = _select_lunch_node(menus[idx], meal_periods)
-        items = _sanitize_items(_extract_main_entrees(lunch_node))
+        items = _extract_main_entrees(lunch_node)
         if items:
             parsed[day] = items
     return parsed
-
-def extract_menu_days(payloads: list[Any], *, source_url: str = YANKEE_RIDGE_MENU_URL) -> list[dict]:
-    """Best-effort extraction from MySchoolQuest JSON responses.
-
-    The site is a JavaScript application. Rather than hard-code a private API endpoint,
-    the collector observes its public browser requests and walks JSON responses for
-    dated menu-item structures. This makes the first version tolerant of endpoint changes.
-    """
-    found: dict[str, list[str]] = defaultdict(list)
-
-    # Quest's current API returns parallel dates/menus arrays. Parse that
-    # explicitly first. If a payload matches this known structure, do NOT run
-    # the broad compatibility walker over it: menu-item objects contain nested
-    # nutrition metadata that can otherwise look like food labels.
-    known_payload_ids: set[int] = set()
-    for payload in payloads:
-        parsed_days = _extract_parallel_quest_days(payload)
-        if parsed_days:
-            known_payload_ids.add(id(payload))
-        for day, items in parsed_days.items():
-            for item in items:
-                if item not in found[day]:
-                    found[day].append(item)
-
-    def walk(node: Any, current_date: str | None = None, meal_hint: str | None = None, path: tuple[str, ...] = ()) -> None:
-        if isinstance(node, dict):
-            local_date = current_date
-            for key, value in node.items():
-                if _norm_key(str(key)) in {_norm_key(x) for x in _DATE_KEYS}:
-                    parsed = _parse_date(value)
-                    if parsed:
-                        local_date = parsed
-                        break
-
-            local_meal = _meal_hint_from_dict(node, meal_hint)
-            path_lower = "/".join(p.casefold() for p in path)
-
-            if local_date and local_meal != "breakfast":
-                for key, value in node.items():
-                    nk = _norm_key(str(key))
-                    strong = nk in {_norm_key(x) for x in _STRONG_ITEM_KEYS}
-                    generic = nk in {_norm_key(x) for x in _GENERIC_ITEM_KEYS}
-                    food_path = any(word in path_lower for word in _PATH_FOOD_WORDS)
-                    if strong or (generic and food_path):
-                        item = _clean_item(value)
-                        if item and item not in found[local_date]:
-                            found[local_date].append(item)
-
-            for key, value in node.items():
-                walk(value, local_date, local_meal, path + (str(key),))
-
-        elif isinstance(node, list):
-            for idx, value in enumerate(node):
-                walk(value, current_date, meal_hint, path + (str(idx),))
-
-    for payload in payloads:
-        if id(payload) not in known_payload_ids:
-            walk(payload)
-
-    today = date.today()
-    earliest = today - timedelta(days=45)
-    latest = today + timedelta(days=120)
-    meals = []
-    for day, items in sorted(found.items()):
-        try:
-            d = date.fromisoformat(day)
-        except ValueError:
-            continue
-        if not (earliest <= d <= latest):
-            continue
-        items = _sanitize_items(items)
-        if not items:
-            continue
-        meals.append({
-            "date": day,
-            "group": "k5",
-            "items": items,
-            "status": "live",
-            "label": "Live Quest menu",
-            "source": SOURCE_NAME,
-            "sourceUrl": source_url,
-        })
-    return meals
 
 
 def _json_from_body(body: str) -> Any | None:
@@ -426,115 +255,115 @@ def _json_from_body(body: str) -> Any | None:
         return None
 
 
+def _program_rank(label: str, preferred: tuple[str, ...]) -> tuple[int, int]:
+    lower = re.sub(r"\s+", " ", label).strip().casefold()
+    preferred_lower = [p.casefold() for p in preferred]
+    for idx, target in enumerate(preferred_lower):
+        if lower == target:
+            return (idx, len(label))
+    for idx, target in enumerate(preferred_lower):
+        if target in lower or lower in target:
+            return (10 + idx, len(label))
+    return (50 if "lunch" in lower else 100, len(label))
 
-def _switch_page_to_lunch(driver) -> bool:
-    """Try to switch MySchoolQuest's visible program/menu selector to Lunch.
 
-    The public page currently opens Yankee Ridge on a Snack program.  We prefer
-    the site's own controls instead of guessing undocumented query parameters.
-    """
+def _switch_page_to_program(driver, cfg: QuestGroup) -> str | None:
     from selenium.webdriver.common.by import By
     from selenium.webdriver.support.ui import Select
 
-    # First handle ordinary <select> controls, if Quest uses one.
+    body = re.sub(r"\s+", " ", driver.find_element(By.TAG_NAME, "body").text).strip()
+    # If the correct program is already visible, don't disturb the page.
+    if "Lunch for Week" in body:
+        for label in cfg.preferred_programs:
+            if re.search(rf"\bProgram\s+{re.escape(label)}\b", body, re.I):
+                print(f"{cfg.log_id} detail: menu option {label!r} already active")
+                return label
+
     for element in driver.find_elements(By.TAG_NAME, "select"):
         try:
-            choices = Select(element)
-            for option in choices.options:
-                label = (option.text or "").strip()
-                if "lunch" in label.casefold():
-                    choices.select_by_visible_text(label)
-                    time.sleep(2.0)
-                    return True
+            select = Select(element)
+            options = [(option.text or "").strip() for option in select.options]
+            candidates = sorted(((_program_rank(label, cfg.preferred_programs), label) for label in options if "lunch" in label.casefold()))
+            if candidates:
+                label = candidates[0][1]
+                select.select_by_visible_text(label)
+                time.sleep(2.0)
+                print(f"{cfg.log_id} detail: selected menu option {label!r}")
+                return label
         except Exception:
             continue
 
-    # Quest's current UI appears to use a custom dropdown.  Open likely
-    # program controls, then look for a short visible option containing Lunch.
-    likely_controls = []
+    controls = []
+    tokens = ("program", "snack", "lunch", "asccp", "esser", "k-5", "6-8", "9-12")
     for element in driver.find_elements(By.XPATH, "//button | //*[@role='button']"):
         try:
             if not element.is_displayed():
                 continue
             text = re.sub(r"\s+", " ", element.text or "").strip()
-            lower = text.casefold()
-            if text and len(text) <= 90 and any(token in lower for token in ("program", "asccp", "esser", "snack")):
-                likely_controls.append(element)
+            if text and len(text) <= 100 and any(token in text.casefold() for token in tokens):
+                controls.append(element)
         except Exception:
             continue
 
-    for control in likely_controls[:8]:
+    for control in controls[:10]:
         try:
             try:
                 control.click()
             except Exception:
                 driver.execute_script("arguments[0].click();", control)
             time.sleep(0.6)
-
-            candidates = driver.find_elements(
-                By.XPATH,
-                "//*[contains(translate(normalize-space(.), 'LUNCH', 'lunch'), 'lunch')]",
-            )
-            short_candidates = []
-            for candidate in candidates:
+            candidates = []
+            for candidate in driver.find_elements(By.XPATH, "//*[contains(translate(normalize-space(.), 'LUNCH', 'lunch'), 'lunch')]"):
                 try:
                     if not candidate.is_displayed():
                         continue
-                    text = re.sub(r"\s+", " ", candidate.text or "").strip()
-                    if text and len(text) <= 80 and "lunch" in text.casefold():
-                        short_candidates.append((len(text), candidate, text))
+                    label = re.sub(r"\s+", " ", candidate.text or "").strip()
+                    if label and len(label) <= 90 and "lunch" in label.casefold():
+                        candidates.append((_program_rank(label, cfg.preferred_programs), candidate, label))
                 except Exception:
                     continue
-            short_candidates.sort(key=lambda row: row[0])
-            if short_candidates:
-                _, candidate, label = short_candidates[0]
+            candidates.sort(key=lambda row: row[0])
+            if candidates:
+                _, candidate, label = candidates[0]
                 try:
                     candidate.click()
                 except Exception:
                     driver.execute_script("arguments[0].click();", candidate)
                 time.sleep(3.0)
                 body = re.sub(r"\s+", " ", driver.find_element(By.TAG_NAME, "body").text).strip()
-                if "lunch" in body.casefold():
-                    print(f"quest-k5 detail: selected menu option {label!r}")
-                    return True
+                if "Lunch for Week" in body:
+                    print(f"{cfg.log_id} detail: selected menu option {label!r}")
+                    return label
         except Exception:
             continue
-    return False
+    return None
 
 
-def _payload_shape(payload: Any, *, depth: int = 0, max_depth: int = 3) -> str:
-    """Return a compact, non-exhaustive description for workflow diagnostics."""
+def _payload_shape(payload: Any, *, depth: int = 0, max_depth: int = 2) -> str:
     if depth >= max_depth:
         if isinstance(payload, dict):
             return "{…}"
         if isinstance(payload, list):
             return f"[{len(payload)} items…]"
-        if isinstance(payload, str):
-            text = re.sub(r"\s+", " ", payload).strip()
-            return repr(text[:70] + ("…" if len(text) > 70 else ""))
-        return repr(payload)
+        return repr(payload)[:80]
     if isinstance(payload, dict):
         parts = []
-        for key, value in list(payload.items())[:12]:
+        for key, value in list(payload.items())[:8]:
             parts.append(f"{key}: {_payload_shape(value, depth=depth+1, max_depth=max_depth)}")
-        suffix = ", …" if len(payload) > 12 else ""
-        return "{" + ", ".join(parts) + suffix + "}"
+        return "{" + ", ".join(parts) + (", …" if len(payload) > 8 else "") + "}"
     if isinstance(payload, list):
         if not payload:
             return "[]"
         return f"[{len(payload)} items; first={_payload_shape(payload[0], depth=depth+1, max_depth=max_depth)}]"
-    if isinstance(payload, str):
-        text = re.sub(r"\s+", " ", payload).strip()
-        return repr(text[:70] + ("…" if len(text) > 70 else ""))
-    return repr(payload)
+    return repr(payload)[:80]
 
 
-def fetch_yankee_k5(*, url: str = YANKEE_RIDGE_MENU_URL, wait_seconds: float = 8.0) -> list[dict]:
-    """Load MySchoolQuest in headless Chrome and inspect public JSON responses."""
+def fetch_quest_group(group_id: str, *, wait_seconds: float = 7.0) -> list[dict]:
+    cfg = QUEST_GROUPS[group_id]
     try:
         from selenium import webdriver
         from selenium.webdriver.chrome.options import Options
-    except ImportError as exc:  # pragma: no cover - GitHub Actions installs Selenium.
+    except ImportError as exc:  # pragma: no cover
         raise RuntimeError("Selenium is required for the Quest collector") from exc
 
     options = Options()
@@ -546,20 +375,19 @@ def fetch_yankee_k5(*, url: str = YANKEE_RIDGE_MENU_URL, wait_seconds: float = 8
     options.set_capability("goog:loggingPrefs", {"performance": "ALL"})
 
     driver = webdriver.Chrome(options=options)
-    response_meta: dict[str, dict[str, Any]] = {}
-    payloads: list[Any] = []
+    payload_records: list[tuple[str, Any]] = []
     diagnostic_urls: list[str] = []
-
     try:
         driver.execute_cdp_cmd("Network.enable", {})
-        driver.get(url)
+        driver.get(cfg.url)
         time.sleep(wait_seconds)
-        switched_to_lunch = _switch_page_to_lunch(driver)
-        if switched_to_lunch:
-            print("quest-k5 detail: page switch to Lunch succeeded")
+        selected = _switch_page_to_program(driver, cfg)
+        if selected:
+            print(f"{cfg.log_id} detail: page switch/confirmation to Lunch succeeded")
         else:
-            print("quest-k5 detail: could not confirm a page switch to Lunch")
+            print(f"{cfg.log_id} detail: could not confirm a Lunch program")
 
+        response_meta: list[tuple[str, str]] = []
         for entry in driver.get_log("performance"):
             try:
                 message = json.loads(entry["message"])["message"]
@@ -576,86 +404,87 @@ def fetch_yankee_k5(*, url: str = YANKEE_RIDGE_MENU_URL, wait_seconds: float = 8
             if not request_id or not response_url:
                 continue
             if rtype in {"xhr", "fetch"} or "json" in mime or any(token in response_url.casefold() for token in ("api", "menu", "meal")):
-                response_meta[request_id] = {"url": response_url, "mime": mime, "type": rtype}
+                response_meta.append((request_id, response_url))
 
-        for request_id, meta in response_meta.items():
-            if len(diagnostic_urls) < 12:
-                diagnostic_urls.append(meta["url"])
+        for request_id, response_url in response_meta:
+            if len(diagnostic_urls) < 10:
+                diagnostic_urls.append(response_url)
             try:
                 result = driver.execute_cdp_cmd("Network.getResponseBody", {"requestId": request_id})
             except Exception:
                 continue
             parsed = _json_from_body(result.get("body", ""))
             if parsed is not None:
-                payloads.append(parsed)
+                payload_records.append((response_url, parsed))
 
-        # Some frameworks embed initial JSON state directly in script tags.
-        source = driver.page_source
-        for match in re.finditer(r"<script[^>]*>(.*?)</script>", source, flags=re.I | re.S):
-            script_text = re.sub(r"^\s+|\s+$", "", match.group(1))
-            parsed = _json_from_body(script_text)
-            if parsed is not None:
-                payloads.append(parsed)
+        # Prefer the most recent /menus/week response because it follows any program switch.
+        menu_payloads = [p for url, p in payload_records if "/menus/week" in url and isinstance(p, dict)]
+        if not menu_payloads:
+            menu_payloads = [p for _, p in payload_records if isinstance(p, dict) and isinstance(p.get("dates"), list) and isinstance(p.get("menus"), list)]
+        menu_payload = menu_payloads[-1] if menu_payloads else None
 
-        meals = extract_menu_days(payloads, source_url=url)
-
-        # Independently parse the visible weekly menu. This is deliberately a
-        # fallback/validator so nested nutrition objects can never poison the
-        # public menu even if Quest changes its JSON internals.
         response_dates: list[str] = []
-        for payload in payloads:
-            if isinstance(payload, dict) and isinstance(payload.get("dates"), list):
-                response_dates = [d for d in (_parse_date(x) for x in payload["dates"]) if d]
-                if response_dates:
-                    break
-        raw_body_text = driver.find_element("tag name", "body").text
-        rendered_days = _extract_rendered_lunch(raw_body_text, response_dates)
+        if isinstance(menu_payload, dict):
+            response_dates = [d for d in (_parse_date(x) for x in menu_payload.get("dates", [])) if d]
+
+        body_text = driver.find_element("tag name", "body").text
+        rendered_days = _extract_rendered_lunch(body_text, response_dates)
         if rendered_days:
-            rendered_meals = [
-                {
-                    "date": day,
-                    "group": "k5",
-                    "items": items,
-                    "status": "live",
-                    "label": "Live Quest menu",
-                    "source": SOURCE_NAME,
-                    "sourceUrl": url,
-                }
-                for day, items in sorted(rendered_days.items())
-            ]
-            # Prefer rendered extraction whenever JSON contains suspicious
-            # nutrient labels or disagrees substantially with the visible page.
-            json_bad = any(any(_is_nutrition_label(x) for x in m.get("items", [])) for m in meals)
-            if not meals or json_bad or any(len(m.get("items", [])) > 8 for m in meals):
-                meals = rendered_meals
-                print("quest-k5 detail: used rendered Lunch page as clean fallback")
-            else:
-                # Replace corresponding days with rendered items as a validator.
-                rendered_map = {m["date"]: m for m in rendered_meals}
-                meals = [rendered_map.get(m["date"], m) for m in meals]
-                print("quest-k5 detail: validated JSON menu against rendered Lunch page")
+            day_map = rendered_days
+            method = "rendered Lunch page"
+        elif menu_payload is not None:
+            day_map = _extract_parallel_days(menu_payload)
+            method = "Quest JSON fallback"
+        else:
+            day_map = {}
+            method = "none"
+
+        today = date.today()
+        earliest = today - timedelta(days=45)
+        latest = today + timedelta(days=120)
+        meals: list[dict] = []
+        for day, items in sorted(day_map.items()):
+            try:
+                d = date.fromisoformat(day)
+            except ValueError:
+                continue
+            clean = _sanitize_items(items)
+            if not clean or not (earliest <= d <= latest):
+                continue
+            meals.append({
+                "date": day,
+                "group": cfg.group,
+                "items": clean,
+                "status": "live",
+                "label": "Live Quest menu",
+                "source": cfg.source,
+                "sourceUrl": cfg.url,
+            })
 
         if meals:
             dates = ", ".join(m["date"] for m in meals[:6])
             suffix = "…" if len(meals) > 6 else ""
-            print(f"quest-k5 detail: captured {len(payloads)} JSON payloads; menu dates {dates}{suffix}")
+            print(f"{cfg.log_id} detail: used {method}; menu dates {dates}{suffix}")
             return meals
 
-        # Give the workflow log enough information for the next parser refinement,
-        # without committing raw third-party payloads into the repository.
-        print(f"quest-k5 detail: captured {len(payloads)} JSON payloads but extracted no dated menu items")
+        print(f"{cfg.log_id} detail: extracted no dated lunch items")
         if diagnostic_urls:
-            print("quest-k5 observed requests:")
+            print(f"{cfg.log_id} observed requests:")
             for observed in diagnostic_urls:
                 print(f"  - {observed}")
-        if payloads:
-            print("quest-k5 JSON shapes:")
-            for idx, payload in enumerate(payloads[:4], start=1):
+        if payload_records:
+            print(f"{cfg.log_id} JSON shapes:")
+            for idx, (_, payload) in enumerate(payload_records[:4], start=1):
                 print(f"  payload {idx}: {_payload_shape(payload)}")
-        body_text = re.sub(r"\s+", " ", driver.find_element("tag name", "body").text).strip()
-        if body_text:
-            print("quest-k5 rendered-text sample:")
-            print(body_text[:1200].replace("\n", " | "))
-        raise RuntimeError("MySchoolQuest loaded, but its menu JSON structure was not recognized")
+        sample = re.sub(r"\s+", " ", body_text).strip()
+        if sample:
+            print(f"{cfg.log_id} rendered-text sample:")
+            print(sample[:1400])
+        raise RuntimeError(f"MySchoolQuest loaded for {group_id}, but no lunch menu was extracted")
     finally:
         driver.quit()
+
+
+def fetch_yankee_k5(*, wait_seconds: float = 7.0) -> list[dict]:
+    """Backward-compatible wrapper used by earlier SchoolBoard builds."""
+    return fetch_quest_group("k5", wait_seconds=wait_seconds)
