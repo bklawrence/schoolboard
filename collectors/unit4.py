@@ -65,6 +65,8 @@ def _find_option(select_obj, wanted: str) -> str:
     wanted_prefix = wanted_norm.rstrip(" .…")
     for text, _ in options:
         text_norm = text.casefold().rstrip(" .…")
+        if not text_norm:
+            continue
         if text_norm.startswith(wanted_prefix) or wanted_prefix.startswith(text_norm):
             return text
 
@@ -326,7 +328,7 @@ def _fetch_target(driver, group: str, grade_band: str, school: str, menu_name: s
     if len(selects) < 3:
         raise RuntimeError(f"Unit 4 menu dropdown did not appear for {school}")
     menu_select = Select(selects[2])
-    actual_menu = _select_visible(menu_select, menu_name)
+    actual_menu = _find_option(menu_select, menu_name)
 
     # Clear prior GraphQL traffic so only this actual menu selection is parsed.
     try:
