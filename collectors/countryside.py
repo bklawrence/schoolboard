@@ -52,6 +52,19 @@ TIME_RANGE_RE = re.compile(
 )
 ONE_TIME_RE = re.compile(r"^(\d{1,2}:\d{2}\s*[AP]M)$", re.I)
 
+MONTH_YEAR_SEARCH_RE = re.compile(
+    r"\b(January|February|March|April|May|June|July|August|September|October|November|December)"
+    r"\s+(\d{4})\b",
+    re.I,
+)
+DAY_FINDER_RE = re.compile(
+    r"\b(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\s*,?\s+"
+    r"(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|"
+    r"Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)"
+    r"\s+(\d{1,2})\b",
+    re.I,
+)
+
 
 class _VisibleTextParser(HTMLParser):
     """Extract server-rendered visible text without relying on Finalsite JS."""
@@ -274,45 +287,57 @@ def parse_countryside_html(html: str) -> list[dict]:
     parser.feed(html)
     lines = parser.lines
 
-    visible_month = visible_year = None
-    for line in lines:
-        m = MONTH_YEAR_RE.match(line)
-        if m:
-            visible_month = MONTHS[m.group(1).casefold()]
-            visible_year = int(m.group(2))
-            break
-    if visible_month is None or visible_year is None:
+    # Finalsite sometimes splits a displayed date across adjacent text nodes
+    # (for example "Sunday," + "August 9"). Scan the combined visible-text
+    # stream instead of requiring the whole date to live in one HTML text node.
+    visible_text = "\n".join(lines)
+
+    month_match = MONTH_YEAR_SEARCH_RE.search(visible_text)
+    if not month_match:
         raise RuntimeError("Countryside calendar month heading was not found in server HTML")
 
-    # Stop before the legend/footer so those labels never become events.
-    stop_at = len(lines)
-    for i, line in enumerate(lines):
-        if line.casefold().startswith("calendar & category legend"):
-            stop_at = i
-            break
-    lines = lines[:stop_at]
+    visible_month = MONTHS[month_match.group(1).casefold()]
+    visible_year = int(month_match.group(2))
 
-    day_markers: list[tuple[int, date]] = []
-    for i, line in enumerate(lines):
-        m = DAY_RE.match(line)
-        if not m:
-            continue
-        month = MONTHS[m.group(1).casefold()]
-        year = _infer_year(month, visible_month, visible_year)
-        try:
-            event_day = date(year, month, int(m.group(2)))
-        except ValueError:
-            continue
-        day_markers.append((i, event_day))
+    # Exclude the category legend/footer from event parsing.
+    legend_match = re.search(
+        r"Calendar\s*&\s*Category\s*Legend\s*:?",
+        visible_text,
+        flags=re.I,
+    )
+    calendar_text = visible_text[:legend_match.start()] if legend_match else visible_text
 
-    if not day_markers:
-        raise RuntimeError("Countryside calendar contained no dated day cells")
+    day_matches = list(DAY_FINDER_RE.finditer(calendar_text))
+    if not day_matches:
+        # Tiny diagnostic only: enough to reveal how Finalsite formatted the
+        # calendar heading/date area without dumping the page.
+        sample = re.sub(r"\s+", " ", calendar_text[calendar_text.find(str(visible_year)):])[:500]
+        raise RuntimeError(
+            "Countryside calendar contained no dated day cells; "
+            f"calendar text sample={sample!r}"
+        )
 
     events: list[dict] = []
-    for pos, (line_index, event_day) in enumerate(day_markers):
-        next_index = day_markers[pos + 1][0] if pos + 1 < len(day_markers) else len(lines)
-        block = lines[line_index + 1:next_index]
-        events.extend(_parse_day_block(block, event_day))
+
+    for pos, match in enumerate(day_matches):
+        month = MONTHS[match.group(1).casefold()]
+        year = _infer_year(month, visible_month, visible_year)
+        try:
+            event_day = date(year, month, int(match.group(2)))
+        except ValueError:
+            continue
+
+        next_start = day_matches[pos + 1].start() if pos + 1 < len(day_matches) else len(calendar_text)
+        block_text = calendar_text[match.end():next_start]
+
+        # Preserve meaningful line boundaries where Finalsite provides them,
+        # while eliminating empty/whitespace-only fragments.
+        block_lines = [
+            re.sub(r"\s+", " ", part).strip()
+            for part in block_text.splitlines()
+            if re.sub(r"\s+", " ", part).strip()
+        ]
+        events.extend(_parse_day_block(block_lines, event_day))
 
     # Finalsite can duplicate content for responsive layouts. Stable IDs remove
     # those duplicates while keeping same-day events with different titles/times.
