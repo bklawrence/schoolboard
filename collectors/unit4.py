@@ -2,161 +2,158 @@ from __future__ import annotations
 
 import json
 import re
-from typing import Any
-from urllib.request import Request, urlopen
+import time
 
 SID = "1465843288260"
-API_URL = f"https://champaignschoolsfoodservices.org/ngApi/index.php/read?sid={SID}"
+MENU_URL = f"https://champaignschoolsfoodservices.org/index.php?sid={SID}&page=menus"
+TARGET_GROUPS = [
+    "Elementary Schools",
+    "Middle School Menus",
+    "High School Menus",
+]
 
 
-def _short(value: Any, limit: int = 180) -> str:
-    text = re.sub(r"\s+", " ", str(value)).strip()
-    return text[:limit] + ("…" if len(text) > limit else "")
+def _compact(text: str, limit: int = 1500) -> str:
+    return re.sub(r"\s+", " ", text or "").strip()[:limit]
 
 
-def _shape(value: Any, depth: int = 0) -> str:
-    if depth >= 3:
-        if isinstance(value, dict):
-            return "{…}"
-        if isinstance(value, list):
-            return f"[{len(value)} items…]"
-        return repr(value)[:80]
-
-    if isinstance(value, dict):
-        parts = []
-        for key, child in list(value.items())[:14]:
-            parts.append(f"{key}: {_shape(child, depth + 1)}")
-        if len(value) > 14:
-            parts.append("…")
-        return "{" + ", ".join(parts) + "}"
-
-    if isinstance(value, list):
-        if not value:
-            return "[]"
-        return f"[{len(value)} items; first={_shape(value[0], depth + 1)}]"
-
-    return repr(value)[:100]
-
-
-def _walk(value: Any, path: str = "$"):
-    if isinstance(value, dict):
-        for key, child in value.items():
-            child_path = f"{path}.{key}"
-            yield child_path, child
-            yield from _walk(child, child_path)
-    elif isinstance(value, list):
-        for i, child in enumerate(value[:50]):
-            child_path = f"{path}[{i}]"
-            yield child_path, child
-            yield from _walk(child, child_path)
-
-
-def _interesting_path(path: str) -> bool:
-    low = path.casefold()
+def _interesting_href(href: str) -> bool:
+    low = (href or "").casefold()
     return any(token in low for token in (
-        "menu", "site", "group", "school", "location", "meal",
-        "category", "calendar", "program",
+        ".pdf", "menu", "greenmenu", "isitesoftware", "snaf-assets",
+        "webmenus", "schoolnutritionandfitness",
     ))
 
 
-def _looks_like_group_list(value: Any) -> bool:
-    if not isinstance(value, list) or not value:
-        return False
-    sample = value[:5]
-    if not all(isinstance(x, dict) for x in sample):
-        return False
-    keys = {str(k).casefold() for item in sample for k in item.keys()}
-    return bool(keys & {"id", "name", "title", "label", "siteid", "site_id", "groupid", "group_id"})
-
-
-def _looks_like_url(value: Any) -> bool:
-    return isinstance(value, str) and value.startswith(("http://", "https://"))
-
-
-def discover_unit4_menu() -> list[dict]:
-    req = Request(
-        API_URL,
-        headers={
-            "User-Agent": "Mozilla/5.0 SchoolBoard/1.0",
-            "Accept": "application/json,text/plain,*/*",
-            "Referer": f"https://champaignschoolsfoodservices.org/index.php?sid={SID}&page=menus",
-        },
-    )
-
-    print(f"unit4-menus detail: requesting {API_URL}")
-    with urlopen(req, timeout=30) as response:
-        body = response.read()
-        content_type = response.headers.get("content-type", "")
-        status = getattr(response, "status", None)
-
-    print(f"unit4-menus detail: HTTP {status}; content-type={content_type}; bytes={len(body)}")
-
-    text = body.decode("utf-8", errors="replace").strip()
-    try:
-        payload = json.loads(text)
-    except json.JSONDecodeError:
-        print("unit4-menus response sample:")
-        print(_short(text, 1800))
-        raise RuntimeError("Unit 4 ngApi/read endpoint did not return JSON")
-
-    print("unit4-menus JSON shape:")
-    print(_shape(payload))
-
-    top = list(payload.keys()) if isinstance(payload, dict) else []
-    if top:
-        print("unit4-menus top-level keys:")
-        print("  " + ", ".join(map(str, top[:40])))
-
-    # Print only useful group-like arrays so we can identify elementary/middle/high IDs.
-    seen_lists = 0
-    for path, value in _walk(payload):
-        if _interesting_path(path) and _looks_like_group_list(value):
-            print(f"unit4-menus candidate group list at {path}:")
-            for item in value[:20]:
-                fields = []
-                for key in (
-                    "id", "site_id", "siteId", "group_id", "groupId",
-                    "name", "title", "label", "description", "slug",
-                ):
-                    if key in item:
-                        fields.append(f"{key}={_short(item[key], 100)!r}")
-                if not fields:
-                    fields = [f"{k}={_short(v, 80)!r}" for k, v in list(item.items())[:6]]
-                print("  - " + ", ".join(fields))
-            seen_lists += 1
-            if seen_lists >= 8:
-                break
-
-    # Print menu/API URLs found inside the payload.
+def _capture_network(driver) -> list[str]:
     urls = []
-    for path, value in _walk(payload):
-        if _looks_like_url(value) and (
-            "menu" in value.casefold()
-            or "api" in value.casefold()
-            or "nutrition" in value.casefold()
+    for entry in driver.get_log("performance"):
+        try:
+            msg = json.loads(entry["message"])["message"]
+        except Exception:
+            continue
+        if msg.get("method") != "Network.responseReceived":
+            continue
+        url = msg.get("params", {}).get("response", {}).get("url", "")
+        low = url.casefold()
+        if (
+            SID in url
+            or ".pdf" in low
+            or "greenmenu" in low
+            or "snaf-assets" in low
+            or "menu" in low
         ):
-            pair = (path, value)
-            if pair not in urls:
-                urls.append(pair)
+            if url not in urls:
+                urls.append(url)
+    return urls
 
-    if urls:
-        print("unit4-menus embedded menu/API URLs:")
-        for path, value in urls[:20]:
-            print(f"  - {path}: {value}")
 
-    # Print scalar values at paths whose names strongly suggest IDs/configuration.
-    scalars = []
-    for path, value in _walk(payload):
-        if isinstance(value, (str, int, float, bool)) and _interesting_path(path):
-            low = path.casefold()
-            if any(token in low for token in ("id", "endpoint", "url", "slug", "name", "title")):
-                entry = (path, value)
-                if entry not in scalars:
-                    scalars.append(entry)
+def discover_unit4_menu(*, wait_seconds: float = 5.0) -> list[dict]:
+    try:
+        from selenium import webdriver
+        from selenium.webdriver.chrome.options import Options
+        from selenium.webdriver.common.by import By
+        from selenium.webdriver.support.ui import Select
+    except ImportError as exc:
+        raise RuntimeError("Selenium is required for Unit 4 menu discovery") from exc
 
-    if scalars:
-        print("unit4-menus useful scalar fields:")
-        for path, value in scalars[:60]:
-            print(f"  - {path} = {_short(value, 140)!r}")
+    options = Options()
+    options.add_argument("--headless=new")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--window-size=1440,1400")
+    options.add_argument("--lang=en-US")
+    options.set_capability("goog:loggingPrefs", {"performance": "ALL"})
 
-    raise RuntimeError("Unit 4 ngApi structure discovered; live menu parser not configured yet")
+    driver = webdriver.Chrome(options=options)
+    try:
+        driver.execute_cdp_cmd("Network.enable", {})
+        driver.get(MENU_URL)
+        time.sleep(wait_seconds)
+
+        selects = driver.find_elements(By.TAG_NAME, "select")
+        if not selects:
+            raise RuntimeError("Unit 4 menu group dropdown was not found")
+
+        select_el = selects[0]
+        selector = Select(select_el)
+        available = [o.text.strip() for o in selector.options if o.text.strip()]
+        print("unit4-menus detail: available groups:")
+        for value in available:
+            print(f"  - {value}")
+
+        for group in TARGET_GROUPS:
+            # Reload for every group so stale DOM/network state cannot contaminate results.
+            driver.get(MENU_URL)
+            time.sleep(2)
+            try:
+                driver.get_log("performance")
+            except Exception:
+                pass
+
+            select_el = driver.find_elements(By.TAG_NAME, "select")[0]
+            selector = Select(select_el)
+
+            print(f"unit4-menus group: {group}")
+            selector.select_by_visible_text(group)
+
+            # Fire both change/input to accommodate old Angular/jQuery handlers.
+            driver.execute_script(
+                """
+                const el = arguments[0];
+                el.dispatchEvent(new Event('input', {bubbles:true}));
+                el.dispatchEvent(new Event('change', {bubbles:true}));
+                """,
+                select_el,
+            )
+            time.sleep(wait_seconds)
+
+            print(f"unit4-menus detail: {group} final URL: {driver.current_url}")
+
+            links = []
+            for a in driver.find_elements(By.TAG_NAME, "a"):
+                try:
+                    href = a.get_attribute("href") or ""
+                    text = _compact(a.text, 160)
+                except Exception:
+                    continue
+                if href and _interesting_href(href):
+                    pair = (text, href)
+                    if pair not in links:
+                        links.append(pair)
+
+            if links:
+                print(f"unit4-menus links for {group}:")
+                for text, href in links[:30]:
+                    print(f"  - {text!r}: {href}")
+            else:
+                print(f"unit4-menus links for {group}: none found")
+
+            iframe_srcs = []
+            for frame in driver.find_elements(By.TAG_NAME, "iframe"):
+                try:
+                    src = frame.get_attribute("src") or ""
+                except Exception:
+                    continue
+                if src and src not in iframe_srcs:
+                    iframe_srcs.append(src)
+            if iframe_srcs:
+                print(f"unit4-menus iframes for {group}:")
+                for src in iframe_srcs[:15]:
+                    print(f"  - {src}")
+
+            body = _compact(driver.find_element(By.TAG_NAME, "body").text, 1700)
+            print(f"unit4-menus rendered sample for {group}:")
+            print(body)
+
+            urls = _capture_network(driver)
+            if urls:
+                print(f"unit4-menus focused requests for {group}:")
+                for url in urls[:25]:
+                    print(f"  - {url}")
+
+        raise RuntimeError(
+            "Unit 4 grade-band link discovery completed; live parser not configured yet"
+        )
+    finally:
+        driver.quit()
