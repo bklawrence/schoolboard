@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -48,13 +49,40 @@ def load_json(path: Path, default):
         return default
 
 
+SEMANTIC_EVENT_PHRASES = (
+    "curriculum night",
+    "picture day",
+    "open house",
+)
+
+
+def normalized_event_title(title: str) -> str:
+    clean = re.sub(r"\s+", " ", str(title or "")).strip().casefold()
+    clean = re.sub(r"\.pdf\s*$", "", clean).strip(" -–:,.")
+
+    for phrase in SEMANTIC_EVENT_PHRASES:
+        if phrase in clean:
+            return phrase
+
+    clean = re.sub(r"[^a-z0-9]+", " ", clean)
+    return re.sub(r"\s+", " ", clean).strip()
+
+
 def event_key(event: dict) -> tuple:
     return (
         event.get("date", ""),
         event.get("start", ""),
-        event.get("title", "").strip().casefold(),
+        normalized_event_title(event.get("title", "")),
         tuple(sorted(event.get("schools") or [])),
     )
+
+
+def _event_quality(event: dict) -> tuple:
+    title = str(event.get("title", "")).strip()
+    source = str(event.get("source", ""))
+    noisy = int(".pdf" in title.casefold() or "hello " in title.casefold())
+    schoolfeed = int(source.startswith("USD 116 School Feed"))
+    return (noisy, schoolfeed, len(title))
 
 
 def merge_unique(events: list[dict]) -> list[dict]:
@@ -67,14 +95,19 @@ def merge_unique(events: list[dict]) -> list[dict]:
         else:
             no_id.append(event)
     merged = list(by_id.values()) + no_id
-    seen: set[tuple] = set()
-    result: list[dict] = []
+
+    best_by_key: dict[tuple, dict] = {}
+    order: list[tuple] = []
     for event in merged:
         key = event_key(event)
-        if key in seen:
+        if key not in best_by_key:
+            best_by_key[key] = event
+            order.append(key)
             continue
-        seen.add(key)
-        result.append(event)
+        if _event_quality(event) < _event_quality(best_by_key[key]):
+            best_by_key[key] = event
+
+    result = [best_by_key[key] for key in order]
     return sorted(result, key=lambda e: (e.get("date", ""), e.get("start", ""), e.get("title", "")))
 
 
