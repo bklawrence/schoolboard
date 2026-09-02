@@ -1,11 +1,19 @@
 {
-  "updated": "2026-09-02T07:20:23-05:00",
+  "updated": "2026-09-02T07:32:43-05:00",
   "mode": "live-collector",
   "sources": [
     {
       "id": "uni-athletics",
       "status": "live",
-      "count": 256
+      "count": 256,
+      "unit": "events"
+    },
+    {
+      "id": "quest-k5",
+      "status": "failed",
+      "count": 0,
+      "unit": "menu days",
+      "error": "RuntimeError: Selenium is required for the Quest collector"
     }
   ],
   "events": [
