@@ -66,7 +66,13 @@ def _parse_dt(value: str, params: dict[str, str]) -> date | datetime:
     return dt.replace(tzinfo=tz).astimezone(CHICAGO)
 
 
-def parse_ics(text: str) -> list[dict]:
+def parse_ics(
+    text: str,
+    *,
+    school_ids: list[str] | None = None,
+    source: str = "Uni High Athletics — Snap!",
+    id_prefix: str = "uni-snap",
+) -> list[dict]:
     events: list[dict] = []
     current: dict[str, tuple[dict[str, str], str]] | None = None
 
@@ -76,7 +82,14 @@ def parse_ics(text: str) -> list[dict]:
             continue
         if line == "END:VEVENT":
             if current is not None:
-                events.append(_normalize_raw_event(current))
+                events.append(
+                    _normalize_raw_event(
+                        current,
+                        school_ids=school_ids,
+                        source=source,
+                        id_prefix=id_prefix,
+                    )
+                )
             current = None
             continue
         if current is None:
@@ -92,7 +105,13 @@ def parse_ics(text: str) -> list[dict]:
     return [e for e in events if e]
 
 
-def _normalize_raw_event(raw: dict[str, tuple[dict[str, str], str]]) -> dict:
+def _normalize_raw_event(
+    raw: dict[str, tuple[dict[str, str], str]],
+    *,
+    school_ids: list[str] | None = None,
+    source: str = "Uni High Athletics — Snap!",
+    id_prefix: str = "uni-snap",
+) -> dict:
     def val(name: str) -> str:
         return raw.get(name, ({}, ""))[1]
 
@@ -113,13 +132,13 @@ def _normalize_raw_event(raw: dict[str, tuple[dict[str, str], str]]) -> dict:
 
     digest = hashlib.sha1(uid.encode("utf-8")).hexdigest()[:18]
     out: dict = {
-        "id": f"uni-snap-{digest}",
+        "id": f"{id_prefix}-{digest}",
         "title": summary,
         "date": start_obj.isoformat() if isinstance(start_obj, date) and not isinstance(start_obj, datetime) else start_obj.date().isoformat(),
-        "schools": ["uni"],
+        "schools": list(school_ids or ["uni"]),
         "scope": "school",
         "category": "sport",
-        "source": "Uni High Athletics — Snap!",
+        "source": source,
     }
 
     if isinstance(start_obj, datetime):
@@ -148,9 +167,12 @@ def _first_url(text: str) -> str | None:
     return match.group(0).rstrip(".,);]")
 
 
-def fetch_uni_snap(
+def fetch_snap(
     feed_url: str,
     *,
+    school_ids: list[str],
+    source: str,
+    id_prefix: str,
     timeout: int = 30,
     opener=urlopen,
 ) -> list[dict]:
@@ -164,4 +186,26 @@ def fetch_uni_snap(
     with opener(request, timeout=timeout) as response:
         body = response.read()
         charset = response.headers.get_content_charset() or "utf-8"
-    return parse_ics(body.decode(charset, errors="replace"))
+    return parse_ics(
+        body.decode(charset, errors="replace"),
+        school_ids=school_ids,
+        source=source,
+        id_prefix=id_prefix,
+    )
+
+
+def fetch_uni_snap(
+    feed_url: str,
+    *,
+    timeout: int = 30,
+    opener=urlopen,
+) -> list[dict]:
+    """Backward-compatible wrapper retained for older build scripts/tests."""
+    return fetch_snap(
+        feed_url,
+        school_ids=["uni"],
+        source="Uni High Athletics — Snap!",
+        id_prefix="uni-snap",
+        timeout=timeout,
+        opener=opener,
+    )
