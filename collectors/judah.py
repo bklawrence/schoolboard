@@ -60,20 +60,55 @@ def _academic_year(reference:date,hint=""):
     return (reference.year,reference.year+1) if reference.month>=7 else (reference.year-1,reference.year)
 
 def _discover_pdf_from_html(html,*,reference):
-    decoded=unescape(html).replace(r"\/","/")
+    decoded=unescape(html).replace(r"\\/","/")
     p=_CalendarLinkParser(); p.feed(decoded)
-    for u in re.findall(r'https?://[^"\'<>\\\s]+?\.pdf(?:\?[^"\'<>\\\s]*)?',decoded,re.I): p.links.append(PdfCandidate(u,""))
-    for u in re.findall(r'["\']([^"\']*?_files/ugd/[^"\']+?\.pdf(?:\?[^"\']*)?)["\']',decoded,re.I): p.links.append(PdfCandidate(u,""))
+
+    for u in re.findall(r'https?://[^"\'<>\\\s]+?\.pdf(?:\?[^"\'<>\\\s]*)?',decoded,re.I):
+        p.links.append(PdfCandidate(u,""))
+    for u in re.findall(r'["\']([^"\']*?_files/ugd/[^"\']+?\.pdf(?:\?[^"\']*)?)["\']',decoded,re.I):
+        p.links.append(PdfCandidate(u,""))
+
     by={}
     for item in p.links:
         full=urljoin(CALENDAR_PAGE,item.url)
-        if full not in by or (not by[full].label and item.label):by[full]=PdfCandidate(full,item.label)
-    if not by:return None
-    a,b=_academic_year(reference); tokens=(f"{a}-{b}",f"{a}-{str(b)[-2:]}",str(a))
+        existing=by.get(full)
+        if existing is None or (not existing.label and item.label):
+            by[full]=PdfCandidate(full,item.label)
+
+    if not by:
+        return None
+
+    rejected_tokens=(
+        "supply list","tuition","application","handbook","form","waiver",
+    )
+    candidates=[]
+    for item in by.values():
+        haystack=f"{item.label} {item.url}".casefold()
+        if any(token in haystack for token in rejected_tokens):
+            print(
+                "judah-calendar detail: rejected non-calendar PDF candidate"
+                + (f" labeled '{item.label}'" if item.label else "")
+            )
+            continue
+        candidates.append(item)
+
+    if not candidates:
+        return None
+
+    a,b=_academic_year(reference)
+    tokens=(f"{a}-{b}",f"{a}-{str(b)[-2:]}",str(a))
+
     def score(x):
         h=f"{x.label} {x.url}".casefold()
-        return (int("calendar" in h),int(any(t.casefold() in h for t in tokens)),int("ugd/" in h),len(x.label))
-    return max(by.values(),key=score)
+        return (
+            int(x.url.split("?",1)[0] == CURRENT_PDF_FALLBACK),
+            int("calendar" in h),
+            int(any(t.casefold() in h for t in tokens)),
+            int("ugd/" in h),
+            -len(x.label) if x.label and "calendar" not in x.label.casefold() else len(x.label),
+        )
+
+    return max(candidates,key=score)
 
 def discover_current_pdf(*,reference=None,timeout=25,opener=urlopen):
     reference=reference or date.today()
@@ -249,51 +284,227 @@ def _sanitize(url):
         p=urlparse(url);return f"{p.scheme}://{p.netloc}{p.path}"
     except:return url.split("?",1)[0]
 
+def _json_shape(value):
+    if isinstance(value, dict):
+        return {"type":"dict","keys":list(value.keys())[:30]}
+    if isinstance(value, list):
+        first=value[0] if value else None
+        return {
+            "type":"list",
+            "length":len(value),
+            "first":_json_shape(first) if first is not None else None,
+        }
+    return {"type":type(value).__name__}
+
+
+def _first_interesting_record(value):
+    if isinstance(value, dict):
+        if len(value) >= 4:
+            return value
+        for child in value.values():
+            found=_first_interesting_record(child)
+            if found is not None:
+                return found
+    elif isinstance(value, list):
+        for child in value:
+            found=_first_interesting_record(child)
+            if found is not None:
+                return found
+    return None
+
+
 def fetch_judah_athletics(*,settle_seconds=5.0):
     try:
         from selenium import webdriver
         from selenium.common.exceptions import TimeoutException
         from selenium.webdriver.chrome.options import Options
-    except ImportError as exc:raise RuntimeError("Selenium is required for Judah athletics") from exc
-    o=Options();o.add_argument("--headless=new");o.add_argument("--no-sandbox");o.add_argument("--disable-dev-shm-usage");o.add_argument("--window-size=1440,1200");o.add_argument("--lang=en-US");o.page_load_strategy="eager";o.set_capability("goog:loggingPrefs",{"performance":"ALL"})
-    d=webdriver.Chrome(options=o);d.set_page_load_timeout(18)
+    except ImportError as exc:
+        raise RuntimeError("Selenium is required for Judah athletics") from exc
+
+    o=Options()
+    o.add_argument("--headless=new")
+    o.add_argument("--no-sandbox")
+    o.add_argument("--disable-dev-shm-usage")
+    o.add_argument("--window-size=1440,1200")
+    o.add_argument("--lang=en-US")
+    o.page_load_strategy="eager"
+    o.set_capability("goog:loggingPrefs",{"performance":"ALL"})
+
+    d=webdriver.Chrome(options=o)
+    d.set_page_load_timeout(18)
+
     try:
-        try:d.execute_cdp_cmd("Network.enable",{"maxTotalBufferSize":100000000,"maxResourceBufferSize":5000000})
-        except:pass
-        try:d.get(ATHLETICS_PAGE)
+        try:
+            d.execute_cdp_cmd(
+                "Network.enable",
+                {"maxTotalBufferSize":100000000,"maxResourceBufferSize":5000000},
+            )
+        except Exception:
+            pass
+
+        try:
+            d.get(ATHLETICS_PAGE)
         except TimeoutException:
-            try:d.execute_script("window.stop();")
-            except:pass
+            try:
+                d.execute_script("window.stop();")
+            except Exception:
+                pass
+
         time.sleep(settle_seconds)
-        bodies=[];urls=[]
-        for raw in d.get_log("performance"):
-            try:m=json.loads(raw["message"])["message"]
-            except:continue
-            if m.get("method")!="Network.responseReceived":continue
-            p=m.get("params",{});r=p.get("response",{});url=str(r.get("url") or "");mime=str(r.get("mimeType") or "").casefold();status=int(r.get("status") or 0)
-            if status!=200:continue
-            low=url.casefold();likely=("arbiter" in low and any(t in low for t in ("event","calendar","schedule","school","contest","game","api")));jsonish="json" in mime
-            if not(likely or jsonish):continue
-            urls.append(_sanitize(url));rid=str(p.get("requestId") or "")
-            if not rid:continue
-            try:data=json.loads(d.execute_cdp_cmd("Network.getResponseBody",{"requestId":rid}).get("body",""))
-            except:continue
+
+        logs=d.get_log("performance")
+        request_meta={}
+        response_messages=[]
+
+        for raw in logs:
+            try:
+                m=json.loads(raw["message"])["message"]
+            except Exception:
+                continue
+
+            method=m.get("method")
+            params=m.get("params",{})
+
+            if method=="Network.requestWillBeSent":
+                req=params.get("request",{})
+                rid=str(params.get("requestId") or "")
+                if rid:
+                    request_meta[rid]={
+                        "url":str(req.get("url") or ""),
+                        "method":str(req.get("method") or "GET"),
+                        "postData":str(req.get("postData") or ""),
+                    }
+            elif method=="Network.responseReceived":
+                response_messages.append(m)
+
+        bodies=[]
+        urls=[]
+
+        for m in response_messages:
+            p=m.get("params",{})
+            r=p.get("response",{})
+            url=str(r.get("url") or "")
+            mime=str(r.get("mimeType") or "").casefold()
+            status=int(r.get("status") or 0)
+            rid=str(p.get("requestId") or "")
+
+            if status!=200:
+                continue
+
+            low=url.casefold()
+            likely=(
+                "arbiter" in low
+                and any(
+                    token in low
+                    for token in ("event","calendar","schedule","school","contest","game","api")
+                )
+            )
+            jsonish="json" in mime
+
+            if not (likely or jsonish):
+                continue
+
+            urls.append(_sanitize(url))
+
+            try:
+                body=d.execute_cdp_cmd(
+                    "Network.getResponseBody",
+                    {"requestId":rid},
+                ).get("body","")
+                data=json.loads(body)
+            except Exception:
+                continue
+
             bodies.append((url,data))
-        parsed=[];seq=0
+
+            if "GetEventsByEntity" in url:
+                meta=request_meta.get(rid,{})
+                print(
+                    "judah-athletics diagnostic: GetEventsByEntity request "
+                    f"method={meta.get('method','?')} url={url}"
+                )
+                if meta.get("postData"):
+                    post=re.sub(r"\\s+"," ",meta["postData"]).strip()
+                    print(
+                        "judah-athletics diagnostic: GetEventsByEntity request body "
+                        + post[:1400]
+                    )
+
+                print(
+                    "judah-athletics diagnostic: GetEventsByEntity JSON shape "
+                    + json.dumps(_json_shape(data),ensure_ascii=False)[:1800]
+                )
+
+                record=_first_interesting_record(data)
+                if record is not None:
+                    sample={}
+                    for key,value in list(record.items())[:30]:
+                        if isinstance(value,(dict,list)):
+                            sample[key]=_json_shape(value)
+                        else:
+                            sample[key]=str(value)[:220]
+                    print(
+                        "judah-athletics diagnostic: GetEventsByEntity sample record "
+                        + json.dumps(sample,ensure_ascii=False)[:3500]
+                    )
+
+        parsed=[]
+        seq=0
         for _,data in bodies:
             for record in _walk(data):
-                seq+=1;e=_event_from_arbiter_dict(record,seq)
-                if e:parsed.append(e)
+                seq+=1
+                e=_event_from_arbiter_dict(record,seq)
+                if e:
+                    parsed.append(e)
+
         uniq={}
-        for e in parsed:uniq[(e["date"],e.get("start",""),re.sub(r"[^a-z0-9]+"," ",e["title"].casefold()).strip())]=e
-        events=sorted(uniq.values(),key=lambda e:(e["date"],e.get("start",""),e["title"]))
-        for u in list(dict.fromkeys(urls))[:20]:print(f"judah-athletics diagnostic: public network candidate {u}")
+        for e in parsed:
+            key=(
+                e["date"],
+                e.get("start",""),
+                re.sub(r"[^a-z0-9]+"," ",e["title"].casefold()).strip(),
+            )
+            uniq[key]=e
+
+        events=sorted(
+            uniq.values(),
+            key=lambda e:(e["date"],e.get("start",""),e["title"]),
+        )
+
+        for u in list(dict.fromkeys(urls))[:20]:
+            print(f"judah-athletics diagnostic: public network candidate {u}")
+
         if len(events)>=3:
-            preview="; ".join(f"{e['date']} {e['title']}" for e in events[:8]);print(f"judah-athletics detail: parsed {len(events)} unique public Arbiter events from {len(bodies)} JSON responses")
-            if preview:print(f"judah-athletics detail: first parsed events: {preview}")
+            preview="; ".join(f"{e['date']} {e['title']}" for e in events[:8])
+            print(
+                f"judah-athletics detail: parsed {len(events)} unique public "
+                f"Arbiter events from {len(bodies)} JSON responses"
+            )
+            if preview:
+                print(f"judah-athletics detail: first parsed events: {preview}")
             return events
-        try:links=d.execute_script("return Array.from(document.querySelectorAll('a[href]')).map(a=>a.href).filter(Boolean);") or []
-        except:links=[]
-        for link in list(dict.fromkeys([x for x in links if any(t in x.casefold() for t in ("team","schedule","calendar","event","subscribe"))]))[:20]:print(f"judah-athletics diagnostic: rendered link {_sanitize(link)}")
-        raise RuntimeError(f"Judah public Arbiter calendar yielded only {len(events)} safely parseable events from {len(bodies)} JSON responses; diagnostics logged")
-    finally:d.quit()
+
+        try:
+            links=d.execute_script(
+                "return Array.from(document.querySelectorAll('a[href]')).map(a=>a.href).filter(Boolean);"
+            ) or []
+        except Exception:
+            links=[]
+
+        relevant=[
+            x for x in links
+            if any(
+                token in x.casefold()
+                for token in ("team","schedule","calendar","event","subscribe")
+            )
+        ]
+        for link in list(dict.fromkeys(relevant))[:20]:
+            print(f"judah-athletics diagnostic: rendered link {_sanitize(link)}")
+
+        raise RuntimeError(
+            f"Judah public Arbiter calendar yielded only {len(events)} safely "
+            f"parseable events from {len(bodies)} JSON responses; diagnostics logged"
+        )
+
+    finally:
+        d.quit()
