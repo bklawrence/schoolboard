@@ -467,6 +467,57 @@ def _parse_public_datetime(value):
         except:pass
     return None
 
+def _clean_arbiter_title(raw_title):
+    """
+    Convert Arbiter's HTML-decorated status titles into plain SchoolBoard text.
+    Keep cancellation/postponement information, but never expose markup.
+    """
+    raw=str(raw_title or "")
+
+    # Arbiter sometimes emits uppercase HTML entities such as &NBSP;.
+    raw=re.sub(r"(?i)&nbsp;"," ",raw)
+    decoded=unescape(unescape(raw))
+
+    status=""
+    status_match=re.search(
+        r'(?is)<span[^>]*class=["\'][^"\']*calPopOverGameStatus[^"\']*["\'][^>]*>'
+        r'\s*([^<]+?)\s*</span>',
+        decoded,
+    )
+    if status_match:
+        status=re.sub(r"\s+"," ",unescape(status_match.group(1))).strip()
+
+    if not status:
+        loose=re.search(
+            r'(?is)calPopOverGameStatus[^>]*>\s*([^<]+?)\s*</span>',
+            decoded,
+        )
+        if loose:
+            status=re.sub(r"\s+"," ",unescape(loose.group(1))).strip()
+
+    decoded=re.sub(r"(?is)<br\s*/?>"," ",decoded)
+    decoded=re.sub(r"(?is)<[^>]+>"," ",decoded)
+    decoded=re.sub(r"(?i)&nbsp;"," ",decoded)
+    decoded=unescape(decoded)
+    decoded=re.sub(r"\s+"," ",decoded).strip(" |;:-")
+
+    if status:
+        decoded=re.sub(
+            rf"(?i)(?:\s|[-—:])*\b{re.escape(status)}\b\s*$",
+            "",
+            decoded,
+        ).strip(" |;:-")
+
+    if status.casefold() in {"cancelled","canceled"}:
+        status="Canceled"
+    elif status.casefold()=="postponed":
+        status="Postponed"
+    elif status.casefold()=="rescheduled":
+        status="Rescheduled"
+
+    return decoded,status
+
+
 def _event_from_arbiter_dict(record,index):
     ci={str(k).casefold():v for k,v in record.items()}
     dt=None
@@ -478,12 +529,14 @@ def _event_from_arbiter_dict(record,index):
     if not dt:
         return None
 
-    title=""
+    raw_title=""
     for k in TITLE_KEYS:
         v=ci.get(k)
         if isinstance(v,str) and re.search(r"[A-Za-z]",v):
-            title=re.sub(r"\s+"," ",v).strip()
+            raw_title=v
             break
+
+    title,status=_clean_arbiter_title(raw_title)
     if not title or len(title)>180 or title.casefold() in {"judah christian school","calendar"}:
         return None
 
@@ -493,8 +546,13 @@ def _event_from_arbiter_dict(record,index):
     if match:
         event_type=match.group(1).replace("_"," ").replace("-"," ").strip().title()
 
+    suffixes=[]
     if event_type and event_type.casefold() not in title.casefold():
-        title=f"{title} — {event_type}"
+        suffixes.append(event_type)
+    if status:
+        suffixes.append(status)
+    if suffixes:
+        title=f"{title} — " + " — ".join(suffixes)
 
     e={
         "id":f"judah-athletics-{dt.date().isoformat()}-{index}",
