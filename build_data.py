@@ -14,6 +14,12 @@ from collectors.countryside import SOURCE_NAME as COUNTRYSIDE_SOURCE, fetch_coun
 from collectors.libraries import LIBRARIES, fetch_library_calendar
 from collectors.stmatthew import SOURCE_NAME as STMATTHEW_SOURCE, fetch_stmatthew_calendar
 from collectors.stjohn import SOURCE_NAME as STJOHN_SOURCE, fetch_stjohn_calendar
+from collectors.judah import (
+    CALENDAR_SOURCE_NAME as JUDAH_CALENDAR_SOURCE,
+    ATHLETICS_SOURCE_NAME as JUDAH_ATHLETICS_SOURCE,
+    fetch_judah_calendar,
+    fetch_judah_athletics,
+)
 from collectors.usd116_calendar import SOURCE_NAME as USD116_CALENDAR_SOURCE, fetch_usd116_calendar
 from collectors.usd116_schoolfeeds import SCHOOL_FEEDS, SOURCE_PREFIX as USD116_SCHOOLFEED_PREFIX, fetch_school_feed
 from collectors.apptegy_calendars import (
@@ -616,6 +622,35 @@ def build(*, offline: bool = False) -> dict:
                 "error": f"{type(exc).__name__}: {exc}",
             })
 
+    # Judah Christian School: current annual calendar PDF plus public Arbiter athletics.
+    if offline:
+        judah_calendar_events = previous_source_events(JUDAH_CALENDAR_SOURCE)
+        judah_calendar_events, _, _ = filter_events_to_rolling_window(judah_calendar_events, reference=today)
+        source_status.append({"id":"judah-calendar","status":"cached" if judah_calendar_events else "failed","count":len(judah_calendar_events),"unit":"events"})
+    else:
+        try:
+            judah_calendar_events = fetch_judah_calendar(reference=today)
+            judah_calendar_events, _, _ = filter_events_to_rolling_window(judah_calendar_events, reference=today)
+            source_status.append({"id":"judah-calendar","status":"live","count":len(judah_calendar_events),"unit":"events"})
+        except Exception as exc:
+            judah_calendar_events = previous_source_events(JUDAH_CALENDAR_SOURCE)
+            judah_calendar_events, _, _ = filter_events_to_rolling_window(judah_calendar_events, reference=today)
+            source_status.append({"id":"judah-calendar","status":"cached" if judah_calendar_events else "failed","count":len(judah_calendar_events),"unit":"events","error":f"{type(exc).__name__}: {exc}"})
+
+    if offline:
+        judah_athletics_events = previous_source_events(JUDAH_ATHLETICS_SOURCE)
+        judah_athletics_events, _, _ = filter_events_to_rolling_window(judah_athletics_events, reference=today)
+        source_status.append({"id":"judah-athletics","status":"cached" if judah_athletics_events else "failed","count":len(judah_athletics_events),"unit":"events"})
+    else:
+        try:
+            judah_athletics_events = fetch_judah_athletics()
+            judah_athletics_events, _, _ = filter_events_to_rolling_window(judah_athletics_events, reference=today)
+            source_status.append({"id":"judah-athletics","status":"live","count":len(judah_athletics_events),"unit":"events"})
+        except Exception as exc:
+            judah_athletics_events = previous_source_events(JUDAH_ATHLETICS_SOURCE)
+            judah_athletics_events, _, _ = filter_events_to_rolling_window(judah_athletics_events, reference=today)
+            source_status.append({"id":"judah-athletics","status":"cached" if judah_athletics_events else "failed","count":len(judah_athletics_events),"unit":"events","error":f"{type(exc).__name__}: {exc}"})
+
     # Countryside School (independent K-8) public Finalsite calendar.
     if offline:
         countryside_events = previous_source_events(COUNTRYSIDE_SOURCE)
@@ -761,6 +796,8 @@ def build(*, offline: bool = False) -> dict:
         + stm_events
         + stmatthew_events
         + stjohn_events
+        + judah_calendar_events
+        + judah_athletics_events
         + countryside_events
         + library_events
     )

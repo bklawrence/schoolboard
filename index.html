@@ -1078,6 +1078,14 @@
     "color": "#4D8B57"
   },
   {
+    "id": "judah",
+    "short": "Judah Christian",
+    "full": "Judah Christian School",
+    "system": "Private",
+    "level": "P–12",
+    "color": "#4D8B57"
+  },
+  {
     "id": "cecc",
     "short": "CECC",
     "full": "Champaign Early Childhood Center",
@@ -1315,6 +1323,20 @@
       "uecs"
     ],
     "url": "https://uecs.usd116.org/"
+  },
+  {
+    "id": "judah-calendar",
+    "kind": "School-year calendar",
+    "name": "Judah Christian School Calendar",
+    "schools": ["judah"],
+    "url": "https://www.judah.org/calendar"
+  },
+  {
+    "id": "judah-athletics",
+    "kind": "Athletics calendar",
+    "name": "Judah Christian Athletics",
+    "schools": ["judah"],
+    "url": "https://arbiterlive.com/School/Calendar/11489"
   },
   {
     "id": "stjohn-calendar",
@@ -15859,6 +15881,7 @@
       "Elementary": 1,
       "PK–8": 2,
       "K–8": 2,
+      "P–12": 2,
       "Sixth Grade": 3,
       "Middle School": 4,
       "High School": 5
@@ -15957,7 +15980,7 @@
       .forEach(s => privateColumn.appendChild(makePickerLabel(s)));
 
     const privateSchools = SCHOOLS
-      .filter(s => ["countryside", "stm", "stmatthew", "stjohn"].includes(s.id))
+      .filter(s => ["countryside", "stm", "stmatthew", "stjohn", "judah"].includes(s.id))
       .sort(byAgeThenName);
 
     if (privateSchools.length){
