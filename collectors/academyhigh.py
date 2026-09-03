@@ -179,6 +179,11 @@ def _normalize_title(value: str) -> str:
     value = re.sub(r"<br\s*/?>", " ", value, flags=re.I)
     value = re.sub(r"<[^>]+>", " ", value)
     value = re.sub(r"\s+", " ", value).strip(" \t\r\n-–—:|•")
+
+    # Smore occasionally leaves an empty time/location delimiter at the end,
+    # e.g. "XC @UIUC Arboretum @" or "Homer Lake, Homer @TBD".
+    value = re.sub(r"\s+@\s*(?:TBD)?\s*$", "", value, flags=re.I)
+    value = re.sub(r"\s+", " ", value).strip(" \t\r\n-–—:|•")
     return value
 
 
@@ -212,6 +217,15 @@ def _event(
     if not title or title.casefold() in GENERIC_SKIP:
         return None
     if not re.search(r"[A-Za-z]", title):
+        return None
+
+    # SchoolBoard is for current-family operational information. Academy High's
+    # newsletter includes its admissions event in Important Dates, but that is
+    # aimed at prospective families rather than enrolled households.
+    low_title = title.casefold()
+    if "discover academy high" in low_title and (
+        "prospective" in low_title or "admissions" in low_title
+    ):
         return None
 
     start, title = _parse_time_from_title(title)
@@ -560,6 +574,166 @@ def _pdf_text(raw: bytes) -> str:
     return combined
 
 
+
+ACADEMIC_EVENT_LINE_RE = re.compile(
+    r"(?<!\d)"
+    r"(?P<d1>3[01]|[12]\d|0?[1-9])"
+    r"(?:\s*-\s*(?P<d2>3[01]|[12]\d|0?[1-9]))?"
+    r"\s+"
+    r"(?P<title>[A-Za-z][^\n]*)$"
+)
+
+
+def _parse_academic_half_text(
+    half_text: str,
+    *,
+    reference: date,
+) -> list[dict]:
+    """
+    Parse one vertical half of Academy High's annual calendar PDF.
+
+    The PDF places August-December down the left half and January-May down the
+    right half. Each month also contains a conventional numbered mini-calendar.
+    We ignore pure number/grid lines and accept only lines where a day/range is
+    followed by alphabetic event text.
+    """
+    half_text = (
+        half_text
+        .replace("\u00a0", " ")
+        .replace("\u2011", "-")
+        .replace("\u2012", "-")
+        .replace("\u2013", "-")
+        .replace("\u2014", "-")
+    )
+
+    current_month: int | None = None
+    events: list[dict] = []
+
+    for raw_line in half_text.splitlines():
+        line = re.sub(r"\s+", " ", raw_line).strip()
+        if not line:
+            continue
+
+        # Month headings are printed alone in each clipped half.
+        month_token = re.sub(r"[^A-Za-z]", "", line).casefold()
+        if month_token in MONTHS and len(line) <= 16:
+            current_month = MONTHS[month_token]
+            continue
+
+        if current_month is None:
+            continue
+
+        low = line.casefold()
+        if low in {"s m t w th f s", "s m t w t f s"}:
+            continue
+
+        # Search from the right end of the line. This is intentionally tolerant
+        # of stray mini-calendar numbers before the real dated event, e.g.
+        # "1 11 Faculty Development Day (No School)".
+        matches = list(ACADEMIC_EVENT_LINE_RE.finditer(line))
+        if not matches:
+            continue
+
+        match = matches[-1]
+        d1 = int(match.group("d1"))
+        d2 = int(match.group("d2")) if match.group("d2") else None
+        title = _normalize_title(match.group("title"))
+
+        # Reject a false match against a grid line.
+        if not title or not re.search(r"[A-Za-z]{2,}", title):
+            continue
+
+        year = _year_for_month(current_month, reference=reference)
+        try:
+            start_day = date(year, current_month, d1)
+        except ValueError:
+            continue
+
+        end_day = None
+        if d2 is not None:
+            try:
+                end_day = date(year, current_month, d2)
+            except ValueError:
+                end_day = None
+
+        item = _event(
+            source=CALENDAR_SOURCE_NAME,
+            source_url=RESOURCES_PAGE,
+            event_date=start_day,
+            end_date=end_day,
+            title=title,
+        )
+        if item:
+            events.append(item)
+
+    return events
+
+
+def _parse_academic_pdf_positionally(
+    raw: bytes,
+    *,
+    reference: date,
+) -> tuple[list[dict], str, str]:
+    """
+    Split the one-page Academy High calendar into left/right halves before text
+    extraction. This prevents August/January, September/February, etc. from
+    being interleaved into the same line.
+    """
+    try:
+        import pymupdf
+    except ImportError as exc:
+        raise RuntimeError("PyMuPDF is required for Academy High calendar PDF") from exc
+
+    doc = pymupdf.open(stream=raw, filetype="pdf")
+    events: list[dict] = []
+    left_debug: list[str] = []
+    right_debug: list[str] = []
+
+    for page in doc:
+        rect = page.rect
+        midpoint = rect.x0 + rect.width / 2
+
+        # Small overlap protects headings/text that sit directly on the center
+        # without meaningfully mixing the two month columns.
+        left_rect = pymupdf.Rect(rect.x0, rect.y0, midpoint + 4, rect.y1)
+        right_rect = pymupdf.Rect(midpoint - 4, rect.y0, rect.x1, rect.y1)
+
+        left_text = page.get_text("text", clip=left_rect, sort=True) or ""
+        right_text = page.get_text("text", clip=right_rect, sort=True) or ""
+
+        left_debug.append(left_text)
+        right_debug.append(right_text)
+
+        events.extend(
+            _parse_academic_half_text(
+                left_text,
+                reference=reference,
+            )
+        )
+        events.extend(
+            _parse_academic_half_text(
+                right_text,
+                reference=reference,
+            )
+        )
+
+    unique: dict[tuple[str, str, str], dict] = {}
+    for item in events:
+        key = (
+            item["date"],
+            item.get("endDate", ""),
+            re.sub(r"[^a-z0-9]+", " ", item["title"].casefold()).strip(),
+        )
+        unique[key] = item
+
+    merged = sorted(
+        unique.values(),
+        key=lambda e: (e["date"], e.get("endDate", ""), e["title"]),
+    )
+
+    return merged, "\n".join(left_debug), "\n".join(right_debug)
+
+
 def fetch_academy_calendar(
     *,
     reference: date | None = None,
@@ -569,34 +743,38 @@ def fetch_academy_calendar(
     reference = reference or date.today()
     candidate = discover_calendar_pdf(timeout=timeout, opener=opener)
     raw = _request_bytes(candidate.url, timeout=timeout, opener=opener)
-    text = _pdf_text(raw)
 
-    lines = [
-        re.sub(r"\s+", " ", line).strip()
-        for line in text.splitlines()
-        if re.sub(r"\s+", " ", line).strip()
-    ]
-
-    events = _parse_dated_lines(
-        lines,
+    events, left_text, right_text = _parse_academic_pdf_positionally(
+        raw,
         reference=reference,
-        source=CALENDAR_SOURCE_NAME,
-        source_url=RESOURCES_PAGE,
     )
 
     if len(events) < 8:
+        left_lines = [
+            re.sub(r"\s+", " ", line).strip()
+            for line in left_text.splitlines()
+            if re.sub(r"\s+", " ", line).strip()
+        ]
+        right_lines = [
+            re.sub(r"\s+", " ", line).strip()
+            for line in right_text.splitlines()
+            if re.sub(r"\s+", " ", line).strip()
+        ]
         raise RuntimeError(
-            "Academy High academic PDF was readable but produced only "
-            f"{len(events)} plausible dated events. PDF TEXT: "
-            + " | ".join(lines[:80])[:4000]
+            "Academy High positional PDF parser produced only "
+            f"{len(events)} plausible events. LEFT HALF: "
+            + " | ".join(left_lines[:70])[:2600]
+            + " || RIGHT HALF: "
+            + " | ".join(right_lines[:70])[:2600]
         )
 
     preview = "; ".join(
         f"{event['date']} {event['title']}"
-        for event in events[:10]
+        for event in events[:12]
     )
     print(
-        f"academy-calendar detail: parsed {len(events)} academic-calendar events"
+        f"academy-calendar detail: positional half-page parser found "
+        f"{len(events)} academic-calendar events"
     )
     if preview:
         print(f"academy-calendar detail: first parsed events: {preview}")
