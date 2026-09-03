@@ -32,6 +32,7 @@ class Unit4Calendar:
 
 
 UNIT4_CALENDARS = (
+    Unit4Calendar("cecc", "Champaign Early Childhood Center", "https://cecc.champaignschools.org/o/cecc/events"),
     Unit4Calendar("barkstall", "Barkstall Elementary", "https://www.champaignschools.org/o/barkstall/events"),
     Unit4Calendar("btw", "Booker T. Washington STEM Academy", "https://www.champaignschools.org/o/btw/events"),
     Unit4Calendar("bottenfield", "Bottenfield Elementary", "https://www.champaignschools.org/o/bottenfield/events"),

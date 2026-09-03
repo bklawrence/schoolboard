@@ -8,8 +8,10 @@ from urllib.request import Request, urlopen
 CALENDAR_URL = "https://www.usd116.org/calendar/"
 SOURCE_NAME = "USD 116 School Calendar"
 
-ALL_USD116 = ["yankee", "leal", "paine", "williams", "king", "sgc", "ums", "uhs"]
+ALL_USD116 = ["uecs", "yankee", "leal", "paine", "williams", "king", "sgc", "ums", "uhs"]
+K12 = ["yankee", "leal", "paine", "williams", "king", "sgc", "ums", "uhs"]
 K5 = ["yankee", "leal", "paine", "williams", "king"]
+EC5 = ["uecs", "yankee", "leal", "paine", "williams", "king"]
 
 MONTHS = {
     "january": 1, "february": 2, "march": 3, "april": 4,
@@ -134,23 +136,57 @@ def _split_semantics(start_day: date, end_day: date | None, description: str) ->
     lower = description.casefold()
     events: list[dict] = []
 
-    # Ignore entries that apply only to the district's early-childhood school,
-    # which is not currently one of SchoolBoard's selectable USD 116 schools.
+    # Urbana Early Childhood has several school-specific schedule days.
     if (
         ("urbana early childhood" in lower or "uecs" in lower)
-        and not any(token in lower for token in ("grades 1", "grades 1–", "grades 1-", "early dismissal", "all students"))
-        and "staff development" not in lower
+        and "home visit" in lower
     ):
-        return []
+        # On Jan. 4 K-12 resumes while UECS remains out for home visits.
+        if "school resumes" in lower:
+            return [
+                _event(
+                    event_id=_slug(start_day, "k12-school-resumes"),
+                    title="School Resumes",
+                    day=start_day,
+                    schools=K12,
+                    category="general",
+                ),
+                _event(
+                    event_id=_slug(start_day, "uecs-home-visits"),
+                    title="No School — Home Visits",
+                    day=start_day,
+                    schools=["uecs"],
+                ),
+            ]
+        return [_event(
+            event_id=_slug(start_day, "uecs-home-visits"),
+            title="No School — Home Visits",
+            day=start_day,
+            schools=["uecs"],
+        )]
 
-    # Staff-development entries have two different experiences: K-5 is out,
+    if (
+        ("urbana early childhood" in lower or "uecs" in lower)
+        and (
+            "assessment and portfolio writing" in lower
+            or "assessment & portfolio writing" in lower
+        )
+    ):
+        return [_event(
+            event_id=_slug(start_day, "uecs-assessment-portfolio"),
+            title="No School — Assessment & Portfolio Writing",
+            day=start_day,
+            schools=["uecs"],
+        )]
+
+    # Staff-development entries have two different experiences: EC-5 is out,
     # while the secondary schools dismiss early at school-specific times.
     if "staff development day" in lower:
         events.append(_event(
-            event_id=_slug(start_day, "k5-staff-development"),
+            event_id=_slug(start_day, "ec5-staff-development"),
             title="Staff Development — No School",
             day=start_day,
-            schools=K5,
+            schools=EC5,
         ))
         for code, school_id in (("UMS", "ums"), ("UHS", "uhs"), ("SGC", "sgc")):
             match = re.search(rf"{code}\s*@\s*(\d{{1,2}}:\d{{2}})", description, flags=re.I)
@@ -191,7 +227,7 @@ def _split_semantics(start_day: date, end_day: date | None, description: str) ->
                 event_id=_slug(start_day, "end-fourth-quarter"),
                 title="End of 4th Quarter",
                 day=start_day,
-                schools=ALL_USD116,
+                schools=K12,
                 category="general",
             ))
         return events
@@ -220,17 +256,25 @@ def _split_semantics(start_day: date, end_day: date | None, description: str) ->
 
     # First-day/staggered-start language.
     if start_day == date(2026, 8, 17):
-        return [_event(
-            event_id=_slug(start_day, "grades-1-9-half-k"),
-            title="First Day — Grades 1–9 + Half of Kindergarten",
-            day=start_day,
-            schools=ALL_USD116,
-            category="general",
-        )]
+        return [
+            _event(
+                event_id=_slug(start_day, "grades-1-9-half-k"),
+                title="First Day — Grades 1–9 + Half of Kindergarten",
+                day=start_day,
+                schools=K12,
+                category="general",
+            ),
+            _event(
+                event_id=_slug(start_day, "uecs-home-visits"),
+                title="No School — Home Visits",
+                day=start_day,
+                schools=["uecs"],
+            ),
+        ]
     if start_day == date(2026, 8, 18):
         return [_event(
-            event_id=_slug(start_day, "grades-1-12-half-k"),
-            title="Grades 1–12 + Half of Kindergarten in Attendance",
+            event_id=_slug(start_day, "uecs-grades-1-12-half-k"),
+            title="UECS + Grades 1–12 + Half of Kindergarten in Attendance",
             day=start_day,
             schools=ALL_USD116,
             category="general",

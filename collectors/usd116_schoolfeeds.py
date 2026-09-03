@@ -17,6 +17,7 @@ class SchoolFeed:
 
 
 SCHOOL_FEEDS = [
+    SchoolFeed("uecs", "Urbana Early Childhood School", "https://uecs.usd116.org/"),
     SchoolFeed("yankee", "Yankee Ridge Multilingual", "https://yridge.usd116.org/"),
     SchoolFeed("leal", "Leal Elementary", "https://leal.usd116.org/"),
     SchoolFeed("paine", "Thomas Paine Elementary", "https://tmspaine.usd116.org/"),
