@@ -26,6 +26,7 @@ from collectors.academyhigh import (
     fetch_academy_calendar,
     fetch_academy_newsletter,
 )
+from collectors.montessori import SOURCE_NAME as MONTESSORI_SOURCE, fetch_montessori_calendar
 from collectors.usd116_calendar import SOURCE_NAME as USD116_CALENDAR_SOURCE, fetch_usd116_calendar
 from collectors.usd116_schoolfeeds import SCHOOL_FEEDS, SOURCE_PREFIX as USD116_SCHOOLFEED_PREFIX, fetch_school_feed
 from collectors.apptegy_calendars import (
@@ -862,6 +863,47 @@ def build(*, offline: bool = False) -> dict:
         academy_newsletter_events,
     )
 
+    # Montessori School of Champaign-Urbana: public Google Calendar
+    # discovered from the school's own Import Google Calendar control.
+    if offline:
+        montessori_events = previous_source_events(MONTESSORI_SOURCE)
+        montessori_events, _, _ = filter_events_to_rolling_window(
+            montessori_events,
+            reference=today,
+        )
+        source_status.append({
+            "id": "montessori-calendar",
+            "status": "cached" if montessori_events else "failed",
+            "count": len(montessori_events),
+            "unit": "events",
+        })
+    else:
+        try:
+            montessori_events = fetch_montessori_calendar(reference=today)
+            montessori_events, _, _ = filter_events_to_rolling_window(
+                montessori_events,
+                reference=today,
+            )
+            source_status.append({
+                "id": "montessori-calendar",
+                "status": "live",
+                "count": len(montessori_events),
+                "unit": "events",
+            })
+        except Exception as exc:
+            montessori_events = previous_source_events(MONTESSORI_SOURCE)
+            montessori_events, _, _ = filter_events_to_rolling_window(
+                montessori_events,
+                reference=today,
+            )
+            source_status.append({
+                "id": "montessori-calendar",
+                "status": "cached" if montessori_events else "failed",
+                "count": len(montessori_events),
+                "unit": "events",
+                "error": f"{type(exc).__name__}: {exc}",
+            })
+
     # Countryside School (independent K-8) public Finalsite calendar.
     if offline:
         countryside_events = previous_source_events(COUNTRYSIDE_SOURCE)
@@ -1011,6 +1053,7 @@ def build(*, offline: bool = False) -> dict:
         + judah_athletics_events
         + academy_calendar_events
         + academy_newsletter_events
+        + montessori_events
         + countryside_events
         + library_events
     )
