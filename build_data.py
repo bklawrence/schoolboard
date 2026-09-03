@@ -290,6 +290,126 @@ def previous_schoolfeed_events(school_id: str) -> list[dict]:
     ]
 
 
+
+def dedupe_academy_sources(
+    calendar_events: list[dict],
+    newsletter_events: list[dict],
+) -> tuple[list[dict], list[dict]]:
+    """
+    Prefer Academy High's annual academic calendar for structural dates that
+    the current Smore newsletter repeats, while preserving newsletter-only
+    reminders and athletics.
+    """
+    def words(title: str) -> set[str]:
+        normalized = str(title or "").casefold().replace("½", " half ")
+        normalized = re.sub(r"[^a-z0-9]+", " ", normalized)
+        return set(normalized.split())
+
+    def covered_dates(event: dict) -> set[str]:
+        start_text = str(event.get("date") or "")
+        end_text = str(event.get("endDate") or start_text)
+        try:
+            start_day = date.fromisoformat(start_text)
+            end_day = date.fromisoformat(end_text)
+        except Exception:
+            return {start_text} if start_text else set()
+
+        if end_day < start_day:
+            end_day = start_day
+
+        days = set()
+        current = start_day
+        while current <= end_day:
+            days.add(current.isoformat())
+            current += timedelta(days=1)
+        return days
+
+    def structural_kind(title: str) -> str | None:
+        w = words(title)
+
+        if "fall" in w and "break" in w:
+            return "fall-break"
+        if "winter" in w and "break" in w:
+            return "winter-break"
+        if "spring" in w and "break" in w:
+            return "spring-break"
+        if "labor" in w and "day" in w:
+            return "no-school"
+        if "no" in w and "school" in w:
+            return "no-school"
+        if "quarter" in w:
+            return "quarter"
+        if "semester" in w:
+            return "semester"
+        if "conference" in w or "conferences" in w:
+            return "conference"
+        if "half" in w and (
+            "day" in w or "dismissal" in w or "development" in w
+        ):
+            return "half-day"
+        if "faculty" in w and "development" in w:
+            return "faculty-development"
+        return None
+
+    calendar_by_day: dict[str, list[tuple[str, dict]]] = {}
+    for event in calendar_events:
+        kind = structural_kind(event.get("title", ""))
+        if not kind:
+            continue
+        for day in covered_dates(event):
+            calendar_by_day.setdefault(day, []).append((kind, event))
+
+    kept_newsletter = []
+    removed_newsletter = []
+
+    for event in newsletter_events:
+        day = str(event.get("date") or "")
+        newsletter_kind = structural_kind(event.get("title", ""))
+        candidates = calendar_by_day.get(day, [])
+
+        duplicate = False
+        if newsletter_kind and candidates:
+            for calendar_kind, _calendar_event in candidates:
+                if newsletter_kind == calendar_kind:
+                    duplicate = True
+                    break
+
+                if newsletter_kind == "no-school" and calendar_kind in {
+                    "no-school",
+                    "fall-break",
+                    "winter-break",
+                    "spring-break",
+                    "faculty-development",
+                }:
+                    duplicate = True
+                    break
+
+                if newsletter_kind == "half-day" and calendar_kind in {
+                    "half-day",
+                    "faculty-development",
+                }:
+                    duplicate = True
+                    break
+
+        if duplicate:
+            removed_newsletter.append(event)
+        else:
+            kept_newsletter.append(event)
+
+    if removed_newsletter:
+        sample = "; ".join(
+            f"{event.get('date')} {event.get('title')}"
+            for event in removed_newsletter[:8]
+        )
+        print(
+            f"academy-dedupe detail: removed {len(removed_newsletter)} "
+            f"newsletter structural duplicates in favor of academic calendar"
+            + (f"; sample: {sample}" if sample else "")
+        )
+
+    return calendar_events, kept_newsletter
+
+
 def build(*, offline: bool = False) -> dict:
     static = load_json(STATIC_PATH, {"events": [], "meals": []})
     static_events = [
@@ -736,6 +856,11 @@ def build(*, offline: bool = False) -> dict:
                 "unit": "events",
                 "error": f"{type(exc).__name__}: {exc}",
             })
+
+    academy_calendar_events, academy_newsletter_events = dedupe_academy_sources(
+        academy_calendar_events,
+        academy_newsletter_events,
+    )
 
     # Countryside School (independent K-8) public Finalsite calendar.
     if offline:
