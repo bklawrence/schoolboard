@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import io
+import json
 import re
+import time
 from dataclasses import dataclass
 from datetime import date
 from html import unescape
@@ -13,6 +15,7 @@ from pypdf import PdfReader
 
 
 CALENDAR_PAGE = "https://stjohnls.com/calendar/school-calendar"
+ACTIVITY_CALENDAR_PAGE = "https://stjohnls.com/calendar/activity-calendar"
 SOURCE_NAME = "St. John Lutheran School Calendar v2"
 SCHOOL_ID = "stjohn"
 
@@ -685,6 +688,218 @@ def parse_calendar_text(
     return events
 
 
+
+def _activity_candidate_url(url: str, mime_type: str = "") -> bool:
+    low = (url or "").casefold()
+    mime = (mime_type or "").casefold()
+
+    # Ignore obvious static assets unless the URL itself looks calendar/event
+    # related. We want a short, useful Action log rather than every font/image.
+    static_ext = (
+        ".css", ".png", ".jpg", ".jpeg", ".gif", ".svg", ".woff", ".woff2",
+        ".ttf", ".ico",
+    )
+    calendarish = any(
+        token in low
+        for token in (
+            "calendar", "event", "ical", ".ics", "agenda", "schedule",
+            "/api/", "api.", "feed", "fullcalendar",
+        )
+    )
+    jsonish = "json" in mime
+
+    if low.endswith(static_ext) and not calendarish:
+        return False
+    return calendarish or jsonish
+
+
+def diagnose_activity_calendar(
+    *,
+    timeout: int = 12,
+    opener=urlopen,
+) -> None:
+    """
+    TEMPORARY DIAGNOSTIC.
+
+    St. John's public Beehively Activity Calendar currently renders
+    "Invalid date". This function inspects only the public page and its public
+    network traffic for likely calendar/event endpoints. It does not log in or
+    access the parent portal.
+
+    The collector continues to use the annual PDF after this diagnostic.
+    """
+    print("stjohn-activity detail: inspecting public Beehively Activity Calendar")
+
+    # First inspect ordinary server HTML. Sometimes the endpoint or calendar ID
+    # is embedded directly in scripts/data attributes even when the widget UI
+    # fails.
+    try:
+        raw = _request(
+            ACTIVITY_CALENDAR_PAGE,
+            timeout=timeout,
+            accept="text/html,application/xhtml+xml",
+            opener=opener,
+        ).decode("utf-8", errors="replace")
+
+        # Absolute URLs embedded in HTML/JS.
+        html_urls = sorted(set(re.findall(
+            r'https?://[^"\'<>\\s]+',
+            unescape(raw),
+            flags=re.I,
+        )))
+        candidates = [u for u in html_urls if _activity_candidate_url(u)]
+
+        # Relative URL strings that look like endpoints.
+        relative = sorted(set(re.findall(
+            r'["\']((?:/[^"\']*)?(?:calendar|events?|ical|api|feed)[^"\']*)["\']',
+            raw,
+            flags=re.I,
+        )))
+        for item in relative:
+            full = urljoin(ACTIVITY_CALENDAR_PAGE, unescape(item))
+            if _activity_candidate_url(full):
+                candidates.append(full)
+
+        candidates = list(dict.fromkeys(candidates))[:20]
+        if candidates:
+            for url in candidates:
+                print(f"stjohn-activity html-candidate: {url}")
+        else:
+            print("stjohn-activity detail: server HTML exposed no obvious calendar/event endpoint")
+    except Exception as exc:
+        print(
+            "stjohn-activity detail: raw HTML inspection failed; "
+            f"{type(exc).__name__}: {exc}"
+        )
+
+    # Then watch Chrome's public network requests. Beehively widgets often
+    # fetch their content after page load, so the endpoint may never appear in
+    # server-rendered HTML.
+    try:
+        from selenium import webdriver
+        from selenium.common.exceptions import TimeoutException
+        from selenium.webdriver.chrome.options import Options
+    except ImportError:
+        print("stjohn-activity detail: Selenium unavailable; skipping network diagnostic")
+        return
+
+    options = Options()
+    options.add_argument("--headless=new")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--window-size=1400,1200")
+    options.add_argument("--lang=en-US")
+    options.page_load_strategy = "eager"
+    options.set_capability("goog:loggingPrefs", {"performance": "ALL"})
+
+    driver = webdriver.Chrome(options=options)
+    driver.set_page_load_timeout(15)
+
+    try:
+        try:
+            driver.get(ACTIVITY_CALENDAR_PAGE)
+        except TimeoutException:
+            try:
+                driver.execute_script("window.stop();")
+            except Exception:
+                pass
+
+        time.sleep(3)
+
+        # Visible state is a useful sanity check.
+        try:
+            body_text = driver.execute_script(
+                "return document.body ? document.body.innerText : '';"
+            ) or ""
+            if "Invalid date" in body_text:
+                print("stjohn-activity detail: public widget rendered 'Invalid date'")
+        except Exception:
+            pass
+
+        requests: dict[str, dict] = {}
+        for raw_entry in driver.get_log("performance"):
+            try:
+                message = json.loads(raw_entry["message"])["message"]
+            except Exception:
+                continue
+
+            method = message.get("method")
+            params = message.get("params", {})
+
+            if method == "Network.requestWillBeSent":
+                request = params.get("request", {})
+                url = request.get("url", "")
+                if not _activity_candidate_url(url):
+                    continue
+                rec = requests.setdefault(url, {})
+                rec["method"] = request.get("method", "GET")
+                post_data = request.get("postData")
+                if post_data:
+                    # Keep only a short public request payload excerpt.
+                    rec["postData"] = re.sub(r"\s+", " ", post_data)[:500]
+
+            elif method == "Network.responseReceived":
+                response = params.get("response", {})
+                url = response.get("url", "")
+                mime = response.get("mimeType", "")
+                if not _activity_candidate_url(url, mime):
+                    continue
+                rec = requests.setdefault(url, {})
+                rec["status"] = response.get("status")
+                rec["mime"] = mime
+
+        if requests:
+            for url, info in list(requests.items())[:30]:
+                detail = []
+                if info.get("method"):
+                    detail.append(str(info["method"]))
+                if info.get("status") is not None:
+                    detail.append(f"status={info['status']}")
+                if info.get("mime"):
+                    detail.append(f"mime={info['mime']}")
+                print(
+                    "stjohn-activity network-candidate: "
+                    + (" ".join(detail) + " " if detail else "")
+                    + url
+                )
+                if info.get("postData"):
+                    print(
+                        "stjohn-activity request-body: "
+                        f"{url} :: {info['postData']}"
+                    )
+        else:
+            print("stjohn-activity detail: Chrome saw no calendar/event/API-like requests")
+
+        # Finally log script/iframe sources with relevant names. This often
+        # reveals a widget bundle even if its XHR fails before firing.
+        try:
+            resources = driver.execute_script(
+                """
+                return Array.from(document.querySelectorAll('script[src], iframe[src]'))
+                  .map(el => el.src)
+                  .filter(Boolean);
+                """
+            ) or []
+        except Exception:
+            resources = []
+
+        relevant_resources = [
+            url for url in resources
+            if _activity_candidate_url(url)
+            or "beehively" in url.casefold()
+        ]
+        for url in list(dict.fromkeys(relevant_resources))[:20]:
+            print(f"stjohn-activity resource: {url}")
+
+    except Exception as exc:
+        print(
+            "stjohn-activity detail: Chrome network diagnostic failed; "
+            f"{type(exc).__name__}: {exc}"
+        )
+    finally:
+        driver.quit()
+
+
 def fetch_stjohn_calendar(
     *,
     timeout: int = 25,
@@ -692,6 +907,14 @@ def fetch_stjohn_calendar(
     reference: date | None = None,
 ) -> list[dict]:
     reference = reference or date.today()
+
+    # Temporary: inspect the public Activity Calendar for a live endpoint while
+    # retaining the annual PDF as the actual data source/fallback.
+    diagnose_activity_calendar(
+        timeout=min(timeout, 12),
+        opener=opener,
+    )
+
     candidate = discover_current_pdf(timeout=timeout, opener=opener)
 
     pdf_bytes = _request(
