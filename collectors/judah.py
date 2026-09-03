@@ -149,7 +149,7 @@ def _parse_calendar_with_fitz(pdf_bytes,*,reference=None,hint=""):
     reference=reference or date.today()
 
     try:
-        import fitz
+        import pymupdf as fitz
     except ImportError as exc:
         raise RuntimeError("PyMuPDF is required for Judah PDF fallback") from exc
 
@@ -300,8 +300,48 @@ def _inline_range(title,default_month,default_year,next_year):
     except ValueError:return title,None,None
     return _clean(title[:m.start()]+" "+title[m.end():]),s,e
 
-def _event(month,year,next_year,d1,d2,title):
+def _clean_calendar_title(title):
     title=_clean(title)
+
+    # Positioned PDF text can occasionally append neighboring footer/page-note
+    # text to the final visible event in a column. Strip those fragments without
+    # changing ordinary school-event wording.
+    title=re.sub(
+        r"\s+All dates are subject to(?:\s+change\.?)?.*$",
+        "",
+        title,
+        flags=re.I,
+    )
+    title=re.sub(
+        r"\s+www\.?judah\.org/calendar.*$",
+        "",
+        title,
+        flags=re.I,
+    )
+    title=re.sub(
+        r"\s+\(?217\)?[-\s]*359[-\s]*1701.*$",
+        "",
+        title,
+        flags=re.I,
+    )
+    title=re.sub(
+        r"\s+Commit to the Lord whatever you do.*$",
+        "",
+        title,
+        flags=re.I,
+    )
+    title=re.sub(
+        r"\s+Proverbs\s+16:3.*$",
+        "",
+        title,
+        flags=re.I,
+    )
+    title=re.sub(r"\s+"," ",title).strip(" |;:-")
+    return title
+
+
+def _event(month,year,next_year,d1,d2,title):
+    title=_clean_calendar_title(title)
     if not title or not re.search(r"[A-Za-z]",title):return None
     try:start=date(year,month,d1)
     except ValueError:return None
