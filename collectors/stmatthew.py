@@ -98,9 +98,15 @@ def _candidate_urls_from_html(html: str, base_url: str) -> list[tuple[str, str]]
     return unique
 
 
-def _rendered_candidates(url: str, *, wait_seconds: float = 4.0) -> list[tuple[str, str]]:
+def _rendered_candidates(
+    url: str,
+    *,
+    wait_seconds: float = 2.5,
+    page_load_timeout: int = 15,
+) -> list[tuple[str, str]]:
     try:
         from selenium import webdriver
+        from selenium.common.exceptions import TimeoutException
         from selenium.webdriver.chrome.options import Options
     except ImportError as exc:
         raise RuntimeError("Selenium is required for St. Matthew rendered calendar discovery") from exc
@@ -111,10 +117,23 @@ def _rendered_candidates(url: str, *, wait_seconds: float = 4.0) -> list[tuple[s
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--window-size=1500,1400")
     options.add_argument("--lang=en-US")
+    options.page_load_strategy = "eager"
 
     driver = webdriver.Chrome(options=options)
+    driver.set_page_load_timeout(page_load_timeout)
     try:
-        driver.get(url)
+        try:
+            driver.get(url)
+        except TimeoutException:
+            # St. Matthew's site sometimes leaves subresources hanging.
+            # The calendar iframes are often already present in the DOM, so
+            # stop further loading and inspect what arrived instead of
+            # allowing ChromeDriver to sit until its ~120 s transport timeout.
+            try:
+                driver.execute_script("window.stop();")
+            except Exception:
+                pass
+
         time.sleep(wait_seconds)
         records = driver.execute_script(
             """
@@ -359,24 +378,62 @@ def _parse_ics(text: str, *, context: str, source_url: str) -> list[dict]:
     return events
 
 
-def _visible_home_text(*, wait_seconds: float = 3.5) -> str:
-    from selenium import webdriver
-    from selenium.webdriver.chrome.options import Options
+class _VisibleTextParser(HTMLParser):
+    _BREAK_TAGS = {
+        "article", "aside", "br", "dd", "div", "dt", "footer", "h1", "h2",
+        "h3", "h4", "h5", "h6", "header", "li", "main", "nav", "p",
+        "section", "td", "th", "tr",
+    }
 
-    options = Options()
-    options.add_argument("--headless=new")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--window-size=1400,1400")
-    options.add_argument("--lang=en-US")
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.parts: list[str] = []
+        self._skip_depth = 0
 
-    driver = webdriver.Chrome(options=options)
-    try:
-        driver.get(HOME_URL)
-        time.sleep(wait_seconds)
-        return driver.execute_script("return document.body.innerText || '';") or ""
-    finally:
-        driver.quit()
+    def handle_starttag(self, tag: str, attrs) -> None:
+        low = tag.casefold()
+        if low in {"script", "style", "noscript", "svg"}:
+            self._skip_depth += 1
+            return
+        if not self._skip_depth and low in self._BREAK_TAGS:
+            self.parts.append("\n")
+
+    def handle_endtag(self, tag: str) -> None:
+        low = tag.casefold()
+        if low in {"script", "style", "noscript", "svg"}:
+            if self._skip_depth:
+                self._skip_depth -= 1
+            return
+        if not self._skip_depth and low in self._BREAK_TAGS:
+            self.parts.append("\n")
+
+    def handle_data(self, data: str) -> None:
+        if self._skip_depth:
+            return
+        clean = re.sub(r"[ \t\f\v]+", " ", data)
+        if clean.strip():
+            self.parts.append(clean)
+
+    def text(self) -> str:
+        joined = "".join(self.parts)
+        lines = [re.sub(r"\s+", " ", line).strip() for line in joined.splitlines()]
+        return "\n".join(line for line in lines if line)
+
+
+def _home_text_from_html(
+    *,
+    timeout: int,
+    opener=urlopen,
+) -> str:
+    html = _request_text(
+        HOME_URL,
+        timeout=timeout,
+        opener=opener,
+        accept="text/html,application/xhtml+xml",
+    )
+    parser = _VisibleTextParser()
+    parser.feed(html)
+    return parser.text()
 
 
 def _infer_year(month: int, day: int, reference: date) -> int:
@@ -471,7 +528,7 @@ def _parse_upcoming_text(text: str, *, reference: date) -> list[dict]:
 
 def fetch_stmatthew_calendar(
     *,
-    timeout: int = 30,
+    timeout: int = 12,
     opener=urlopen,
     reference: date | None = None,
 ) -> list[dict]:
@@ -490,7 +547,18 @@ def fetch_stmatthew_calendar(
         pass
 
     if not candidates:
-        candidates.extend(_rendered_candidates(CALENDAR_URL))
+        try:
+            candidates.extend(
+                _rendered_candidates(
+                    CALENDAR_URL,
+                    page_load_timeout=min(15, max(8, timeout + 3)),
+                )
+            )
+        except Exception as exc:
+            print(
+                "stmatthew-calendar detail: rendered calendar discovery failed fast; "
+                f"{type(exc).__name__}: {exc}"
+            )
 
     feeds = _feed_candidates(candidates)
     all_events: list[dict] = []
@@ -524,17 +592,30 @@ def fetch_stmatthew_calendar(
         )
         return events
 
-    # Conservative fallback: the school's own public Upcoming Events list.
-    visible_text = _visible_home_text()
+    # Conservative fallback: use the school's server-rendered Upcoming Events
+    # HTML without launching a second browser. If the site is unavailable,
+    # fail quickly so build_data.py can preserve the previous good cache.
+    try:
+        visible_text = _home_text_from_html(
+            timeout=timeout,
+            opener=opener,
+        )
+    except Exception as exc:
+        raise RuntimeError(
+            "St. Matthew calendar discovery produced no usable feed and "
+            f"homepage fallback failed quickly: {type(exc).__name__}: {exc}"
+        ) from exc
+
     events = _parse_upcoming_text(visible_text, reference=reference)
     if not events:
         raise RuntimeError(
             "St. Matthew calendar page exposed no usable public ICS/Google feed "
-            "and the school homepage contained no parseable Upcoming Events"
+            "and the server-rendered school homepage contained no parseable "
+            "Upcoming Events"
         )
 
     print(
         f"stmatthew-calendar detail: no usable calendar feed found; "
-        f"used public Upcoming Events fallback ({len(events)} events)"
+        f"used server-rendered Upcoming Events fallback ({len(events)} events)"
     )
     return events
