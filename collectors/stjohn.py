@@ -5,18 +5,19 @@ import json
 import re
 import time
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime, timedelta
 from html import unescape
 from html.parser import HTMLParser
 from urllib.parse import urljoin
 from urllib.request import Request, urlopen
+from zoneinfo import ZoneInfo
 
 from pypdf import PdfReader
 
 
 CALENDAR_PAGE = "https://stjohnls.com/calendar/school-calendar"
 ACTIVITY_CALENDAR_PAGE = "https://stjohnls.com/calendar/activity-calendar"
-SOURCE_NAME = "St. John Lutheran School Calendar v2"
+SOURCE_NAME = "St. John Lutheran Activity Calendar"
 SCHOOL_ID = "stjohn"
 
 MONTHS = {
@@ -689,99 +690,157 @@ def parse_calendar_text(
 
 
 
-def _activity_candidate_url(url: str, mime_type: str = "") -> bool:
-    low = (url or "").casefold()
-    mime = (mime_type or "").casefold()
+CHICAGO = ZoneInfo("America/Chicago")
 
-    # Ignore obvious static assets unless the URL itself looks calendar/event
-    # related. We want a short, useful Action log rather than every font/image.
-    static_ext = (
-        ".css", ".png", ".jpg", ".jpeg", ".gif", ".svg", ".woff", ".woff2",
-        ".ttf", ".ico",
-    )
-    calendarish = any(
-        token in low
-        for token in (
-            "calendar", "event", "ical", ".ics", "agenda", "schedule",
-            "/api/", "api.", "feed", "fullcalendar",
+
+def _normalize_title(value: str) -> str:
+    return re.sub(r"\s+", " ", str(value or "")).strip()
+
+
+def _google_datetime(value: str) -> datetime:
+    clean = str(value or "").strip()
+    if clean.endswith("Z"):
+        clean = clean[:-1] + "+00:00"
+    dt = datetime.fromisoformat(clean)
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=CHICAGO)
+    return dt.astimezone(CHICAGO)
+
+
+def _activity_event_from_google(item: dict) -> dict | None:
+    title = _normalize_title(item.get("summary"))
+    if not title:
+        return None
+
+    start_obj = item.get("start") or {}
+    end_obj = item.get("end") or {}
+
+    # All-day Google Calendar event. Google's end.date is exclusive.
+    if start_obj.get("date"):
+        try:
+            start_day = date.fromisoformat(start_obj["date"])
+        except Exception:
+            return None
+
+        event = {
+            "id": f"stjohn-activity-{item.get('id') or start_day.isoformat()}",
+            "title": title,
+            "date": start_day.isoformat(),
+            "schools": [SCHOOL_ID],
+            "scope": "school",
+            "category": "general",
+            "source": SOURCE_NAME,
+            "sourceUrl": ACTIVITY_CALENDAR_PAGE,
+            "allDay": True,
+        }
+
+        end_date_raw = end_obj.get("date")
+        if end_date_raw:
+            try:
+                exclusive_end = date.fromisoformat(end_date_raw)
+                inclusive_end = exclusive_end - timedelta(days=1)
+                if inclusive_end > start_day:
+                    event["endDate"] = inclusive_end.isoformat()
+            except Exception:
+                pass
+
+    # Timed event.
+    elif start_obj.get("dateTime"):
+        try:
+            start_dt = _google_datetime(start_obj["dateTime"])
+        except Exception:
+            return None
+
+        event = {
+            "id": f"stjohn-activity-{item.get('id') or start_dt.isoformat()}",
+            "title": title,
+            "date": start_dt.date().isoformat(),
+            "start": start_dt.strftime("%H:%M"),
+            "schools": [SCHOOL_ID],
+            "scope": "school",
+            "category": "general",
+            "source": SOURCE_NAME,
+            "sourceUrl": ACTIVITY_CALENDAR_PAGE,
+        }
+
+        if end_obj.get("dateTime"):
+            try:
+                end_dt = _google_datetime(end_obj["dateTime"])
+                if end_dt.date() == start_dt.date() and end_dt > start_dt:
+                    event["end"] = end_dt.strftime("%H:%M")
+                elif end_dt > start_dt:
+                    event["endDate"] = end_dt.date().isoformat()
+                    event["end"] = end_dt.strftime("%H:%M")
+            except Exception:
+                pass
+    else:
+        return None
+
+    location = _normalize_title(item.get("location"))
+    if location:
+        event["location"] = location
+
+    return event
+
+
+def _dedupe_activity_events(events: list[dict]) -> list[dict]:
+    """
+    The broken Beehively page loads many public Google subcalendars. Closures
+    and school-wide events can therefore appear in several feeds. Store one
+    SchoolBoard event for one real-world event.
+    """
+    unique: dict[tuple[str, str, str, str, str], dict] = {}
+
+    for event in events:
+        key = (
+            event.get("date", ""),
+            event.get("start", ""),
+            event.get("end", ""),
+            event.get("endDate", ""),
+            re.sub(r"[^a-z0-9]+", " ", event.get("title", "").casefold()).strip(),
         )
+        existing = unique.get(key)
+        if existing is None:
+            unique[key] = event
+            continue
+
+        # Prefer whichever duplicate has a location.
+        if not existing.get("location") and event.get("location"):
+            existing["location"] = event["location"]
+
+    return sorted(
+        unique.values(),
+        key=lambda e: (
+            e.get("date", ""),
+            e.get("start", ""),
+            e.get("title", ""),
+        ),
     )
-    jsonish = "json" in mime
-
-    if low.endswith(static_ext) and not calendarish:
-        return False
-    return calendarish or jsonish
 
 
-def diagnose_activity_calendar(
+def fetch_activity_calendar(
     *,
-    timeout: int = 12,
-    opener=urlopen,
-) -> None:
+    page_load_timeout: int = 15,
+    settle_seconds: float = 5.0,
+) -> list[dict]:
     """
-    TEMPORARY DIAGNOSTIC.
+    Load St. John's PUBLIC Activity Calendar and harvest the public Google
+    Calendar JSON responses the page itself requests.
 
-    St. John's public Beehively Activity Calendar currently renders
-    "Invalid date". This function inspects only the public page and its public
-    network traffic for likely calendar/event endpoints. It does not log in or
-    access the parent portal.
+    This deliberately does not hard-code:
+      * Google's public browser API key
+      * St. John's Google calendar IDs
+      * the number of subcalendars
 
-    The collector continues to use the annual PDF after this diagnostic.
+    If St. John changes which subcalendars the Activity Calendar displays,
+    SchoolBoard follows the public page automatically.
     """
-    print("stjohn-activity detail: inspecting public Beehively Activity Calendar")
-
-    # First inspect ordinary server HTML. Sometimes the endpoint or calendar ID
-    # is embedded directly in scripts/data attributes even when the widget UI
-    # fails.
-    try:
-        raw = _request(
-            ACTIVITY_CALENDAR_PAGE,
-            timeout=timeout,
-            accept="text/html,application/xhtml+xml",
-            opener=opener,
-        ).decode("utf-8", errors="replace")
-
-        # Absolute URLs embedded in HTML/JS.
-        html_urls = sorted(set(re.findall(
-            r'https?://[^"\'<>\\s]+',
-            unescape(raw),
-            flags=re.I,
-        )))
-        candidates = [u for u in html_urls if _activity_candidate_url(u)]
-
-        # Relative URL strings that look like endpoints.
-        relative = sorted(set(re.findall(
-            r'["\']((?:/[^"\']*)?(?:calendar|events?|ical|api|feed)[^"\']*)["\']',
-            raw,
-            flags=re.I,
-        )))
-        for item in relative:
-            full = urljoin(ACTIVITY_CALENDAR_PAGE, unescape(item))
-            if _activity_candidate_url(full):
-                candidates.append(full)
-
-        candidates = list(dict.fromkeys(candidates))[:20]
-        if candidates:
-            for url in candidates:
-                print(f"stjohn-activity html-candidate: {url}")
-        else:
-            print("stjohn-activity detail: server HTML exposed no obvious calendar/event endpoint")
-    except Exception as exc:
-        print(
-            "stjohn-activity detail: raw HTML inspection failed; "
-            f"{type(exc).__name__}: {exc}"
-        )
-
-    # Then watch Chrome's public network requests. Beehively widgets often
-    # fetch their content after page load, so the endpoint may never appear in
-    # server-rendered HTML.
     try:
         from selenium import webdriver
         from selenium.common.exceptions import TimeoutException
         from selenium.webdriver.chrome.options import Options
-    except ImportError:
-        print("stjohn-activity detail: Selenium unavailable; skipping network diagnostic")
-        return
+    except ImportError as exc:
+        raise RuntimeError("Selenium is required for St. John Activity Calendar") from exc
 
     options = Options()
     options.add_argument("--headless=new")
@@ -793,9 +852,17 @@ def diagnose_activity_calendar(
     options.set_capability("goog:loggingPrefs", {"performance": "ALL"})
 
     driver = webdriver.Chrome(options=options)
-    driver.set_page_load_timeout(15)
+    driver.set_page_load_timeout(page_load_timeout)
 
     try:
+        try:
+            driver.execute_cdp_cmd(
+                "Network.enable",
+                {"maxTotalBufferSize": 100000000, "maxResourceBufferSize": 5000000},
+            )
+        except Exception:
+            pass
+
         try:
             driver.get(ACTIVITY_CALENDAR_PAGE)
         except TimeoutException:
@@ -804,100 +871,118 @@ def diagnose_activity_calendar(
             except Exception:
                 pass
 
-        time.sleep(3)
+        # The Beehively UI itself currently says "Invalid date", but its public
+        # Google Calendar requests still complete successfully underneath.
+        import time as _time
+        _time.sleep(settle_seconds)
 
-        # Visible state is a useful sanity check.
-        try:
-            body_text = driver.execute_script(
-                "return document.body ? document.body.innerText : '';"
-            ) or ""
-            if "Invalid date" in body_text:
-                print("stjohn-activity detail: public widget rendered 'Invalid date'")
-        except Exception:
-            pass
+        entries = driver.get_log("performance")
+        response_ids: list[tuple[str, str]] = []
+        seen_request_ids: set[str] = set()
 
-        requests: dict[str, dict] = {}
-        for raw_entry in driver.get_log("performance"):
+        for raw_entry in entries:
             try:
                 message = json.loads(raw_entry["message"])["message"]
             except Exception:
                 continue
 
-            method = message.get("method")
+            if message.get("method") != "Network.responseReceived":
+                continue
+
             params = message.get("params", {})
+            response = params.get("response", {})
+            url = str(response.get("url") or "")
+            mime = str(response.get("mimeType") or "").casefold()
+            status = int(response.get("status") or 0)
 
-            if method == "Network.requestWillBeSent":
-                request = params.get("request", {})
-                url = request.get("url", "")
-                if not _activity_candidate_url(url):
-                    continue
-                rec = requests.setdefault(url, {})
-                rec["method"] = request.get("method", "GET")
-                post_data = request.get("postData")
-                if post_data:
-                    # Keep only a short public request payload excerpt.
-                    rec["postData"] = re.sub(r"\s+", " ", post_data)[:500]
+            if (
+                status == 200
+                and "www.googleapis.com/calendar/v3/calendars/" in url
+                and "/events?" in url
+                and "json" in mime
+            ):
+                request_id = str(params.get("requestId") or "")
+                if request_id and request_id not in seen_request_ids:
+                    seen_request_ids.add(request_id)
+                    response_ids.append((request_id, url))
 
-            elif method == "Network.responseReceived":
-                response = params.get("response", {})
-                url = response.get("url", "")
-                mime = response.get("mimeType", "")
-                if not _activity_candidate_url(url, mime):
-                    continue
-                rec = requests.setdefault(url, {})
-                rec["status"] = response.get("status")
-                rec["mime"] = mime
+        if not response_ids:
+            raise RuntimeError(
+                "St. John Activity Calendar loaded no public Google Calendar responses"
+            )
 
-        if requests:
-            for url, info in list(requests.items())[:30]:
-                detail = []
-                if info.get("method"):
-                    detail.append(str(info["method"]))
-                if info.get("status") is not None:
-                    detail.append(f"status={info['status']}")
-                if info.get("mime"):
-                    detail.append(f"mime={info['mime']}")
-                print(
-                    "stjohn-activity network-candidate: "
-                    + (" ".join(detail) + " " if detail else "")
-                    + url
+        all_events: list[dict] = []
+        readable_feeds = 0
+
+        for feed_index, (request_id, _url) in enumerate(response_ids, start=1):
+            try:
+                payload = driver.execute_cdp_cmd(
+                    "Network.getResponseBody",
+                    {"requestId": request_id},
                 )
-                if info.get("postData"):
-                    print(
-                        "stjohn-activity request-body: "
-                        f"{url} :: {info['postData']}"
-                    )
-        else:
-            print("stjohn-activity detail: Chrome saw no calendar/event/API-like requests")
+                body = payload.get("body", "")
+                data = json.loads(body)
+            except Exception:
+                continue
 
-        # Finally log script/iframe sources with relevant names. This often
-        # reveals a widget bundle even if its XHR fails before firing.
-        try:
-            resources = driver.execute_script(
-                """
-                return Array.from(document.querySelectorAll('script[src], iframe[src]'))
-                  .map(el => el.src)
-                  .filter(Boolean);
-                """
-            ) or []
-        except Exception:
-            resources = []
+            items = data.get("items")
+            if not isinstance(items, list):
+                continue
 
-        relevant_resources = [
-            url for url in resources
-            if _activity_candidate_url(url)
-            or "beehively" in url.casefold()
-        ]
-        for url in list(dict.fromkeys(relevant_resources))[:20]:
-            print(f"stjohn-activity resource: {url}")
+            readable_feeds += 1
+            feed_events: list[dict] = []
 
-    except Exception as exc:
+            for item in items:
+                if not isinstance(item, dict):
+                    continue
+                if str(item.get("status") or "").casefold() == "cancelled":
+                    continue
+                event = _activity_event_from_google(item)
+                if event is not None:
+                    feed_events.append(event)
+
+            all_events.extend(feed_events)
+
+            sample = "; ".join(
+                f"{e.get('date')} {e.get('title')}"
+                for e in feed_events[:3]
+            )
+            print(
+                f"stjohn-activity detail: public Google feed {feed_index} "
+                f"returned {len(feed_events)} events"
+                + (f"; sample: {sample}" if sample else "")
+            )
+
+        if readable_feeds < 3:
+            raise RuntimeError(
+                f"St. John Activity Calendar exposed {len(response_ids)} Google "
+                f"responses but only {readable_feeds} response bodies were readable"
+            )
+
+        merged = _dedupe_activity_events(all_events)
+
+        if len(merged) < 5:
+            raise RuntimeError(
+                f"St. John Activity Calendar produced only {len(merged)} unique events "
+                f"from {readable_feeds} readable Google feeds"
+            )
+
         print(
-            "stjohn-activity detail: Chrome network diagnostic failed; "
-            f"{type(exc).__name__}: {exc}"
+            f"stjohn-activity detail: {readable_feeds} public Google feeds; "
+            f"{len(all_events)} feed-event records -> {len(merged)} unique events"
         )
+        if merged:
+            preview = "; ".join(
+                f"{e.get('date')} {e.get('title')}"
+                for e in merged[:10]
+            )
+            print(f"stjohn-activity detail: first unique events: {preview}")
+
+        return merged
+
     finally:
         driver.quit()
+
 
 
 def fetch_stjohn_calendar(
@@ -908,13 +993,21 @@ def fetch_stjohn_calendar(
 ) -> list[dict]:
     reference = reference or date.today()
 
-    # Temporary: inspect the public Activity Calendar for a live endpoint while
-    # retaining the annual PDF as the actual data source/fallback.
-    diagnose_activity_calendar(
-        timeout=min(timeout, 12),
-        opener=opener,
-    )
+    # PRIMARY: the public Activity Calendar's live Google Calendar feeds.
+    try:
+        events = fetch_activity_calendar()
+        print(
+            f"stjohn-calendar detail: using live Activity Calendar "
+            f"({len(events)} unique events before rolling-window trim)"
+        )
+        return events
+    except Exception as activity_exc:
+        print(
+            "stjohn-calendar detail: Activity Calendar unavailable; "
+            f"falling back to annual PDF: {type(activity_exc).__name__}: {activity_exc}"
+        )
 
+    # FALLBACK: automatically rediscover and parse the current annual PDF.
     candidate = discover_current_pdf(timeout=timeout, opener=opener)
 
     pdf_bytes = _request(
@@ -923,9 +1016,9 @@ def fetch_stjohn_calendar(
         accept="application/pdf,*/*;q=0.8",
         opener=opener,
     )
-    text = _extract_pdf_text(pdf_bytes)
+    pdf_text = _extract_pdf_text(pdf_bytes)
     events = parse_calendar_text(
-        text,
+        pdf_text,
         label=candidate.label,
         url=candidate.url,
         reference=reference,
@@ -936,10 +1029,10 @@ def fetch_stjohn_calendar(
         for event in events[:6]
     )
     print(
-        f"stjohn-calendar detail: extracted {len(text)} text characters; "
+        f"stjohn-calendar detail: PDF fallback extracted {len(pdf_text)} text characters; "
         f"parsed {len(events)} school-year events"
     )
     if preview:
-        print(f"stjohn-calendar detail: first parsed events: {preview}")
+        print(f"stjohn-calendar detail: first PDF fallback events: {preview}")
 
     return events
