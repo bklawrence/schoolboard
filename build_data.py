@@ -11,6 +11,7 @@ from collectors.quest import QUEST_GROUPS, fetch_quest_group
 from collectors.snap import fetch_snap
 from collectors.unit4 import UNIT4_GROUPS, fetch_unit4_menus
 from collectors.countryside import SOURCE_NAME as COUNTRYSIDE_SOURCE, fetch_countryside_calendar
+from collectors.libraries import LIBRARIES, fetch_library_calendar
 from collectors.stmatthew import SOURCE_NAME as STMATTHEW_SOURCE, fetch_stmatthew_calendar
 from collectors.usd116_calendar import SOURCE_NAME as USD116_CALENDAR_SOURCE, fetch_usd116_calendar
 from collectors.usd116_schoolfeeds import SCHOOL_FEEDS, SOURCE_PREFIX as USD116_SCHOOLFEED_PREFIX, fetch_school_feed
@@ -599,6 +600,55 @@ def build(*, offline: bool = False) -> dict:
                 "error": f"{type(exc).__name__}: {exc}",
             })
 
+    # Youth programming from the two public libraries. Communico's public
+    # age filters are treated like selectable household audiences; one event
+    # may carry several age-band IDs but remains a single event record.
+    library_events: list[dict] = []
+    for library in LIBRARIES:
+        if offline:
+            source_events = previous_source_events(library.source)
+            source_events, _, _ = filter_events_to_rolling_window(
+                source_events,
+                reference=today,
+            )
+            source_status.append({
+                "id": library.log_id,
+                "status": "cached" if source_events else "failed",
+                "count": len(source_events),
+                "unit": "events",
+            })
+        else:
+            try:
+                source_events = fetch_library_calendar(
+                    library,
+                    reference=today,
+                )
+                source_events, _, _ = filter_events_to_rolling_window(
+                    source_events,
+                    reference=today,
+                )
+                source_status.append({
+                    "id": library.log_id,
+                    "status": "live",
+                    "count": len(source_events),
+                    "unit": "events",
+                })
+            except Exception as exc:
+                source_events = previous_source_events(library.source)
+                source_events, _, _ = filter_events_to_rolling_window(
+                    source_events,
+                    reference=today,
+                )
+                source_status.append({
+                    "id": library.log_id,
+                    "status": "cached" if source_events else "failed",
+                    "count": len(source_events),
+                    "unit": "events",
+                    "error": f"{type(exc).__name__}: {exc}",
+                })
+
+        library_events.extend(source_events)
+
     quest_meals: list[dict] = []
     for group_id, cfg in QUEST_GROUPS.items():
         if offline:
@@ -667,6 +717,7 @@ def build(*, offline: bool = False) -> dict:
         + stm_events
         + stmatthew_events
         + countryside_events
+        + library_events
     )
 
     event_candidates, unit4_district_duplicates_removed = (

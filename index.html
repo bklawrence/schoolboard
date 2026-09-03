@@ -917,7 +917,7 @@
 
     <footer class="footer">
       <div>
-        Sources: preschool school-year calendars · USD 116 calendars/ParentSquare · Quest · Uni Calendar · UniWeek · Outlook Tests · Snap! athletics · private school calendars · Champaign Unit 4 district/school calendars · Unit 4 School Nutrition
+        Sources: preschool school-year calendars · USD 116 calendars/ParentSquare · Quest · Uni Calendar · UniWeek · Outlook Tests · Snap! athletics · private school calendars · Champaign Unit 4 district/school calendars · public library youth calendars · Unit 4 School Nutrition
         <div class="menu-disclaimer"><strong>Lunch menu note:</strong> Published district menus are used when available. When future menus have not yet been published, Chambana Schoolboard may fill dates using repeating patterns inferred from recent published menus. Predicted meals may change; check the district menu for the latest information.</div>
         <div class="support-row"><a class="coffee-button" href="https://www.paypal.com/ncp/payment/J78AM77UMPFBC" target="_blank" rel="noopener noreferrer">☕ Buy me a coffee</a></div>
       </div>
@@ -1212,6 +1212,54 @@
     "system": "Champaign Unit 4",
     "level": "High School",
     "color": "#D4A017"
+  },
+  {
+    "id": "champaign-lib-early",
+    "short": "Champaign Library · Early",
+    "full": "Babies & Preschoolers",
+    "system": "Champaign Public Library",
+    "level": "Library age group",
+    "color": "#496FA8"
+  },
+  {
+    "id": "champaign-lib-elementary",
+    "short": "Champaign Library · Elementary",
+    "full": "Elementary",
+    "system": "Champaign Public Library",
+    "level": "Library age group",
+    "color": "#496FA8"
+  },
+  {
+    "id": "champaign-lib-teens",
+    "short": "Champaign Library · Teens",
+    "full": "Teens",
+    "system": "Champaign Public Library",
+    "level": "Library age group",
+    "color": "#496FA8"
+  },
+  {
+    "id": "urbana-lib-early",
+    "short": "Urbana Library · Early",
+    "full": "Babies & Preschoolers",
+    "system": "Urbana Free Library",
+    "level": "Library age group",
+    "color": "#2D7C78"
+  },
+  {
+    "id": "urbana-lib-elementary",
+    "short": "Urbana Library · Elementary",
+    "full": "Elementary",
+    "system": "Urbana Free Library",
+    "level": "Library age group",
+    "color": "#2D7C78"
+  },
+  {
+    "id": "urbana-lib-teens",
+    "short": "Urbana Library · Teens",
+    "full": "Teens",
+    "system": "Urbana Free Library",
+    "level": "Library age group",
+    "color": "#2D7C78"
   }
 ];
 
@@ -1259,6 +1307,28 @@
       "uecs"
     ],
     "url": "https://uecs.usd116.org/"
+  },
+  {
+    "id": "urbana-library",
+    "kind": "Youth events calendar",
+    "name": "Urbana Free Library — Youth Events",
+    "schools": [
+      "urbana-lib-early",
+      "urbana-lib-elementary",
+      "urbana-lib-teens"
+    ],
+    "url": "https://urbanafreelibrary.libnet.info/events"
+  },
+  {
+    "id": "champaign-library",
+    "kind": "Youth events calendar",
+    "name": "Champaign Public Library — Youth Events",
+    "schools": [
+      "champaign-lib-early",
+      "champaign-lib-elementary",
+      "champaign-lib-teens"
+    ],
+    "url": "https://champaign.libnet.info/events"
   },
   {
     "id": "ums-athletics",
@@ -15646,6 +15716,8 @@
   function schoolLabel(ids){
     if (!ids || ids.includes("all")) return "All schools";
     if (ids.length === SCHOOLS.length) return "All schools";
+    if (ids.length && ids.every(id => id.startsWith("urbana-lib-"))) return "Urbana Free Library";
+    if (ids.length && ids.every(id => id.startsWith("champaign-lib-"))) return "Champaign Public Library";
     return ids.map(id => SCHOOLS.find(s => s.id === id)?.short || id).join(" + ");
   }
 
@@ -15830,6 +15902,13 @@
       .filter(s => s.system === "Champaign Unit 4")
       .sort(byAgeThenName)
       .forEach(s => unit4Column.appendChild(makePickerLabel(s)));
+
+    addSubtitle(unit4Column, "Champaign Public Library");
+    ["champaign-lib-early", "champaign-lib-elementary", "champaign-lib-teens"]
+      .map(id => SCHOOLS.find(s => s.id === id))
+      .filter(Boolean)
+      .forEach(s => unit4Column.appendChild(makePickerLabel(s)));
+
     grid.appendChild(unit4Column);
 
     // Column 2: Urbana SD 116, youngest to oldest; Uni High stays at
@@ -15838,6 +15917,12 @@
     SCHOOLS
       .filter(s => s.system === "USD 116")
       .sort(byAgeThenName)
+      .forEach(s => urbanaColumn.appendChild(makePickerLabel(s)));
+
+    addSubtitle(urbanaColumn, "Urbana Free Library");
+    ["urbana-lib-early", "urbana-lib-elementary", "urbana-lib-teens"]
+      .map(id => SCHOOLS.find(s => s.id === id))
+      .filter(Boolean)
       .forEach(s => urbanaColumn.appendChild(makePickerLabel(s)));
 
     const uni = SCHOOLS.find(s => s.id === "uni");
@@ -15850,7 +15935,7 @@
     // Column 3: preschools first, then the regular private schools.
     const privateColumn = makeColumn("Preschools");
     SCHOOLS
-      .filter(s => s.level === "Preschool")
+      .filter(s => s.level === "Preschool" && !["Champaign Unit 4", "USD 116"].includes(s.system))
       .sort((a, b) => a.full.localeCompare(b.full))
       .forEach(s => privateColumn.appendChild(makePickerLabel(s)));
 
