@@ -287,6 +287,8 @@ HIGH_CONFIDENCE_EVENT_TITLES = (
     ("curriculum night", "Curriculum Night"),
     ("picture day", "Picture Day"),
     ("open house", "Open House"),
+    ("black family affinity parent group", "Black Family Affinity Parent Group"),
+    ("spanish parents dual language", "Spanish Parents Dual Language — BPAC"),
 )
 
 
@@ -355,8 +357,28 @@ def _event_from_line(line: str, school: SchoolFeed, article_url: str, reference:
     if any(phrase in lower for phrase in SKIP_PHRASES):
         return None
 
-    title, start, end = _extract_time(raw_title)
-    title = _clean_school_event_title(title, school)
+    title_before_cleaning, start, end = _extract_time(raw_title)
+
+    # A recurring Yankee Ridge BPAC item is held at the Sixth Grade Center.
+    # ParentSquare sometimes bakes the location into the event title, which
+    # otherwise creates a second Yankee-only record and makes the venue look
+    # like Yankee Ridge. Preserve the shared-school relevance and real venue
+    # before canonicalizing the title.
+    attribution_text = f"{raw_title} {title_before_cleaning}".casefold()
+    event_schools = [school.id]
+    event_location = None
+    if (
+        school.id == "yankee"
+        and "spanish parents dual language" in attribution_text
+        and (
+            "sixth grade center" in attribution_text
+            or re.search(r"\bsgc\b", attribution_text)
+        )
+    ):
+        event_schools = ["yankee"]
+        event_location = "Urbana Sixth Grade Center — Multipurpose Room"
+
+    title = _clean_school_event_title(title_before_cleaning, school)
     if not title:
         return None
 
@@ -369,12 +391,14 @@ def _event_from_line(line: str, school: SchoolFeed, article_url: str, reference:
         "id": f"usd-schoolfeed-{school.id}-{start_date.isoformat()}-{slug}",
         "title": title,
         "date": start_date.isoformat(),
-        "schools": [school.id],
+        "schools": event_schools,
         "scope": "school",
         "category": "general",
         "source": f"{SOURCE_PREFIX} — {school.name}",
         "sourceUrl": article_url,
     }
+    if event_location:
+        event["location"] = event_location
     if start:
         event["start"] = start
         if end:
