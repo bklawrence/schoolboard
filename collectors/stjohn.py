@@ -13,7 +13,7 @@ from pypdf import PdfReader
 
 
 CALENDAR_PAGE = "https://stjohnls.com/calendar/school-calendar"
-SOURCE_NAME = "St. John Lutheran School Calendar"
+SOURCE_NAME = "St. John Lutheran School Calendar v2"
 SCHOOL_ID = "stjohn"
 
 MONTHS = {
@@ -399,17 +399,42 @@ def parse_calendar_text(
         key=lambda e: (e["date"], e.get("endDate", ""), e["title"]),
     )
 
-    if len(events) < 4:
-        sample_lines = [
+    # A full school-year calendar yielding only a handful of records is an
+    # under-read, not success. The first live run produced 5 records, including
+    # one visibly contaminated by an adjacent calendar-grid day number.
+    #
+    # Reject sparse parses and emit enough of pypdf's extracted text to tune
+    # the parser to St. John's actual grid. This is intentionally stricter
+    # than the first version: no data is better than confidently publishing
+    # a few accidental matches.
+    if len(events) < 12:
+        compact_lines = [
             re.sub(r"\s+", " ", line).strip()
             for line in text.splitlines()
-            if re.search(r"\b\d{1,2}/\d{1,2}\b", line)
-        ][:8]
-        excerpt = " | ".join(sample_lines)[:700]
+            if re.sub(r"\s+", " ", line).strip()
+        ]
+        date_like = [
+            line
+            for line in compact_lines
+            if (
+                re.search(r"\b\d{1,2}/\d{1,2}\b", line)
+                or re.search(
+                    r"\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)"
+                    r"[A-Za-z]*\s+\d{1,2}\b",
+                    line,
+                    re.I,
+                )
+            )
+        ][:24]
+
+        date_excerpt = " | ".join(date_like)[:1800]
+        text_excerpt = " | ".join(compact_lines[:45])[:2400]
+
         raise RuntimeError(
             "St. John PDF text was readable but calendar parsing produced only "
-            f"{len(events)} plausible events"
-            + (f"; date-like sample: {excerpt}" if excerpt else "")
+            f"{len(events)} plausible events; treating this as an under-read. "
+            f"DATE-LIKE PDF TEXT: {date_excerpt or '[none]'}; "
+            f"OPENING PDF TEXT: {text_excerpt or '[none]'}"
         )
 
     return events
