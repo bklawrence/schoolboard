@@ -178,7 +178,9 @@ def _extract_pdf_text(pdf_bytes: bytes) -> str:
     combined = "\n".join(pages)
     combined = combined.replace("\u00a0", " ").replace("\u2011", "-")
     combined = combined.replace("\u2012", "-").replace("\u2013", "-").replace("\u2014", "-")
-    combined = re.sub(r"[ \t]+", " ", combined)
+    # IMPORTANT: do not collapse runs of spaces. pypdf's layout mode uses
+    # horizontal whitespace to preserve the two-month calendar columns, and
+    # St. John's event legends sit beside the month grids.
     combined = re.sub(r"\n{3,}", "\n\n", combined)
 
     if len(combined.strip()) < 40:
@@ -360,6 +362,242 @@ def _parse_month_line(line: str, *, start_year: int, end_year: int) -> list[dict
     return events
 
 
+
+MONTH_YEAR_RE = re.compile(
+    r"\b("
+    r"January|February|March|April|May|June|July|August|September|October|November|December"
+    r")\s+(20\d{2})\b",
+    re.I,
+)
+
+LEGEND_START_RE = re.compile(
+    r"^\s*"
+    r"(?P<d1>3[01]|[12]\d|0?[1-9])"
+    r"(?:\s*[-]\s*(?P<d2>3[01]|[12]\d|0?[1-9]))?"
+    r"\s+(?P<title>.*\S)\s*$"
+)
+
+LEGEND_SPACE_RANGE_RE = re.compile(
+    r"^\s*"
+    r"(?P<d1>3[01]|[12]\d|0?[1-9])\s+"
+    r"(?P<d2>3[01]|[12]\d|0?[1-9])\s+"
+    r"(?P<title>[A-Za-z].*\S)\s*$"
+)
+
+
+def _layout_chunks(region: str) -> list[str]:
+    """
+    pypdf layout extraction separates the month grid, event legend, and the
+    next calendar column with long runs of spaces. Keep only human-text
+    chunks; pure calendar-number rows are deliberately ignored later.
+    """
+    chunks = [
+        chunk.strip()
+        for chunk in re.split(r"\s{3,}", region.rstrip())
+        if chunk.strip()
+    ]
+    return chunks
+
+
+def _is_calendar_noise(chunk: str) -> bool:
+    clean = re.sub(r"\s+", " ", chunk).strip()
+    low = clean.casefold()
+
+    if not clean:
+        return True
+    if MONTH_YEAR_RE.fullmatch(clean):
+        return True
+    if re.fullmatch(r"(?:s|m|t|w|th|f|sa|su|tu)(?:\s+(?:s|m|t|w|th|f|sa|su|tu)){3,}", low):
+        return True
+    if re.fullmatch(r"(?:\d{1,2}\s+){2,}\d{1,2}", clean):
+        return True
+    return False
+
+
+def _legend_start(chunk: str) -> tuple[int, int | None, str] | None:
+    clean = re.sub(r"\s+", " ", chunk).strip()
+
+    match = LEGEND_START_RE.match(clean)
+    if match:
+        title = _clean_title(match.group("title"))
+        if _plausible_title(title):
+            return int(match.group("d1")), (
+                int(match.group("d2")) if match.group("d2") else None
+            ), title
+
+    # In the St. John PDF, pypdf sometimes extracts a printed range such as
+    # "3-4 Teacher In-Service" as "3 4 Teacher In-Service". Treat two leading
+    # consecutive day numbers as a range only when meaningful text follows.
+    match = LEGEND_SPACE_RANGE_RE.match(clean)
+    if match:
+        d1, d2 = int(match.group("d1")), int(match.group("d2"))
+        title = _clean_title(match.group("title"))
+        if d2 == d1 + 1 and _plausible_title(title):
+            return d1, d2, title
+
+    return None
+
+
+def _month_number(name: str) -> int:
+    return MONTHS[name.casefold()]
+
+
+def _make_layout_event(
+    *,
+    month: int,
+    year: int,
+    d1: int,
+    d2: int | None,
+    title: str,
+) -> dict | None:
+    try:
+        start_day = date(year, month, d1)
+    except ValueError:
+        return None
+
+    finish: date | None = None
+    if d2 is not None:
+        try:
+            finish = date(year, month, d2)
+        except ValueError:
+            finish = None
+
+    slug = re.sub(r"[^a-z0-9]+", "-", title.casefold()).strip("-")[:48] or "event"
+    return _event(
+        event_id=f"stjohn-{start_day.isoformat()}-{slug}",
+        title=title,
+        start_day=start_day,
+        end_day=finish,
+    )
+
+
+def _parse_month_legend_region(
+    region_lines: list[str],
+    *,
+    month: int,
+    year: int,
+) -> list[dict]:
+    """
+    Parse the legend associated with one month. A legend entry begins with a
+    day or day range. Chunks without a new day are treated as wrapped
+    continuation text for the preceding entry (e.g. "Little Lamb 3 & 5 Day"
+    or "No School").
+    """
+    raw_entries: list[dict] = []
+    pending: dict | None = None
+
+    def finish_pending() -> None:
+        nonlocal pending
+        if not pending:
+            return
+        title = _clean_title(pending["title"])
+        if _plausible_title(title):
+            event = _make_layout_event(
+                month=month,
+                year=year,
+                d1=pending["d1"],
+                d2=pending.get("d2"),
+                title=title,
+            )
+            if event:
+                raw_entries.append(event)
+        pending = None
+
+    for line in region_lines:
+        for chunk in _layout_chunks(line):
+            if _is_calendar_noise(chunk):
+                continue
+
+            start = _legend_start(chunk)
+            if start:
+                finish_pending()
+                d1, d2, title = start
+                pending = {"d1": d1, "d2": d2, "title": title}
+                continue
+
+            # Human-readable text without a leading day is often a wrapped
+            # continuation of the previous legend item. Exclude weekday/month
+            # noise and append compactly.
+            clean = _clean_title(chunk)
+            if (
+                pending
+                and _plausible_title(clean)
+                and not MONTH_YEAR_RE.search(clean)
+                and not re.fullmatch(r"(?:No School\s+)?S M T W Th F S", clean, re.I)
+            ):
+                pending["title"] = f"{pending['title']} {clean}"
+
+    finish_pending()
+    return raw_entries
+
+
+def _parse_paired_month_layout(text: str) -> list[dict]:
+    """
+    St. John's PDF lays out two months side by side. Each month has a normal
+    calendar grid plus a nearby event legend. pypdf layout extraction preserves
+    enough horizontal spacing to split the left and right halves reliably.
+
+    The previous parser collapsed that whitespace and therefore mixed grid day
+    numbers into event titles. This parser keeps each month's legend separate.
+    """
+    lines = text.splitlines()
+    headers: list[tuple[int, re.Match, re.Match]] = []
+
+    for idx, line in enumerate(lines):
+        matches = list(MONTH_YEAR_RE.finditer(line))
+        if len(matches) >= 2:
+            headers.append((idx, matches[0], matches[1]))
+
+    if not headers:
+        return []
+
+    events: list[dict] = []
+
+    for pos, (line_idx, left_head, right_head) in enumerate(headers):
+        next_idx = headers[pos + 1][0] if pos + 1 < len(headers) else len(lines)
+        section = lines[line_idx + 1:next_idx]
+
+        split_at = right_head.start()
+        # A small buffer keeps text immediately preceding the right month
+        # heading on the left side while avoiding right-grid leakage.
+        left_lines = [line[:split_at] for line in section]
+        right_lines = [line[split_at:] for line in section]
+
+        left_month = _month_number(left_head.group(1))
+        left_year = int(left_head.group(2))
+        right_month = _month_number(right_head.group(1))
+        right_year = int(right_head.group(2))
+
+        events.extend(
+            _parse_month_legend_region(
+                left_lines,
+                month=left_month,
+                year=left_year,
+            )
+        )
+        events.extend(
+            _parse_month_legend_region(
+                right_lines,
+                month=right_month,
+                year=right_year,
+            )
+        )
+
+    unique: dict[tuple[str, str, str], dict] = {}
+    for event in events:
+        key = (
+            event["date"],
+            event.get("endDate", ""),
+            re.sub(r"\s+", " ", event["title"]).casefold().strip(),
+        )
+        unique[key] = event
+
+    return sorted(
+        unique.values(),
+        key=lambda e: (e["date"], e.get("endDate", ""), e["title"]),
+    )
+
+
 def parse_calendar_text(
     text: str,
     *,
@@ -368,6 +606,12 @@ def parse_calendar_text(
     reference: date | None = None,
 ) -> list[dict]:
     reference = reference or date.today()
+
+    # Primary path for the actual St. John two-month grid PDF.
+    layout_events = _parse_paired_month_layout(text)
+    if len(layout_events) >= 12:
+        return layout_events
+
     start_year, end_year = _academic_year(text, label, url, reference)
 
     raw_events: list[dict] = []
@@ -431,8 +675,9 @@ def parse_calendar_text(
         text_excerpt = " | ".join(compact_lines[:45])[:2400]
 
         raise RuntimeError(
-            "St. John PDF text was readable but calendar parsing produced only "
-            f"{len(events)} plausible events; treating this as an under-read. "
+            "St. John PDF text was readable but calendar parsing under-read it "
+            f"(layout parser {len(layout_events)} events; fallback parser "
+            f"{len(events)} events). "
             f"DATE-LIKE PDF TEXT: {date_excerpt or '[none]'}; "
             f"OPENING PDF TEXT: {text_excerpt or '[none]'}"
         )
