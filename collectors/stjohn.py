@@ -1051,6 +1051,13 @@ def fetch_activity_calendar(
             successful_feeds += 1
             calendar_name = _normalize_title(data.get("summary")) or f"Feed {feed_index}"
 
+            if calendar_name.casefold() == "holidays - sj version":
+                print(
+                    f"stjohn-activity detail: {calendar_name} "
+                    f"({feed_index}/{len(identities)}) excluded as generic holiday overlay"
+                )
+                continue
+
             feed_events: list[dict] = []
             for item in items:
                 if not isinstance(item, dict):
