@@ -69,6 +69,8 @@ SEMANTIC_EVENT_PHRASES = (
     "curriculum night",
     "picture day",
     "open house",
+    "black family affinity parent group",
+    "spanish parents dual language",
 )
 
 
@@ -82,6 +84,33 @@ def normalized_event_title(title: str) -> str:
 
     clean = re.sub(r"[^a-z0-9]+", " ", clean)
     return re.sub(r"\s+", " ", clean).strip()
+
+
+def canonicalize_known_event(event: dict) -> dict:
+    """
+    Normalize a few source-specific modeling mistakes before dedupe.
+    BPAC is a Yankee Ridge parent-group event; when a source encodes SGC as a
+    second school, SGC is actually the venue.
+    """
+    event = dict(event)
+    title_key = normalized_event_title(event.get("title", ""))
+
+    if title_key == "spanish parents dual language":
+        schools = list(event.get("schools") or [])
+        location_text = str(event.get("location") or "").casefold()
+        title_text = str(event.get("title") or "").casefold()
+
+        sgc_evidence = (
+            "sgc" in schools
+            or "sixth grade center" in location_text
+            or "sixth grade center" in title_text
+            or re.search(r"\bsgc\b", title_text) is not None
+        )
+        if sgc_evidence:
+            event["schools"] = ["yankee"]
+            event["location"] = "Urbana Sixth Grade Center — Multipurpose Room"
+
+    return event
 
 
 def event_key(event: dict) -> tuple:
@@ -115,6 +144,7 @@ def merge_unique(events: list[dict]) -> list[dict]:
     best_by_key: dict[tuple, dict] = {}
     order: list[tuple] = []
     for event in merged:
+        event = canonicalize_known_event(event)
         key = event_key(event)
         if key not in best_by_key:
             best_by_key[key] = event
