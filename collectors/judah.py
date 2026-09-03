@@ -135,6 +135,147 @@ def _extract_pdf_text(pdf_bytes):
     if len(text.strip())<100:raise RuntimeError("Judah PDF contained too little extractable text")
     return text
 
+
+def _parse_calendar_with_fitz(pdf_bytes,*,reference=None,hint=""):
+    """
+    Second PDF engine for Judah.
+
+    The current 2026-27 PDF's visible month entries are absent from pypdf's
+    extracted text layer, even though the headings/footer are readable.
+    PyMuPDF exposes positioned words differently, so reconstruct each visible
+    month column from word coordinates and feed it through the same month-event
+    parser used elsewhere in this collector.
+    """
+    reference=reference or date.today()
+
+    try:
+        import fitz
+    except ImportError as exc:
+        raise RuntimeError("PyMuPDF is required for Judah PDF fallback") from exc
+
+    a,b=_academic_year(reference,hint)
+    doc=fitz.open(stream=pdf_bytes,filetype="pdf")
+    events=[]
+
+    skip_fragments=(
+        "all dates are subject to change",
+        "www.judah.org",
+        "(217)-359-1701",
+        "commit to the lord",
+        "proverbs 16:3",
+        "note: october 22",
+        "judah christian school",
+        "1st semester",
+        "2nd semester",
+    )
+
+    for page_number,page in enumerate(doc, start=1):
+        words=page.get_text("words",sort=True) or []
+        if not words:
+            continue
+
+        # Find month-name words and group headers by approximately equal y.
+        month_words=[]
+        for w in words:
+            token=str(w[4]).strip().casefold()
+            if token in MONTHS:
+                month_words.append(w)
+
+        if not month_words:
+            continue
+
+        y_groups=[]
+        for w in sorted(month_words,key=lambda item:(item[1],item[0])):
+            y=float(w[1])
+            placed=False
+            for group in y_groups:
+                if abs(group["y"]-y)<=5:
+                    group["words"].append(w)
+                    group["y"]=(group["y"]*(len(group["words"])-1)+y)/len(group["words"])
+                    placed=True
+                    break
+            if not placed:
+                y_groups.append({"y":y,"words":[w]})
+
+        header_groups=[g for g in y_groups if len(g["words"])>=3]
+        if not header_groups:
+            continue
+
+        # Judah has one five-month header per page. Use the strongest group.
+        header=max(header_groups,key=lambda g:len(g["words"]))
+        headers=sorted(header["words"],key=lambda w:w[0])
+        header_y=max(float(w[3]) for w in headers)
+
+        centers=[(float(w[0])+float(w[2]))/2 for w in headers]
+        boundaries=[]
+        for i,center in enumerate(centers):
+            left=0 if i==0 else (centers[i-1]+center)/2
+            right=float(page.rect.width) if i+1==len(centers) else (center+centers[i+1])/2
+            boundaries.append((left,right))
+
+        for i,header_word in enumerate(headers):
+            month_name=str(header_word[4]).strip().casefold()
+            month=MONTHS[month_name]
+            year=a if month>=7 else b
+            left,right=boundaries[i]
+
+            # Rebuild readable lines from positioned words in this column.
+            selected=[]
+            for w in words:
+                x0,y0,x1,y1,word,block_no,line_no,*_=w
+                center=(float(x0)+float(x1))/2
+                if not (left<=center<right):
+                    continue
+                if float(y0)<=header_y+2:
+                    continue
+                # Keep clear of footer material at the very bottom.
+                if float(y0)>float(page.rect.height)-38:
+                    continue
+                selected.append(w)
+
+            grouped={}
+            for w in selected:
+                key=(int(w[5]),int(w[6]))
+                grouped.setdefault(key,[]).append(w)
+
+            line_records=[]
+            for group_words in grouped.values():
+                group_words=sorted(group_words,key=lambda w:w[0])
+                line=" ".join(str(w[4]) for w in group_words)
+                line=re.sub(r"\s+"," ",line).strip()
+                y=min(float(w[1]) for w in group_words)
+                if not line:
+                    continue
+                low=line.casefold()
+                if any(fragment in low for fragment in skip_fragments):
+                    continue
+                line_records.append((y,line))
+
+            chunks=[line for _,line in sorted(line_records,key=lambda item:item[0])]
+            events.extend(_parse_col(chunks,month,year,b))
+
+    uniq={}
+    for e in events:
+        key=(
+            e["date"],
+            e.get("endDate",""),
+            re.sub(r"[^a-z0-9]+"," ",e["title"].casefold()).strip(),
+        )
+        uniq[key]=e
+
+    merged=sorted(
+        uniq.values(),
+        key=lambda e:(e["date"],e.get("endDate",""),e["title"]),
+    )
+
+    if len(merged)<12:
+        raise RuntimeError(
+            f"PyMuPDF positional extraction produced only {len(merged)} plausible Judah events"
+        )
+
+    return merged
+
+
 def _clean(v):
     v=re.sub(r"\s+"," ",unescape(v)).strip(" |;:")
     return "" if v.casefold() in {"st","nd","rd","th"} else v
@@ -215,13 +356,47 @@ def parse_calendar_text(text,*,reference=None,hint=""):
     return merged
 
 def fetch_judah_calendar(*,reference=None,timeout=25,opener=urlopen):
-    reference=reference or date.today(); c=discover_current_pdf(reference=reference,timeout=timeout,opener=opener)
-    raw=_request_bytes(c.url,timeout=timeout,accept="application/pdf,*/*;q=0.8",opener=opener); text=_extract_pdf_text(raw)
-    events=parse_calendar_text(text,reference=reference,hint=f"{c.label} {c.url} {text[:800]}")
-    preview="; ".join(f"{e['date']} {e['title']}" for e in events[:8])
-    print(f"judah-calendar detail: extracted {len(text)} text characters; parsed {len(events)} school-year events")
-    if preview:print(f"judah-calendar detail: first parsed events: {preview}")
+    reference=reference or date.today()
+    c=discover_current_pdf(reference=reference,timeout=timeout,opener=opener)
+    raw=_request_bytes(
+        c.url,
+        timeout=timeout,
+        accept="application/pdf,*/*;q=0.8",
+        opener=opener,
+    )
+    text=_extract_pdf_text(raw)
+    hint=f"{c.label} {c.url} {text[:800]}"
+
+    try:
+        events=parse_calendar_text(text,reference=reference,hint=hint)
+        engine="pypdf"
+    except Exception as pypdf_exc:
+        print(
+            "judah-calendar detail: pypdf under-read visible calendar entries; "
+            f"trying PyMuPDF positional extraction: {type(pypdf_exc).__name__}: {pypdf_exc}"
+        )
+        try:
+            events=_parse_calendar_with_fitz(
+                raw,
+                reference=reference,
+                hint=hint,
+            )
+            engine="PyMuPDF"
+        except Exception as fitz_exc:
+            raise RuntimeError(
+                "Judah annual PDF could not be parsed by either text engine. "
+                f"pypdf: {type(pypdf_exc).__name__}: {pypdf_exc}; "
+                f"PyMuPDF: {type(fitz_exc).__name__}: {fitz_exc}"
+            ) from fitz_exc
+
+    preview="; ".join(f"{e['date']} {e['title']}" for e in events[:10])
+    print(
+        f"judah-calendar detail: {engine} parsed {len(events)} school-year events"
+    )
+    if preview:
+        print(f"judah-calendar detail: first parsed events: {preview}")
     return events
+
 
 DATE_KEYS=("startdatetime","startdate","eventdate","datetime","gamedate","scheduleddate","start")
 TITLE_KEYS=("eventname","title","activityname","name","description")
@@ -253,24 +428,67 @@ def _parse_public_datetime(value):
     return None
 
 def _event_from_arbiter_dict(record,index):
-    ci={str(k).casefold():v for k,v in record.items()}; dt=None
+    ci={str(k).casefold():v for k,v in record.items()}
+    dt=None
     for k in DATE_KEYS:
         if k in ci:
             dt=_parse_public_datetime(ci[k])
-            if dt:break
-    if not dt:return None
+            if dt:
+                break
+    if not dt:
+        return None
+
     title=""
     for k in TITLE_KEYS:
         v=ci.get(k)
-        if isinstance(v,str) and re.search(r"[A-Za-z]",v):title=re.sub(r"\s+"," ",v).strip();break
-    if not title or len(title)>180 or title.casefold() in {"judah christian school","calendar"}:return None
-    e={"id":f"judah-athletics-{dt.date().isoformat()}-{index}","title":title,"date":dt.date().isoformat(),"schools":[SCHOOL_ID],"scope":"school","category":"athletics","source":ATHLETICS_SOURCE_NAME,"sourceUrl":ATHLETICS_PAGE}
-    if dt.hour or dt.minute:e["start"]=dt.strftime("%H:%M")
-    else:e["allDay"]=True
+        if isinstance(v,str) and re.search(r"[A-Za-z]",v):
+            title=re.sub(r"\s+"," ",v).strip()
+            break
+    if not title or len(title)>180 or title.casefold() in {"judah christian school","calendar"}:
+        return None
+
+    class_name=str(ci.get("classname") or "")
+    event_type=""
+    match=re.search(r"fc-event-type-([A-Za-z0-9_-]+)",class_name,re.I)
+    if match:
+        event_type=match.group(1).replace("_"," ").replace("-"," ").strip().title()
+
+    if event_type and event_type.casefold() not in title.casefold():
+        title=f"{title} — {event_type}"
+
+    e={
+        "id":f"judah-athletics-{dt.date().isoformat()}-{index}",
+        "title":title,
+        "date":dt.date().isoformat(),
+        "schools":[SCHOOL_ID],
+        "scope":"school",
+        "category":"athletics",
+        "source":ATHLETICS_SOURCE_NAME,
+        "sourceUrl":ATHLETICS_PAGE,
+    }
+
+    if dt.hour or dt.minute:
+        e["start"]=dt.strftime("%H:%M")
+    else:
+        e["allDay"]=True
+
+    end_value=ci.get("end") or ci.get("enddatetime") or ci.get("enddate")
+    end_dt=_parse_public_datetime(end_value) if end_value else None
+    if end_dt and end_dt.date()==dt.date() and end_dt>dt and (end_dt.hour or end_dt.minute):
+        e["end"]=end_dt.strftime("%H:%M")
+
     for k in LOCATION_KEYS:
         v=ci.get(k)
-        if isinstance(v,str) and v.strip():e["location"]=re.sub(r"\s+"," ",v).strip();break
+        if isinstance(v,str) and v.strip():
+            e["location"]=re.sub(r"\s+"," ",v).strip()
+            break
+
+    relative_url=str(ci.get("url") or "").strip()
+    if relative_url:
+        e["sourceUrl"]=urljoin("https://arbiterlive.com/",relative_url)
+
     return e
+
 
 def _walk(value):
     if isinstance(value,dict):
@@ -313,7 +531,9 @@ def _first_interesting_record(value):
     return None
 
 
-def fetch_judah_athletics(*,settle_seconds=5.0):
+def fetch_judah_athletics(*,reference=None,settle_seconds=2.5):
+    reference=reference or date.today()
+
     try:
         from selenium import webdriver
         from selenium.common.exceptions import TimeoutException
@@ -328,20 +548,12 @@ def fetch_judah_athletics(*,settle_seconds=5.0):
     o.add_argument("--window-size=1440,1200")
     o.add_argument("--lang=en-US")
     o.page_load_strategy="eager"
-    o.set_capability("goog:loggingPrefs",{"performance":"ALL"})
 
     d=webdriver.Chrome(options=o)
     d.set_page_load_timeout(18)
+    d.set_script_timeout(25)
 
     try:
-        try:
-            d.execute_cdp_cmd(
-                "Network.enable",
-                {"maxTotalBufferSize":100000000,"maxResourceBufferSize":5000000},
-            )
-        except Exception:
-            pass
-
         try:
             d.get(ATHLETICS_PAGE)
         except TimeoutException:
@@ -352,116 +564,79 @@ def fetch_judah_athletics(*,settle_seconds=5.0):
 
         time.sleep(settle_seconds)
 
-        logs=d.get_log("performance")
-        request_meta={}
-        response_messages=[]
+        start_day=reference.fromordinal(reference.toordinal()-30)
+        end_day=reference.fromordinal(reference.toordinal()+60)
 
-        for raw in logs:
-            try:
-                m=json.loads(raw["message"])["message"]
-            except Exception:
-                continue
+        script=r"""
+        const startDate=arguments[0];
+        const endDate=arguments[1];
+        const done=arguments[arguments.length-1];
 
-            method=m.get("method")
-            params=m.get("params",{})
+        const body=new URLSearchParams();
+        body.set('startDate',startDate);
+        body.set('endDate',endDate);
 
-            if method=="Network.requestWillBeSent":
-                req=params.get("request",{})
-                rid=str(params.get("requestId") or "")
-                if rid:
-                    request_meta[rid]={
-                        "url":str(req.get("url") or ""),
-                        "method":str(req.get("method") or "GET"),
-                        "postData":str(req.get("postData") or ""),
-                    }
-            elif method=="Network.responseReceived":
-                response_messages.append(m)
+        fetch('/School/GetEventsByEntity/',{
+          method:'POST',
+          credentials:'same-origin',
+          headers:{
+            'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8',
+            'X-Requested-With':'XMLHttpRequest'
+          },
+          body:body.toString()
+        })
+        .then(async response=>{
+          const text=await response.text();
+          done({ok:response.ok,status:response.status,text:text});
+        })
+        .catch(error=>done({ok:false,status:0,text:String(error)}));
+        """
 
-        bodies=[]
-        urls=[]
+        result=d.execute_async_script(
+            script,
+            start_day.isoformat(),
+            end_day.isoformat(),
+        ) or {}
 
-        for m in response_messages:
-            p=m.get("params",{})
-            r=p.get("response",{})
-            url=str(r.get("url") or "")
-            mime=str(r.get("mimeType") or "").casefold()
-            status=int(r.get("status") or 0)
-            rid=str(p.get("requestId") or "")
-
-            if status!=200:
-                continue
-
-            low=url.casefold()
-            likely=(
-                "arbiter" in low
-                and any(
-                    token in low
-                    for token in ("event","calendar","schedule","school","contest","game","api")
-                )
+        if not result.get("ok"):
+            raise RuntimeError(
+                f"Arbiter rolling-window request failed with status "
+                f"{result.get('status')}: {str(result.get('text') or '')[:300]}"
             )
-            jsonish="json" in mime
 
-            if not (likely or jsonish):
-                continue
+        try:
+            payload=json.loads(result.get("text") or "{}")
+        except Exception as exc:
+            raise RuntimeError("Arbiter response was not valid JSON") from exc
 
-            urls.append(_sanitize(url))
+        detail_string=payload.get("EventsFilteredDetailString")
+        if not isinstance(detail_string,str) or not detail_string.strip():
+            raise RuntimeError("Arbiter response omitted EventsFilteredDetailString")
 
-            try:
-                body=d.execute_cdp_cmd(
-                    "Network.getResponseBody",
-                    {"requestId":rid},
-                ).get("body","")
-                data=json.loads(body)
-            except Exception:
-                continue
+        try:
+            detail_events=json.loads(detail_string)
+        except Exception as exc:
+            raise RuntimeError(
+                "Arbiter EventsFilteredDetailString was not valid nested JSON"
+            ) from exc
 
-            bodies.append((url,data))
-
-            if "GetEventsByEntity" in url:
-                meta=request_meta.get(rid,{})
-                print(
-                    "judah-athletics diagnostic: GetEventsByEntity request "
-                    f"method={meta.get('method','?')} url={url}"
-                )
-                if meta.get("postData"):
-                    post=re.sub(r"\\s+"," ",meta["postData"]).strip()
-                    print(
-                        "judah-athletics diagnostic: GetEventsByEntity request body "
-                        + post[:1400]
-                    )
-
-                print(
-                    "judah-athletics diagnostic: GetEventsByEntity JSON shape "
-                    + json.dumps(_json_shape(data),ensure_ascii=False)[:1800]
-                )
-
-                record=_first_interesting_record(data)
-                if record is not None:
-                    sample={}
-                    for key,value in list(record.items())[:30]:
-                        if isinstance(value,(dict,list)):
-                            sample[key]=_json_shape(value)
-                        else:
-                            sample[key]=str(value)[:220]
-                    print(
-                        "judah-athletics diagnostic: GetEventsByEntity sample record "
-                        + json.dumps(sample,ensure_ascii=False)[:3500]
-                    )
+        if not isinstance(detail_events,list):
+            raise RuntimeError("Arbiter detail payload was not an event list")
 
         parsed=[]
-        seq=0
-        for _,data in bodies:
-            for record in _walk(data):
-                seq+=1
-                e=_event_from_arbiter_dict(record,seq)
-                if e:
-                    parsed.append(e)
+        for i,record in enumerate(detail_events, start=1):
+            if not isinstance(record,dict):
+                continue
+            event=_event_from_arbiter_dict(record,i)
+            if event:
+                parsed.append(event)
 
         uniq={}
         for e in parsed:
             key=(
                 e["date"],
                 e.get("start",""),
+                e.get("end",""),
                 re.sub(r"[^a-z0-9]+"," ",e["title"].casefold()).strip(),
             )
             uniq[key]=e
@@ -471,40 +646,26 @@ def fetch_judah_athletics(*,settle_seconds=5.0):
             key=lambda e:(e["date"],e.get("start",""),e["title"]),
         )
 
-        for u in list(dict.fromkeys(urls))[:20]:
-            print(f"judah-athletics diagnostic: public network candidate {u}")
-
-        if len(events)>=3:
-            preview="; ".join(f"{e['date']} {e['title']}" for e in events[:8])
-            print(
-                f"judah-athletics detail: parsed {len(events)} unique public "
-                f"Arbiter events from {len(bodies)} JSON responses"
+        if len(events)<3:
+            raise RuntimeError(
+                f"Judah Arbiter returned {len(detail_events)} detail records but "
+                f"only {len(events)} safely parseable events"
             )
-            if preview:
-                print(f"judah-athletics detail: first parsed events: {preview}")
-            return events
 
-        try:
-            links=d.execute_script(
-                "return Array.from(document.querySelectorAll('a[href]')).map(a=>a.href).filter(Boolean);"
-            ) or []
-        except Exception:
-            links=[]
-
-        relevant=[
-            x for x in links
-            if any(
-                token in x.casefold()
-                for token in ("team","schedule","calendar","event","subscribe")
-            )
-        ]
-        for link in list(dict.fromkeys(relevant))[:20]:
-            print(f"judah-athletics diagnostic: rendered link {_sanitize(link)}")
-
-        raise RuntimeError(
-            f"Judah public Arbiter calendar yielded only {len(events)} safely "
-            f"parseable events from {len(bodies)} JSON responses; diagnostics logged"
+        preview="; ".join(
+            f"{e['date']} {e['title']}"
+            for e in events[:10]
         )
+        print(
+            f"judah-athletics detail: Arbiter rolling window "
+            f"{start_day.isoformat()} through {end_day.isoformat()}; "
+            f"parsed {len(events)} unique events"
+        )
+        if preview:
+            print(f"judah-athletics detail: first parsed events: {preview}")
+
+        return events
 
     finally:
         d.quit()
+
