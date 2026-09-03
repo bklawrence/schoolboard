@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from html import unescape
 from html.parser import HTMLParser
-from urllib.parse import urljoin
+from urllib.parse import parse_qs, quote, unquote, urlencode, urljoin, urlparse
 from urllib.request import Request, urlopen
 from zoneinfo import ZoneInfo
 
@@ -783,10 +783,26 @@ def _activity_event_from_google(item: dict) -> dict | None:
     return event
 
 
+def _activity_title_key(title: str) -> str:
+    clean = re.sub(r"[^a-z0-9]+", " ", str(title or "").casefold()).strip()
+
+    # School-wide closure calendars sometimes duplicate the same holiday with
+    # titles such as "Labor Day" and "No School - Labor Day".
+    closure_noise = {
+        "no school",
+        "school closed",
+        "closed",
+    }
+    for phrase in closure_noise:
+        clean = re.sub(rf"\b{re.escape(phrase)}\b", " ", clean)
+    clean = re.sub(r"\s+", " ", clean).strip()
+    return clean
+
+
 def _dedupe_activity_events(events: list[dict]) -> list[dict]:
     """
-    The broken Beehively page loads many public Google subcalendars. Closures
-    and school-wide events can therefore appear in several feeds. Store one
+    St. John's public page loads many Google subcalendars. Closures and
+    school-wide events can therefore appear in several feeds. Store one
     SchoolBoard event for one real-world event.
     """
     unique: dict[tuple[str, str, str, str, str], dict] = {}
@@ -797,12 +813,22 @@ def _dedupe_activity_events(events: list[dict]) -> list[dict]:
             event.get("start", ""),
             event.get("end", ""),
             event.get("endDate", ""),
-            re.sub(r"[^a-z0-9]+", " ", event.get("title", "").casefold()).strip(),
+            _activity_title_key(event.get("title", "")),
         )
         existing = unique.get(key)
         if existing is None:
             unique[key] = event
             continue
+
+        # Prefer the more parent-actionable closure title.
+        existing_no_school = "no school" in existing.get("title", "").casefold()
+        event_no_school = "no school" in event.get("title", "").casefold()
+        if event_no_school and not existing_no_school:
+            replacement = dict(event)
+            if not replacement.get("location") and existing.get("location"):
+                replacement["location"] = existing["location"]
+            unique[key] = replacement
+            existing = replacement
 
         # Prefer whichever duplicate has a location.
         if not existing.get("location") and event.get("location"):
@@ -818,23 +844,127 @@ def _dedupe_activity_events(events: list[dict]) -> list[dict]:
     )
 
 
+def _google_request_identity(url: str) -> tuple[str, str] | None:
+    """
+    Extract the public Google Calendar id + API key from a request the public
+    St. John page itself made. Nothing is hard-coded.
+    """
+    try:
+        parsed = urlparse(url)
+    except Exception:
+        return None
+
+    if parsed.netloc.casefold() != "www.googleapis.com":
+        return None
+
+    match = re.search(r"/calendar/v3/calendars/([^/]+)/events$", parsed.path)
+    if not match:
+        return None
+
+    calendar_id = unquote(match.group(1))
+    key = (parse_qs(parsed.query).get("key") or [""])[0].strip()
+    if not calendar_id or not key:
+        return None
+
+    return calendar_id, key
+
+
+def _browser_json_fetch(driver, url: str) -> dict:
+    """
+    Fetch public Google Calendar JSON from the already-loaded St. John page.
+    Doing this in-browser preserves the same public browser context/referrer
+    that Beehively uses for its Google API key.
+    """
+    script = r"""
+    const url = arguments[0];
+    const done = arguments[arguments.length - 1];
+    fetch(url)
+      .then(async response => {
+        const text = await response.text();
+        done({
+          ok: response.ok,
+          status: response.status,
+          text: text
+        });
+      })
+      .catch(error => {
+        done({
+          ok: false,
+          status: 0,
+          text: String(error)
+        });
+      });
+    """
+    driver.set_script_timeout(20)
+    result = driver.execute_async_script(script, url) or {}
+    if not result.get("ok"):
+        raise RuntimeError(
+            f"Google Calendar browser fetch failed with status "
+            f"{result.get('status')}: {str(result.get('text') or '')[:300]}"
+        )
+
+    try:
+        data = json.loads(result.get("text") or "{}")
+    except Exception as exc:
+        raise RuntimeError("Google Calendar response was not valid JSON") from exc
+
+    if not isinstance(data, dict):
+        raise RuntimeError("Google Calendar response was not a JSON object")
+    return data
+
+
+def _rolling_google_url(
+    *,
+    calendar_id: str,
+    key: str,
+    reference: date,
+) -> str:
+    """
+    Ask Google for SchoolBoard's 30-day-history / 60-day-ahead window rather
+    than inheriting Beehively's current on-screen calendar range.
+    """
+    start_day = reference - timedelta(days=30)
+    end_day = reference + timedelta(days=61)  # exclusive upper bound
+
+    start_dt = datetime.combine(start_day, datetime.min.time(), tzinfo=CHICAGO)
+    end_dt = datetime.combine(end_day, datetime.min.time(), tzinfo=CHICAGO)
+
+    params = urlencode({
+        "key": key,
+        "timeMin": start_dt.isoformat(),
+        "timeMax": end_dt.isoformat(),
+        "singleEvents": "true",
+        "maxResults": 9999,
+        "timeZone": "America/Chicago",
+        "orderBy": "startTime",
+    })
+
+    encoded_id = quote(calendar_id, safe="")
+    return (
+        f"https://www.googleapis.com/calendar/v3/calendars/"
+        f"{encoded_id}/events?{params}"
+    )
+
+
 def fetch_activity_calendar(
     *,
+    reference: date | None = None,
     page_load_timeout: int = 15,
     settle_seconds: float = 5.0,
 ) -> list[dict]:
     """
-    Load St. John's PUBLIC Activity Calendar and harvest the public Google
-    Calendar JSON responses the page itself requests.
+    Use St. John's PUBLIC Activity Calendar to discover its public Google
+    subcalendars, then fetch SchoolBoard's own rolling date window from each.
 
-    This deliberately does not hard-code:
-      * Google's public browser API key
-      * St. John's Google calendar IDs
-      * the number of subcalendars
+    The public page remains the source of truth for:
+      * which subcalendars are included
+      * each Google calendar id
+      * the public browser API key
 
-    If St. John changes which subcalendars the Activity Calendar displays,
-    SchoolBoard follows the public page automatically.
+    None of those values are hard-coded in SchoolBoard.
     """
+    reference = reference or date.today()
+
     try:
         from selenium import webdriver
         from selenium.common.exceptions import TimeoutException
@@ -856,14 +986,6 @@ def fetch_activity_calendar(
 
     try:
         try:
-            driver.execute_cdp_cmd(
-                "Network.enable",
-                {"maxTotalBufferSize": 100000000, "maxResourceBufferSize": 5000000},
-            )
-        except Exception:
-            pass
-
-        try:
             driver.get(ACTIVITY_CALENDAR_PAGE)
         except TimeoutException:
             try:
@@ -871,67 +993,65 @@ def fetch_activity_calendar(
             except Exception:
                 pass
 
-        # The Beehively UI itself currently says "Invalid date", but its public
-        # Google Calendar requests still complete successfully underneath.
         import time as _time
         _time.sleep(settle_seconds)
 
-        entries = driver.get_log("performance")
-        response_ids: list[tuple[str, str]] = []
-        seen_request_ids: set[str] = set()
+        identities: list[tuple[str, str]] = []
+        seen_ids: set[str] = set()
 
-        for raw_entry in entries:
+        for raw_entry in driver.get_log("performance"):
             try:
                 message = json.loads(raw_entry["message"])["message"]
             except Exception:
                 continue
 
-            if message.get("method") != "Network.responseReceived":
+            if message.get("method") != "Network.requestWillBeSent":
                 continue
 
-            params = message.get("params", {})
-            response = params.get("response", {})
-            url = str(response.get("url") or "")
-            mime = str(response.get("mimeType") or "").casefold()
-            status = int(response.get("status") or 0)
+            request = message.get("params", {}).get("request", {})
+            url = str(request.get("url") or "")
+            identity = _google_request_identity(url)
+            if identity is None:
+                continue
 
-            if (
-                status == 200
-                and "www.googleapis.com/calendar/v3/calendars/" in url
-                and "/events?" in url
-                and "json" in mime
-            ):
-                request_id = str(params.get("requestId") or "")
-                if request_id and request_id not in seen_request_ids:
-                    seen_request_ids.add(request_id)
-                    response_ids.append((request_id, url))
+            calendar_id, key = identity
+            if calendar_id in seen_ids:
+                continue
+            seen_ids.add(calendar_id)
+            identities.append((calendar_id, key))
 
-        if not response_ids:
+        if not identities:
             raise RuntimeError(
-                "St. John Activity Calendar loaded no public Google Calendar responses"
+                "St. John Activity Calendar exposed no public Google Calendar identities"
             )
 
         all_events: list[dict] = []
-        readable_feeds = 0
+        successful_feeds = 0
 
-        for feed_index, (request_id, _url) in enumerate(response_ids, start=1):
+        for feed_index, (calendar_id, key) in enumerate(identities, start=1):
+            url = _rolling_google_url(
+                calendar_id=calendar_id,
+                key=key,
+                reference=reference,
+            )
+
             try:
-                payload = driver.execute_cdp_cmd(
-                    "Network.getResponseBody",
-                    {"requestId": request_id},
+                data = _browser_json_fetch(driver, url)
+            except Exception as exc:
+                print(
+                    f"stjohn-activity detail: public Google feed {feed_index} "
+                    f"rolling-window fetch failed: {type(exc).__name__}: {exc}"
                 )
-                body = payload.get("body", "")
-                data = json.loads(body)
-            except Exception:
                 continue
 
             items = data.get("items")
             if not isinstance(items, list):
-                continue
+                items = []
 
-            readable_feeds += 1
+            successful_feeds += 1
+            calendar_name = _normalize_title(data.get("summary")) or f"Feed {feed_index}"
+
             feed_events: list[dict] = []
-
             for item in items:
                 if not isinstance(item, dict):
                     continue
@@ -948,15 +1068,15 @@ def fetch_activity_calendar(
                 for e in feed_events[:3]
             )
             print(
-                f"stjohn-activity detail: public Google feed {feed_index} "
-                f"returned {len(feed_events)} events"
+                f"stjohn-activity detail: {calendar_name} "
+                f"({feed_index}/{len(identities)}) returned {len(feed_events)} events"
                 + (f"; sample: {sample}" if sample else "")
             )
 
-        if readable_feeds < 3:
+        if successful_feeds < max(3, len(identities) // 2):
             raise RuntimeError(
-                f"St. John Activity Calendar exposed {len(response_ids)} Google "
-                f"responses but only {readable_feeds} response bodies were readable"
+                f"Only {successful_feeds} of {len(identities)} public St. John "
+                f"Google calendars could be fetched for the rolling window"
             )
 
         merged = _dedupe_activity_events(all_events)
@@ -964,12 +1084,13 @@ def fetch_activity_calendar(
         if len(merged) < 5:
             raise RuntimeError(
                 f"St. John Activity Calendar produced only {len(merged)} unique events "
-                f"from {readable_feeds} readable Google feeds"
+                f"from {successful_feeds} successful public Google feeds"
             )
 
         print(
-            f"stjohn-activity detail: {readable_feeds} public Google feeds; "
-            f"{len(all_events)} feed-event records -> {len(merged)} unique events"
+            f"stjohn-activity detail: {successful_feeds} public Google feeds; "
+            f"{len(all_events)} rolling-window feed-event records -> "
+            f"{len(merged)} unique events"
         )
         if merged:
             preview = "; ".join(
@@ -984,7 +1105,6 @@ def fetch_activity_calendar(
         driver.quit()
 
 
-
 def fetch_stjohn_calendar(
     *,
     timeout: int = 25,
@@ -995,7 +1115,7 @@ def fetch_stjohn_calendar(
 
     # PRIMARY: the public Activity Calendar's live Google Calendar feeds.
     try:
-        events = fetch_activity_calendar()
+        events = fetch_activity_calendar(reference=reference)
         print(
             f"stjohn-calendar detail: using live Activity Calendar "
             f"({len(events)} unique events before rolling-window trim)"
