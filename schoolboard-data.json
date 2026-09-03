@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-03T09:53:06-05:00",
+  "updated": "2026-09-03T10:05:29-05:00",
   "mode": "live-collector",
   "sources": [
     {
@@ -202,16 +202,16 @@
     },
     {
       "id": "stmatthew-calendar",
-      "status": "live",
+      "status": "cached",
       "count": 115,
-      "unit": "events"
+      "unit": "events",
+      "error": "RuntimeError: St. Matthew calendar discovery produced no usable feed and homepage fallback failed quickly: URLError: <urlopen error timed out>"
     },
     {
       "id": "stjohn-calendar",
-      "status": "failed",
-      "count": 0,
-      "unit": "events",
-      "error": "RuntimeError: St. John PDF text was readable but calendar parsing under-read it (layout parser 0 events; fallback parser 5 events). DATE-LIKE PDF TEXT: Updated 8/10/26 | August 10-12 Teacher In-Service No School | October 8 End of 1st Quarter | December 2 Advent Services Begin Wednesdays, 3:30 & 7:15p | January 1 New Year's Day | February 4 Parent-Teacher Conferences, 12p-7p No School | April 6; OPENING PDF TEXT: St. John Lutheran School 2026-2027 Calendar | August 2026 January 2027 | S M T W Th F S 10-12 Teacher In-Service S M T W Th F S | 1 13 First Day of School - K-8 1 2 1 Christmas Break - No School | 2 3 4 5 6 7 8 11:30a Dismissal 3 4 5 6 7 8 3 4 Teacher In-Service | 9 10 11 12 13 14 15 17 First Day of School 10 11 12 13 14 15 16 No School | 16 17 18 19 20 21 22 Little Lamb 3 & 5 Day 17 18 19 20 21 22 23 5 School Resumes | 23 24 25 26 27 28 29 18 First Day of School 24 25 26 27 28 29 30 18 MLK, Jr. Day - No School | 30 31 Little Lamb 2 Day 31 | September 2026 February 2027 4 P-T Conference, 12p-7p | S M T W Th F S S M T W Th F S No School | 1 2 3 4 5 1 2 3 4 5 6 5 Teacher In-Service | 6 7 8 9 10 11 12 7 Labor Day - No School 7 8 9 10 11 12 13 No School | 13 14 15 16 17 18 19 14 15 16 17 18 19 20 | 20 21 22 23 24 25 26 21 22 23 24 25 26 27 10 Ash Wednesday | 27 28 29 30 28 Lent Services Begin, 3:30p,7:15p | 15 Presidents' Day - No School | 8 End of 1st Quarter (40 days) | October 2026 9 Teacher In-Service March 2027 | S M T W Th F S No School S M T W Th F S 11 Last Day of 3rd Quarter (44 days) | 1 2 3 12 Teacher In-Service 1 2 3 4 5 6 12 Teacher In-Service | 4 5 6 7 8 9 10 No School 7 8 9 10 11 12 13 15-19 Spring Break - No School | 11 12 13 14 15 16 17 22 P-T Conference, 12p-7p 14 15 16 17 18 19 20 25 Maundy Thursday, Service 7:15p | 18 19 20 21 22 23 24 No School 21 22 23 24 25 26 27 Dismissal 11:30 LL FD & K-8 | 25 26 27 28 29 30 31 23 Teacher In-Service 28 29 30 31 26 Good Friday | No School No School, Church Service 7:15p | 28 Easter, Service 6a, 8a, 10:45a | 31 Reformation Day 29 Easter Monday | November 2026 April 2027 No School | S M T W Th F S S M T W Th F S | 1 2 3 4 5 6 7 1 2 3 | 8 9 10 11 12 13 14 11 Veterans Day Assembly 4 5 6 7 8 9 10 | 15 16 17 18 19 20 21 23-27 Thanksgiving Break 11 12 13 14 15 16 17 23 Teacher In-Service | 22 23 24 25 26 27 28 No School 18 19 20 21 22 23 24 No School | 29 30 25 26 27 28 29 30 | December 2026 May 2027 | S M T W Th F S S M T W Th F S | 1 2 3 4 5 2 Advent Services Begin 1 | 6 7 8 9 10 11 12 3:30p,7:15p 2 3 4 5 6 7 8 18 Last day - LL 2 Day | 13 14 15 16 17 18 19 18 End of 2nd Quarter (42 days) 9 10 11 12 13 14 15 19 Last day - LL 3 Day & 5 Day | 20 21 22 23 24 25 26 21-31 Christmas Break 16 17 18 19 20 21 22 20 Records Day - No School | 27 28 29 30 31 No School 23 24 25 26 27 28 29 21 Last Day of School K-8 (41 days"
+      "status": "live",
+      "count": 36,
+      "unit": "events"
     },
     {
       "id": "countryside-calendar",
@@ -2963,6 +2963,19 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28733"
     },
     {
+      "id": "stjohn-activity-1e7gfiqjb9fm3ifn3b4nn5mkeh",
+      "title": "CC Meet - St. John's Lombard",
+      "date": "2026-08-29",
+      "schools": [
+        "stjohn"
+      ],
+      "scope": "school",
+      "category": "general",
+      "source": "St. John Lutheran Activity Calendar",
+      "sourceUrl": "https://stjohnls.com/calendar/activity-calendar",
+      "allDay": true
+    },
+    {
       "id": "library-champaign-15179187",
       "title": "Saturday Storytime",
       "date": "2026-08-29",
@@ -3213,6 +3226,20 @@
       "end": "18:00"
     },
     {
+      "id": "stjohn-activity-2iajno4k8808qjrn8ebb4c5as6_20260831T223000Z",
+      "title": "Cross Country Practice",
+      "date": "2026-08-31",
+      "start": "17:30",
+      "schools": [
+        "stjohn"
+      ],
+      "scope": "school",
+      "category": "general",
+      "source": "St. John Lutheran Activity Calendar",
+      "sourceUrl": "https://stjohnls.com/calendar/activity-calendar",
+      "end": "18:30"
+    },
+    {
       "id": "uhs-snap-bfb2042a95886b4f03",
       "title": "TIME TBD- Girls Flag Football-V Girls @ University (Normal) HS (Game)",
       "date": "2026-08-31",
@@ -3253,6 +3280,19 @@
       "sourceUrl": "https://www.champaignschools.org/",
       "allDay": true,
       "location": "Westview Elementary"
+    },
+    {
+      "id": "stjohn-activity-2metfnofj3e5fomoj72dfdnm8n_20260901",
+      "title": "Ram Rebate Orders Due",
+      "date": "2026-09-01",
+      "schools": [
+        "stjohn"
+      ],
+      "scope": "school",
+      "category": "general",
+      "source": "St. John Lutheran Activity Calendar",
+      "sourceUrl": "https://stjohnls.com/calendar/activity-calendar",
+      "allDay": true
     },
     {
       "id": "uni-us-history-exam-0901",
@@ -3373,6 +3413,19 @@
       "sourceUrl": "https://www.champaignschools.org/",
       "start": "13:00",
       "end": "18:00"
+    },
+    {
+      "id": "stjohn-activity-0skhcsncbpdlv5dmerspnk54qq",
+      "title": "Early Release",
+      "date": "2026-09-01",
+      "start": "14:15",
+      "schools": [
+        "stjohn"
+      ],
+      "scope": "school",
+      "category": "general",
+      "source": "St. John Lutheran Activity Calendar",
+      "sourceUrl": "https://stjohnls.com/calendar/activity-calendar"
     },
     {
       "id": "library-champaign-15178974",
@@ -3641,6 +3694,20 @@
       "location": "Champaign Central High School"
     },
     {
+      "id": "stjohn-activity-483kjjjuimlkmsrmj9qeek9rbe_20260901T223000Z",
+      "title": "Cross Country Practice",
+      "date": "2026-09-01",
+      "start": "17:30",
+      "schools": [
+        "stjohn"
+      ],
+      "scope": "school",
+      "category": "general",
+      "source": "St. John Lutheran Activity Calendar",
+      "sourceUrl": "https://stjohnls.com/calendar/activity-calendar",
+      "end": "18:30"
+    },
+    {
       "id": "yrm-curriculum-night",
       "title": "Curriculum Night",
       "date": "2026-09-01",
@@ -3711,6 +3778,20 @@
       "start": "18:00",
       "end": "19:00",
       "location": "Kenwood Library"
+    },
+    {
+      "id": "stjohn-activity-1qllgk9gla3jgtbjke68ic9bfm_20260901T230000Z",
+      "title": "School Board Meeting",
+      "date": "2026-09-01",
+      "start": "18:00",
+      "schools": [
+        "stjohn"
+      ],
+      "scope": "school",
+      "category": "general",
+      "source": "St. John Lutheran Activity Calendar",
+      "sourceUrl": "https://stjohnls.com/calendar/activity-calendar",
+      "end": "20:00"
     },
     {
       "id": "uhs-snap-500710915ac549ad48",
@@ -4064,7 +4145,7 @@
       "sourceUrl": "https://outlook.cloud.microsoft/calendar/published/716d71edc9b44180a45a0f2c89b424aa@illinois.edu/f3ee9274fae0467cbe9e6a3f74a98c8716194273186825433743/calendar.html"
     },
     {
-      "id": "u4-stm-cbabf82e870e732ea8",
+      "id": "u4-stm-e0c53d374a3df42eed",
       "title": "Green Bell 1",
       "date": "2026-09-03",
       "schools": [
@@ -4240,7 +4321,7 @@
       "end": "17:00"
     },
     {
-      "id": "u4-ipa-d431c35b0e502b1b0e",
+      "id": "u4-ipa-7fd3f5875d14726906",
       "title": "Girls Basketball Open Gym",
       "date": "2026-09-03",
       "schools": [
@@ -4328,7 +4409,7 @@
       "end": "17:15"
     },
     {
-      "id": "u4-jefferson-861cbd98a70f01a81a",
+      "id": "u4-jefferson-87a5cf0171e1595f2f",
       "title": "BASEBALL @ Edison",
       "date": "2026-09-03",
       "schools": [
@@ -4458,6 +4539,20 @@
       "sourceUrl": "https://yridge.usd116.org/index.php?articleID=84457392&pageID=smartSiteFeed&psqFeed=true"
     },
     {
+      "id": "stjohn-activity-0eh4rg9085jmh4i3s2iksk30sq_20260903T223000Z",
+      "title": "Cross Country Practice",
+      "date": "2026-09-03",
+      "start": "17:30",
+      "schools": [
+        "stjohn"
+      ],
+      "scope": "school",
+      "category": "general",
+      "source": "St. John Lutheran Activity Calendar",
+      "sourceUrl": "https://stjohnls.com/calendar/activity-calendar",
+      "end": "18:30"
+    },
+    {
       "id": "uhs-snap-11412dba41c61e0ee4",
       "title": "TIME TBD- VOLLEYBALL-JV Girls - VS Rantoul HS (Game)",
       "date": "2026-09-03",
@@ -4576,7 +4671,7 @@
       "sourceUrl": "https://outlook.cloud.microsoft/calendar/published/716d71edc9b44180a45a0f2c89b424aa@illinois.edu/f3ee9274fae0467cbe9e6a3f74a98c8716194273186825433743/calendar.html"
     },
     {
-      "id": "u4-stm-8c7b714123b8f6c949",
+      "id": "u4-stm-3d7c9c31ea41959ecd",
       "title": "Gold Bell 1",
       "date": "2026-09-04",
       "schools": [
@@ -4617,7 +4712,7 @@
       "sourceUrl": "https://outlook.cloud.microsoft/calendar/published/716d71edc9b44180a45a0f2c89b424aa@illinois.edu/f3ee9274fae0467cbe9e6a3f74a98c8716194273186825433743/calendar.html"
     },
     {
-      "id": "u4-busey-9c2e689c8f85f8dd4e",
+      "id": "u4-busey-d982d1edd39081c4b0",
       "title": "University/College Color or Shirt Day",
       "date": "2026-09-04",
       "schools": [
@@ -4630,7 +4725,7 @@
       "allDay": true
     },
     {
-      "id": "u4-jefferson-4c81a9179d588eac01",
+      "id": "u4-jefferson-799f0a78d19709c8a9",
       "title": "Mentor Reconnection",
       "date": "2026-09-04",
       "schools": [
@@ -4691,7 +4786,7 @@
       "location": "Urbana High School"
     },
     {
-      "id": "u4-central-0bc8e68de34284b38b",
+      "id": "u4-central-00a1bf9054c8ee5fcc",
       "title": "Boys Soccer @ Urbana",
       "date": "2026-09-04",
       "schools": [
@@ -4717,6 +4812,20 @@
       "category": "sport",
       "source": "NFHS Network",
       "sourceUrl": "https://www.nfhsnetwork.com/schools/urbana-high-school-urbana-il/soccer"
+    },
+    {
+      "id": "stjohn-activity-38omoven26cdv9hs8kdmid788b",
+      "title": "CC Meet - Cow Chip Classic",
+      "date": "2026-09-04",
+      "start": "16:00",
+      "schools": [
+        "stjohn"
+      ],
+      "scope": "school",
+      "category": "general",
+      "source": "St. John Lutheran Activity Calendar",
+      "sourceUrl": "https://stjohnls.com/calendar/activity-calendar",
+      "end": "18:00"
     },
     {
       "id": "u4-franklin-98351f46-3",
@@ -4911,7 +5020,7 @@
       "location": "Urbana High School"
     },
     {
-      "id": "u4-central-67df6399c95737df74",
+      "id": "u4-central-4a7f782b0dca1b3002",
       "title": "Boys Soccer @ Urbana",
       "date": "2026-09-05",
       "schools": [
@@ -5059,7 +5168,7 @@
       "location": "Away - EDISON MIDDLE SCHOOL"
     },
     {
-      "id": "u4-franklin-4ab3b5d56231872dc1",
+      "id": "u4-franklin-15398385e8f41b889e",
       "title": "Knights BB-MS Boys @ Edison Middle School (Game)",
       "date": "2026-09-05",
       "schools": [
@@ -5090,7 +5199,7 @@
       "location": "Away - EDISON MIDDLE SCHOOL"
     },
     {
-      "id": "u4-franklin-d8e03b91c7feab7f2b",
+      "id": "u4-franklin-32a9d0262f0e4e93f7",
       "title": "Knights SB-MS Girls @ Edison Middle School (Game)",
       "date": "2026-09-05",
       "schools": [
@@ -5209,7 +5318,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28409"
     },
     {
-      "id": "u4-stm-0f80cc853311192c61",
+      "id": "u4-stm-91703b053d9e06fbc7",
       "title": "Homecoming Week",
       "date": "2026-09-06",
       "schools": [
@@ -5224,7 +5333,20 @@
       "weekdaysOnly": false
     },
     {
-      "id": "u4-stm-3311ad33cc3ded65e3",
+      "id": "stjohn-activity-38vij8if5okeb2q5v7ejt56daf",
+      "title": "Labor Day",
+      "date": "2026-09-07",
+      "schools": [
+        "stjohn"
+      ],
+      "scope": "school",
+      "category": "general",
+      "source": "St. John Lutheran Activity Calendar",
+      "sourceUrl": "https://stjohnls.com/calendar/activity-calendar",
+      "allDay": true
+    },
+    {
+      "id": "u4-stm-af35a376b84149c504",
       "title": "Labor Day - No School",
       "date": "2026-09-07",
       "schools": [
@@ -5237,7 +5359,7 @@
       "allDay": true
     },
     {
-      "id": "u4-district-eb3e0c880fe219d69a",
+      "id": "u4-district-3fa24c4d0eb4cf9d02",
       "title": "Labor Day - No School",
       "date": "2026-09-07",
       "schools": [
@@ -5338,7 +5460,7 @@
       "allDay": true
     },
     {
-      "id": "u4-howard-b4259e7fad405fa808",
+      "id": "u4-howard-3f1b89d23a7af21ec8",
       "title": "Labor Day-No Student Attendance",
       "date": "2026-09-07",
       "schools": [
@@ -5348,6 +5470,19 @@
       "category": "general",
       "source": "Unit 4 School Calendar — Dr. Howard Elementary",
       "sourceUrl": "https://www.champaignschools.org/o/drhoward/events",
+      "allDay": true
+    },
+    {
+      "id": "stjohn-activity-7hehn7i82th3t547e01r2q1rrq",
+      "title": "No School - Labor Day",
+      "date": "2026-09-07",
+      "schools": [
+        "stjohn"
+      ],
+      "scope": "school",
+      "category": "general",
+      "source": "St. John Lutheran Activity Calendar",
+      "sourceUrl": "https://stjohnls.com/calendar/activity-calendar",
       "allDay": true
     },
     {
@@ -5364,7 +5499,7 @@
       "allDay": true
     },
     {
-      "id": "u4-bottenfield-04a1879dc80f264822",
+      "id": "u4-bottenfield-ca0e1b6b7f5e6667ea",
       "title": "No School- Labor Day",
       "date": "2026-09-07",
       "schools": [
@@ -5377,7 +5512,7 @@
       "allDay": true
     },
     {
-      "id": "u4-franklin-16da88fe8629468751",
+      "id": "u4-franklin-88d41c455cf95d65d0",
       "title": "No School- Labor Day",
       "date": "2026-09-07",
       "schools": [
@@ -5390,7 +5525,7 @@
       "allDay": true
     },
     {
-      "id": "u4-cecc-d400b7e77a28fecde5",
+      "id": "u4-cecc-ce49bc828c79531299",
       "title": "No School: Labor Day",
       "date": "2026-09-07",
       "schools": [
@@ -5403,7 +5538,7 @@
       "allDay": true
     },
     {
-      "id": "u4-kenwood-8bb579f9fbf7af7828",
+      "id": "u4-kenwood-4376c36774995168c7",
       "title": "LABOR DAY/UNIT 4 CLOSED",
       "date": "2026-09-07",
       "schools": [
@@ -5521,7 +5656,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28692"
     },
     {
-      "id": "u4-stm-6b66bf7e2362c10b59",
+      "id": "u4-stm-291ef247f00ab7c866",
       "title": "Green Bell 2 - Hallway Decorating",
       "date": "2026-09-08",
       "schools": [
@@ -5534,7 +5669,21 @@
       "allDay": true
     },
     {
-      "id": "u4-jefferson-b7960bbcd7e34b58e9",
+      "id": "stjohn-activity-7r318n2ga1r11f3lj3du8s6qm5",
+      "title": "St John Lutheran School Vision and Hearing Screenings",
+      "date": "2026-09-08",
+      "start": "09:00",
+      "schools": [
+        "stjohn"
+      ],
+      "scope": "school",
+      "category": "general",
+      "source": "St. John Lutheran Activity Calendar",
+      "sourceUrl": "https://stjohnls.com/calendar/activity-calendar",
+      "end": "11:00"
+    },
+    {
+      "id": "u4-jefferson-df3a7c36a3659374d5",
       "title": "Fire Drill",
       "date": "2026-09-08",
       "schools": [
@@ -5608,7 +5757,7 @@
       "end": "11:45"
     },
     {
-      "id": "u4-robeson-b4fd78dafd23959336",
+      "id": "u4-robeson-b4456eb2db19551fa0",
       "title": "Fire Drill #1",
       "date": "2026-09-08",
       "schools": [
@@ -5842,6 +5991,20 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28440"
     },
     {
+      "id": "stjohn-activity-483kjjjuimlkmsrmj9qeek9rbe_20260908T223000Z",
+      "title": "Cross Country Practice",
+      "date": "2026-09-08",
+      "start": "17:30",
+      "schools": [
+        "stjohn"
+      ],
+      "scope": "school",
+      "category": "general",
+      "source": "St. John Lutheran Activity Calendar",
+      "sourceUrl": "https://stjohnls.com/calendar/activity-calendar",
+      "end": "18:30"
+    },
+    {
       "id": "uhs-snap-411a614f898884a511",
       "title": "TIME TBD- SOCCER-JV Boys @ University (Urbana) HS (Game)",
       "date": "2026-09-08",
@@ -5930,7 +6093,7 @@
       "allDay": true
     },
     {
-      "id": "u4-busey-085cfc7bb0b8d01ad2",
+      "id": "u4-busey-922b0b9a68bd838273",
       "title": "CB Bobcat Spirit Day",
       "date": "2026-09-09",
       "schools": [
@@ -5943,7 +6106,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-a372b5ed8ede88108f",
+      "id": "u4-stm-466aa1ef29e1d61905",
       "title": "Gold Bell 1",
       "date": "2026-09-09",
       "schools": [
@@ -5954,6 +6117,20 @@
       "source": "Saint Thomas More Calendar",
       "sourceUrl": "https://www.hs-stm.org/events",
       "allDay": true
+    },
+    {
+      "id": "stjohn-activity-1v10bm3m5df6c37cr52ae0a05a",
+      "title": "St John Lutheran School Vision and Hearing Screenings",
+      "date": "2026-09-09",
+      "start": "09:00",
+      "schools": [
+        "stjohn"
+      ],
+      "scope": "school",
+      "category": "general",
+      "source": "St. John Lutheran Activity Calendar",
+      "sourceUrl": "https://stjohnls.com/calendar/activity-calendar",
+      "end": "11:00"
     },
     {
       "id": "library-champaign-16690760",
@@ -5971,7 +6148,7 @@
       "end": "10:00"
     },
     {
-      "id": "u4-stm-bc1b26193b5e11616a",
+      "id": "u4-stm-cf1a364df2f4da503d",
       "title": "Class Ring Orders and Graduation Orders",
       "date": "2026-09-09",
       "schools": [
@@ -6031,7 +6208,7 @@
       "location": "Away - JEFFERSON MIDDLE SCHOOL"
     },
     {
-      "id": "u4-franklin-10567eb4e945549a83",
+      "id": "u4-franklin-e99c94fb9764001876",
       "title": "Cross Country-MS @ Jefferson Middle School (Game)",
       "date": "2026-09-09",
       "schools": [
@@ -6281,7 +6458,7 @@
       "location": "Jefferson Middle School"
     },
     {
-      "id": "u4-stm-1226cbb32c026ead37",
+      "id": "u4-stm-f10203e5b4c86b34e3",
       "title": "Parent Association Meeting",
       "date": "2026-09-09",
       "schools": [
@@ -6322,7 +6499,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-db28f1fd991ab6b0d3",
+      "id": "u4-stm-5ba1c2c3005fe18048",
       "title": "Green Bell 1",
       "date": "2026-09-10",
       "schools": [
@@ -6349,7 +6526,7 @@
       "location": "in the MPR"
     },
     {
-      "id": "u4-westview-69f24f9c13cb882f0e",
+      "id": "u4-westview-35342c1af9418a0505",
       "title": "Bus Evacuation Drills",
       "date": "2026-09-10",
       "schools": [
@@ -6455,7 +6632,7 @@
       "end": "17:00"
     },
     {
-      "id": "u4-ipa-9ec9d0fdcd1e73b45a",
+      "id": "u4-ipa-ea468d38cff659cf71",
       "title": "Girls Basketball Open Gym",
       "date": "2026-09-10",
       "schools": [
@@ -6484,7 +6661,7 @@
       "end": "18:00"
     },
     {
-      "id": "u4-central-8dd2a8d8ec743f55b0",
+      "id": "u4-central-818fb54ca8e59fbd41",
       "title": "Girls Tennis vs. Centennial",
       "date": "2026-09-10",
       "schools": [
@@ -6658,6 +6835,20 @@
       "end": "21:00"
     },
     {
+      "id": "stjohn-activity-0eh4rg9085jmh4i3s2iksk30sq_20260910T223000Z",
+      "title": "Cross Country Practice",
+      "date": "2026-09-10",
+      "start": "17:30",
+      "schools": [
+        "stjohn"
+      ],
+      "scope": "school",
+      "category": "general",
+      "source": "St. John Lutheran Activity Calendar",
+      "sourceUrl": "https://stjohnls.com/calendar/activity-calendar",
+      "end": "18:30"
+    },
+    {
       "id": "u4-franklin-6b3af702-8",
       "title": "FSA Annual Block Party (Fall Open House)",
       "date": "2026-09-10",
@@ -6747,7 +6938,7 @@
       "sourceUrl": "https://outlook.cloud.microsoft/calendar/published/716d71edc9b44180a45a0f2c89b424aa@illinois.edu/f3ee9274fae0467cbe9e6a3f74a98c8716194273186825433743/calendar.html"
     },
     {
-      "id": "u4-stm-a11e2d771f7462c592",
+      "id": "u4-stm-25ea4e7766b3ff17f1",
       "title": "Gold Bell 2 - Homecoming Assembly",
       "date": "2026-09-11",
       "schools": [
@@ -6774,7 +6965,7 @@
       "sourceUrl": "https://outlook.cloud.microsoft/calendar/published/716d71edc9b44180a45a0f2c89b424aa@illinois.edu/f3ee9274fae0467cbe9e6a3f74a98c8716194273186825433743/calendar.html"
     },
     {
-      "id": "u4-busey-56a86f8bb483135d5a",
+      "id": "u4-busey-b5b1838574591985ee",
       "title": "University/College Color or Shirt Day",
       "date": "2026-09-11",
       "schools": [
@@ -6802,7 +6993,7 @@
       "sourceUrl": "https://schools.snap.app/Uni/event/4755"
     },
     {
-      "id": "u4-jefferson-58133c39f4d92b9cef",
+      "id": "u4-jefferson-65948ef530a9ab299b",
       "title": "Mentor Reconnection",
       "date": "2026-09-11",
       "schools": [
@@ -6891,7 +7082,7 @@
       "end": "17:00"
     },
     {
-      "id": "u4-ipa-9297debd964f46a8da",
+      "id": "u4-ipa-dab954c9aef742d267",
       "title": "XC - Chrisman Cow Chip",
       "date": "2026-09-11",
       "schools": [
@@ -6919,7 +7110,7 @@
       "end": "20:00"
     },
     {
-      "id": "u4-stm-eee4a990fe37c82cf2",
+      "id": "u4-stm-8edc4358e9b45eb713",
       "title": "Middle School Tailgate",
       "date": "2026-09-11",
       "schools": [
@@ -6978,7 +7169,7 @@
       "sourceUrl": "https://schools.snap.app/Uni/event/4598"
     },
     {
-      "id": "u4-stm-2340012d7572a59a95",
+      "id": "u4-stm-2da6aace4081dd9f88",
       "title": "Alumni Event",
       "date": "2026-09-11",
       "schools": [
@@ -7038,7 +7229,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28731"
     },
     {
-      "id": "u4-central-4a234158107a33826d",
+      "id": "u4-central-f7116a5d9f7b08d2a5",
       "title": "Varsity Football @ Urbana",
       "date": "2026-09-11",
       "schools": [
@@ -7066,7 +7257,7 @@
       "location": "Champaign Central High School"
     },
     {
-      "id": "u4-centennial-0ecf32cbe8c644d655",
+      "id": "u4-centennial-611659062d0e19f775",
       "title": "Marching Band Practice",
       "date": "2026-09-12",
       "schools": [
@@ -7435,7 +7626,7 @@
       "end": "17:00"
     },
     {
-      "id": "u4-stm-e60f8bc759289c5f4c",
+      "id": "u4-stm-3e09c207d8f0b5ba70",
       "title": "Homecoming Dance",
       "date": "2026-09-12",
       "schools": [
@@ -7449,7 +7640,7 @@
       "end": "21:30"
     },
     {
-      "id": "u4-stm-1dc8bf07277d334d99",
+      "id": "u4-stm-2eed4c596c52dcd03f",
       "title": "Scout Rocket Launch",
       "date": "2026-09-13",
       "schools": [
@@ -7506,6 +7697,19 @@
       "end": "20:00"
     },
     {
+      "id": "stjohn-activity-3s3bbuioo7d1mglgdgvlgq46h3_20260914",
+      "title": "E.A.T Night - details TBD",
+      "date": "2026-09-14",
+      "schools": [
+        "stjohn"
+      ],
+      "scope": "school",
+      "category": "general",
+      "source": "St. John Lutheran Activity Calendar",
+      "sourceUrl": "https://stjohnls.com/calendar/activity-calendar",
+      "allDay": true
+    },
+    {
       "id": "u4-centennial-5189fbfb-2",
       "title": "Fall Picture Day!",
       "date": "2026-09-14",
@@ -7521,7 +7725,7 @@
       "detail": "1st Picture Day \nSeptember 14, 2026 (MON)\nStart time: 745AM-3PM\nNorth Gym"
     },
     {
-      "id": "u4-stm-23eaeac36a163ed590",
+      "id": "u4-stm-b24d19ae84e9ac3382",
       "title": "Maroon Day",
       "date": "2026-09-14",
       "schools": [
@@ -7548,7 +7752,7 @@
       "sourceUrl": "https://outlook.cloud.microsoft/calendar/published/716d71edc9b44180a45a0f2c89b424aa@illinois.edu/f3ee9274fae0467cbe9e6a3f74a98c8716194273186825433743/calendar.html"
     },
     {
-      "id": "u4-stm-f97e2a39ad7582ce8f",
+      "id": "u4-stm-393bf4850532426c15",
       "title": "Senior Retreat",
       "date": "2026-09-14",
       "schools": [
@@ -7591,7 +7795,7 @@
       "end": "18:00"
     },
     {
-      "id": "u4-central-4933271bef812e1dcc",
+      "id": "u4-central-d43877f9219d2dc7b3",
       "title": "Boys Golf @ Centennial",
       "date": "2026-09-14",
       "schools": [
@@ -7620,7 +7824,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28400"
     },
     {
-      "id": "u4-garden-ba6249c99f5ed19e84",
+      "id": "u4-garden-d06f980c583ae9a49f",
       "title": "Faculty Meeting",
       "date": "2026-09-14",
       "schools": [
@@ -7634,7 +7838,7 @@
       "end": "15:45"
     },
     {
-      "id": "u4-jefferson-567e5dde1374e7fd97",
+      "id": "u4-jefferson-d821e33186f1ed7bae",
       "title": "Faculty Meeting",
       "date": "2026-09-14",
       "schools": [
@@ -7708,7 +7912,7 @@
       "end": "18:00"
     },
     {
-      "id": "u4-central-c9bedf26f9aca293ab",
+      "id": "u4-central-8b09e9d39056e50c19",
       "title": "Girls Golf vs. Centennial & Mt. Zion",
       "date": "2026-09-14",
       "schools": [
@@ -7780,7 +7984,7 @@
       "sourceUrl": "https://schools.snap.app/Uni/event/4761"
     },
     {
-      "id": "u4-district-ac3f8957a94fe01a7c",
+      "id": "u4-district-075c375ff40124eb60",
       "title": "Board of Education Regular Meeting",
       "date": "2026-09-14",
       "schools": [
@@ -7810,6 +8014,20 @@
       "start": "17:30",
       "end": "20:30",
       "location": "Champaign Unit 4 - Center for Family and Community Engagement at the Mellon Building, 703 S New St, Champaign, IL 61820, USA"
+    },
+    {
+      "id": "stjohn-activity-2iajno4k8808qjrn8ebb4c5as6_20260914T223000Z",
+      "title": "Cross Country Practice",
+      "date": "2026-09-14",
+      "start": "17:30",
+      "schools": [
+        "stjohn"
+      ],
+      "scope": "school",
+      "category": "general",
+      "source": "St. John Lutheran Activity Calendar",
+      "sourceUrl": "https://stjohnls.com/calendar/activity-calendar",
+      "end": "18:30"
     },
     {
       "id": "library-urbana-16484163",
@@ -7843,7 +8061,7 @@
       "sourceUrl": "https://schools.snap.app/Uni/event/4766"
     },
     {
-      "id": "u4-stm-5ce0b148400d8f284d",
+      "id": "u4-stm-3025f1b54fe76a8ed6",
       "title": "Green Bell 1",
       "date": "2026-09-15",
       "schools": [
@@ -7885,7 +8103,7 @@
       "location": "Westview Elementary"
     },
     {
-      "id": "u4-robeson-604f8dad48e6db149e",
+      "id": "u4-robeson-52c07ad61dfd0cdad1",
       "title": "Bus Evacuation Drill",
       "date": "2026-09-15",
       "schools": [
@@ -8092,7 +8310,7 @@
       "end": "18:30"
     },
     {
-      "id": "u4-central-5aa4acd8a640e43122",
+      "id": "u4-central-b2eef02c2df9817045",
       "title": "Girls Swim and Dive vs. Urbana",
       "date": "2026-09-15",
       "schools": [
@@ -8195,6 +8413,20 @@
       "location": "Champaign Central High School"
     },
     {
+      "id": "stjohn-activity-483kjjjuimlkmsrmj9qeek9rbe_20260915T223000Z",
+      "title": "Cross Country Practice",
+      "date": "2026-09-15",
+      "start": "17:30",
+      "schools": [
+        "stjohn"
+      ],
+      "scope": "school",
+      "category": "general",
+      "source": "St. John Lutheran Activity Calendar",
+      "sourceUrl": "https://stjohnls.com/calendar/activity-calendar",
+      "end": "18:30"
+    },
+    {
       "id": "uhs-snap-390145a209a2b74d95",
       "title": "TIME TBD- SOCCER-V Boys @ Normal West HS (Game)",
       "date": "2026-09-15",
@@ -8255,7 +8487,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28761"
     },
     {
-      "id": "u4-busey-ded3a801cc1237ec85",
+      "id": "u4-busey-40361aac913cc9bef4",
       "title": "CB Bobcat Spirit Day",
       "date": "2026-09-16",
       "schools": [
@@ -8268,7 +8500,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-31f457fd4644c41b93",
+      "id": "u4-stm-469bfc1118606fe4f7",
       "title": "Gold Bell 1",
       "date": "2026-09-16",
       "schools": [
@@ -8281,7 +8513,7 @@
       "allDay": true
     },
     {
-      "id": "u4-jefferson-a989e71d1186dae19a",
+      "id": "u4-jefferson-f748b150287fab890c",
       "title": "Lockdown Drill",
       "date": "2026-09-16",
       "schools": [
@@ -8310,7 +8542,7 @@
       "end": "10:00"
     },
     {
-      "id": "u4-stm-ec4568605f018a4475",
+      "id": "u4-stm-3ec5ea2d6df02299e3",
       "title": "Class Ring and Graduation Announcement Orders Due",
       "date": "2026-09-16",
       "schools": [
@@ -8324,7 +8556,7 @@
       "end": "10:30"
     },
     {
-      "id": "u4-ipa-e5fbe144f37ceda559",
+      "id": "u4-ipa-b9cec30416003eff0e",
       "title": "Boys BB Open Gym",
       "date": "2026-09-16",
       "schools": [
@@ -8555,7 +8787,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-24905330d535b7cfff",
+      "id": "u4-stm-2b57f485cfb944ce04",
       "title": "Green Bell 1",
       "date": "2026-09-17",
       "schools": [
@@ -8821,6 +9053,20 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28615"
     },
     {
+      "id": "stjohn-activity-0eh4rg9085jmh4i3s2iksk30sq_20260917T223000Z",
+      "title": "Cross Country Practice",
+      "date": "2026-09-17",
+      "start": "17:30",
+      "schools": [
+        "stjohn"
+      ],
+      "scope": "school",
+      "category": "general",
+      "source": "St. John Lutheran Activity Calendar",
+      "sourceUrl": "https://stjohnls.com/calendar/activity-calendar",
+      "end": "18:30"
+    },
+    {
       "id": "stmatthew-855dd44055652eac5b",
       "title": "5/6 GB @ St. Joseph",
       "date": "2026-09-17",
@@ -8923,7 +9169,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-095af2fa0a837372a1",
+      "id": "u4-stm-f63a5a62239a2b49d4",
       "title": "Gold Bell 1",
       "date": "2026-09-18",
       "schools": [
@@ -8949,7 +9195,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-39a76224c433130b13",
+      "id": "u4-stm-12448c7e49844f1547",
       "title": "STM Golf Outing",
       "date": "2026-09-18",
       "schools": [
@@ -8962,7 +9208,7 @@
       "allDay": true
     },
     {
-      "id": "u4-busey-51612522b05fd1a4e9",
+      "id": "u4-busey-f7cfa5c8dae4c6b5d6",
       "title": "University/College Color or Shirt Day",
       "date": "2026-09-18",
       "schools": [
@@ -9063,6 +9309,20 @@
       "end": "16:30"
     },
     {
+      "id": "stjohn-activity-3i20e6uvdfbgfmokqnq19qdcog",
+      "title": "CC Meet - Urbana, IL",
+      "date": "2026-09-18",
+      "start": "16:00",
+      "schools": [
+        "stjohn"
+      ],
+      "scope": "school",
+      "category": "general",
+      "source": "St. John Lutheran Activity Calendar",
+      "sourceUrl": "https://stjohnls.com/calendar/activity-calendar",
+      "end": "18:00"
+    },
+    {
       "id": "u4-franklin-0b04e1ef-6",
       "title": "Cross Country-MS - VS Urbana Middle School (Game)",
       "date": "2026-09-18",
@@ -9079,7 +9339,7 @@
       "location": "HOME -"
     },
     {
-      "id": "u4-franklin-5819f955c0633261ef",
+      "id": "u4-franklin-bf14f591f140725532",
       "title": "Cross Country-MS - VS Urbana Middle School (Game)",
       "date": "2026-09-18",
       "schools": [
@@ -9110,7 +9370,7 @@
       "location": "Prairie/Weaver Park, Urbana, IL"
     },
     {
-      "id": "u4-ipa-68854357e6e4d14d3c",
+      "id": "u4-ipa-dcf5ebfe17ab92da33",
       "title": "XC - Urbana Meet",
       "date": "2026-09-18",
       "schools": [
@@ -9139,7 +9399,7 @@
       "end": "17:00"
     },
     {
-      "id": "u4-jefferson-27ab34886b5d8875f8",
+      "id": "u4-jefferson-6f1daa7454b20d44f3",
       "title": "XC @ Urbana",
       "date": "2026-09-18",
       "schools": [
@@ -9225,7 +9485,7 @@
       "location": "Champaign Central High School"
     },
     {
-      "id": "u4-centennial-ca65a4919e2c28b532",
+      "id": "u4-centennial-137d4b96107fd2bac2",
       "title": "Marching Band Practice/Away Competition",
       "date": "2026-09-19",
       "schools": [
@@ -9326,7 +9586,7 @@
       "end": "14:00"
     },
     {
-      "id": "u4-central-a5d3245a4c63a47c3a",
+      "id": "u4-central-d40903dc56aca92fb3",
       "title": "Girls Swim and Dive @ Centennial",
       "date": "2026-09-19",
       "schools": [
@@ -9416,7 +9676,7 @@
       "location": "Centennial High School"
     },
     {
-      "id": "u4-central-fc9af418380cbce1e9",
+      "id": "u4-central-4355ced2e7c79a3c81",
       "title": "Flag football @ Centennial",
       "date": "2026-09-19",
       "schools": [
@@ -9492,7 +9752,7 @@
       "end": "11:30"
     },
     {
-      "id": "u4-stm-b0a72689493abcdcd2",
+      "id": "u4-stm-2b42dbc9380cd36c83",
       "title": "Grandparent's Day Mass",
       "date": "2026-09-20",
       "schools": [
@@ -9506,7 +9766,7 @@
       "end": "11:30"
     },
     {
-      "id": "u4-stm-e6bf0a4cf920cc0d0e",
+      "id": "u4-stm-358c0cc5d154d1243b",
       "title": "Green Bell 1",
       "date": "2026-09-21",
       "schools": [
@@ -9548,7 +9808,7 @@
       "allDay": true
     },
     {
-      "id": "u4-bottenfield-3fddfed2e4e26f2475",
+      "id": "u4-bottenfield-0ce9a9a95da8607d2e",
       "title": "No School for Students- School Improvement Day",
       "date": "2026-09-21",
       "schools": [
@@ -9561,7 +9821,7 @@
       "allDay": true
     },
     {
-      "id": "u4-district-70b41b48bbb29b335f",
+      "id": "u4-district-617c486d7ebcb920d5",
       "title": "SIP Day (No school for students)",
       "date": "2026-09-21",
       "schools": [
@@ -9591,7 +9851,7 @@
       "allDay": true
     },
     {
-      "id": "u4-barkstall-1ea266a30cefe73711",
+      "id": "u4-barkstall-3d8756b559f7366cfb",
       "title": "SIP Day- NO SCHOOL",
       "date": "2026-09-21",
       "schools": [
@@ -9604,7 +9864,7 @@
       "allDay": true
     },
     {
-      "id": "u4-westview-0f86bec08089c6fa8c",
+      "id": "u4-westview-def116283879fa20d3",
       "title": "School Improvement Day - No School",
       "date": "2026-09-21",
       "schools": [
@@ -9617,7 +9877,7 @@
       "allDay": true
     },
     {
-      "id": "u4-kenwood-2775246a258e6423ee",
+      "id": "u4-kenwood-b688f7c74ee8f240cd",
       "title": "School Improvement Day - No School for Students",
       "date": "2026-09-21",
       "schools": [
@@ -9630,7 +9890,7 @@
       "allDay": true
     },
     {
-      "id": "u4-garden-08c4377c8d40c26955",
+      "id": "u4-garden-826e48066e86998425",
       "title": "School Improvement Day - TA's Present",
       "date": "2026-09-21",
       "schools": [
@@ -9672,7 +9932,7 @@
       "sourceUrl": "https://www.champaignschools.org/events"
     },
     {
-      "id": "u4-franklin-816534ab3e5503009e",
+      "id": "u4-franklin-9b359e2b9b4762c198",
       "title": "School Improvement Day- No School for Students",
       "date": "2026-09-21",
       "schools": [
@@ -9685,7 +9945,7 @@
       "allDay": true
     },
     {
-      "id": "u4-howard-e7cc36dfbf8cedebec",
+      "id": "u4-howard-5733c8eaf8d7b2689e",
       "title": "School Improvement Day-No Student Attendance",
       "date": "2026-09-21",
       "schools": [
@@ -9698,7 +9958,7 @@
       "allDay": true
     },
     {
-      "id": "u4-cecc-2b9ce7eed74efc2e5c",
+      "id": "u4-cecc-4571e9b0f0ebbd8b61",
       "title": "Staff SIP No School for Students",
       "date": "2026-09-21",
       "schools": [
@@ -9815,6 +10075,20 @@
       "end": "18:30"
     },
     {
+      "id": "stjohn-activity-2iajno4k8808qjrn8ebb4c5as6_20260921T223000Z",
+      "title": "Cross Country Practice",
+      "date": "2026-09-21",
+      "start": "17:30",
+      "schools": [
+        "stjohn"
+      ],
+      "scope": "school",
+      "category": "general",
+      "source": "St. John Lutheran Activity Calendar",
+      "sourceUrl": "https://stjohnls.com/calendar/activity-calendar",
+      "end": "18:30"
+    },
+    {
       "id": "uni-snap-c3b27c9ac278139842",
       "title": "Volleyball-V Girls - VS Georgetown-Ridge Farm High School (Game)",
       "date": "2026-09-21",
@@ -9830,7 +10104,7 @@
       "sourceUrl": "https://schools.snap.app/Uni/event/4769"
     },
     {
-      "id": "u4-centennial-12e9cb93b68784ac68",
+      "id": "u4-centennial-9c4d38a988b7b69800",
       "title": "Bus Evacuation Drill",
       "date": "2026-09-22",
       "schools": [
@@ -9843,7 +10117,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-7f317bfd9fd60d3f82",
+      "id": "u4-stm-a48908b9ad105091bd",
       "title": "Gold Bell 1",
       "date": "2026-09-22",
       "schools": [
@@ -10080,7 +10354,7 @@
       "location": "Urbana High School"
     },
     {
-      "id": "u4-central-dd13698238ea1c6bb5",
+      "id": "u4-central-2f4e4d2244644bfab5",
       "title": "Boys Soccer @ Urbana",
       "date": "2026-09-22",
       "schools": [
@@ -10109,7 +10383,7 @@
       "end": "18:30"
     },
     {
-      "id": "u4-central-8794c3e6950a0cf856",
+      "id": "u4-central-7ffd8e398dfcc567cd",
       "title": "Girls Swim and Dive @ Centennial",
       "date": "2026-09-22",
       "schools": [
@@ -10213,6 +10487,34 @@
       "location": "Champaign Central High School"
     },
     {
+      "id": "stjohn-activity-483kjjjuimlkmsrmj9qeek9rbe_20260922T223000Z",
+      "title": "Cross Country Practice",
+      "date": "2026-09-22",
+      "start": "17:30",
+      "schools": [
+        "stjohn"
+      ],
+      "scope": "school",
+      "category": "general",
+      "source": "St. John Lutheran Activity Calendar",
+      "sourceUrl": "https://stjohnls.com/calendar/activity-calendar",
+      "end": "18:30"
+    },
+    {
+      "id": "stjohn-activity-7eoic759c7s44p3pu79vdu2trp_20260922T230000Z",
+      "title": "PTF Meeting",
+      "date": "2026-09-22",
+      "start": "18:00",
+      "schools": [
+        "stjohn"
+      ],
+      "scope": "school",
+      "category": "general",
+      "source": "St. John Lutheran Activity Calendar",
+      "sourceUrl": "https://stjohnls.com/calendar/activity-calendar",
+      "end": "19:00"
+    },
+    {
       "id": "uhs-snap-ed6c1cc825eca25a43",
       "title": "TIME TBD- SOCCER-V Boys - VS Champaign Central (Game)",
       "date": "2026-09-22",
@@ -10286,7 +10588,7 @@
       "allDay": true
     },
     {
-      "id": "u4-busey-f2d35255707b41c451",
+      "id": "u4-busey-715b9045d7f67d5a64",
       "title": "CB Bobcat Spirit Day",
       "date": "2026-09-23",
       "schools": [
@@ -10313,7 +10615,7 @@
       "location": "Urbana (TIME TBD)"
     },
     {
-      "id": "u4-stm-8704719216479d3de8",
+      "id": "u4-stm-6de1e0226e74c77d20",
       "title": "Green Bell 1",
       "date": "2026-09-23",
       "schools": [
@@ -10355,7 +10657,7 @@
       "end": "10:00"
     },
     {
-      "id": "u4-ipa-9defab38008801c85b",
+      "id": "u4-ipa-157ff93fb21323fff0",
       "title": "Boys BB Open Gym",
       "date": "2026-09-23",
       "schools": [
@@ -10489,7 +10791,7 @@
       "location": "Champaign Central High School"
     },
     {
-      "id": "u4-stm-fa985ab92a04f831bd",
+      "id": "u4-stm-8c3a8e075013ec28ed",
       "title": "Fulton Sheen Beatification",
       "date": "2026-09-24",
       "schools": [
@@ -10502,7 +10804,20 @@
       "allDay": true
     },
     {
-      "id": "u4-jefferson-91bc7df5f1f2d3fce4",
+      "id": "stjohn-activity-1blgph38k14namveku2s92v8os",
+      "title": "Picture Day (LL 3 Day & K-8th grade) and Fall Athletics",
+      "date": "2026-09-24",
+      "schools": [
+        "stjohn"
+      ],
+      "scope": "school",
+      "category": "general",
+      "source": "St. John Lutheran Activity Calendar",
+      "sourceUrl": "https://stjohnls.com/calendar/activity-calendar",
+      "allDay": true
+    },
+    {
+      "id": "u4-jefferson-34f1acb8a7e6298282",
       "title": "Bus Evacuation Drill",
       "date": "2026-09-24",
       "schools": [
@@ -10562,7 +10877,7 @@
       "end": "11:00"
     },
     {
-      "id": "u4-garden-443009ad3525a7a601",
+      "id": "u4-garden-3de277f546547a1913",
       "title": "Steward Meeting with Admin",
       "date": "2026-09-24",
       "schools": [
@@ -10727,7 +11042,7 @@
       "location": "Urbana High School"
     },
     {
-      "id": "u4-central-bf87e103ab4eb792cf",
+      "id": "u4-central-1570ccfeb2e1803c28",
       "title": "Volleyball @ Urbana * All levels",
       "date": "2026-09-24",
       "schools": [
@@ -10739,6 +11054,20 @@
       "sourceUrl": "https://www.champaignschools.org/o/central/events",
       "start": "17:00",
       "end": "20:00"
+    },
+    {
+      "id": "stjohn-activity-0eh4rg9085jmh4i3s2iksk30sq_20260924T223000Z",
+      "title": "Cross Country Practice",
+      "date": "2026-09-24",
+      "start": "17:30",
+      "schools": [
+        "stjohn"
+      ],
+      "scope": "school",
+      "category": "general",
+      "source": "St. John Lutheran Activity Calendar",
+      "sourceUrl": "https://stjohnls.com/calendar/activity-calendar",
+      "end": "18:30"
     },
     {
       "id": "uhs-snap-8e50f6aad95803f746",
@@ -10830,7 +11159,7 @@
       "location": "Barkstall Elementary"
     },
     {
-      "id": "u4-stm-4295f5f795a007767d",
+      "id": "u4-stm-3af11da69e30ecbb49",
       "title": "Gold Bell 3 Late Start",
       "date": "2026-09-25",
       "schools": [
@@ -10843,7 +11172,7 @@
       "allDay": true
     },
     {
-      "id": "u4-busey-9ad9ae502b2c4a7d8e",
+      "id": "u4-busey-a2c13242503ec80786",
       "title": "University/College Color or Shirt Day",
       "date": "2026-09-25",
       "schools": [
@@ -11032,7 +11361,7 @@
       "end": "18:00"
     },
     {
-      "id": "u4-central-f27bfb521b11f27be3",
+      "id": "u4-central-1514ee0e1547c8bf70",
       "title": "Girls Golf @ Centennial John Macek",
       "date": "2026-09-25",
       "schools": [
@@ -11088,6 +11417,20 @@
       "sourceUrl": "https://www.stmatt.net/school-news/calendar",
       "start": "15:30",
       "end": "16:30"
+    },
+    {
+      "id": "stjohn-activity-7gsde21u2734mu1fvtjcp77ij3",
+      "title": "CC Meet - St. Joseph Invitational",
+      "date": "2026-09-25",
+      "start": "16:00",
+      "schools": [
+        "stjohn"
+      ],
+      "scope": "school",
+      "category": "general",
+      "source": "St. John Lutheran Activity Calendar",
+      "sourceUrl": "https://stjohnls.com/calendar/activity-calendar",
+      "end": "18:00"
     },
     {
       "id": "u4-franklin-b8fbb64d-f",
@@ -11250,7 +11593,7 @@
       "location": "Champaign Central High School"
     },
     {
-      "id": "u4-centennial-24526ba6917b8a83d0",
+      "id": "u4-centennial-f7eda5317947d075ea",
       "title": "Homecoming Dance Decorating",
       "date": "2026-09-26",
       "schools": [
@@ -11294,7 +11637,7 @@
       "end": "12:00"
     },
     {
-      "id": "u4-central-ae82504328db98dffc",
+      "id": "u4-central-fac842138938f46b7f",
       "title": "Girls Tennis @ Centennial",
       "date": "2026-09-26",
       "schools": [
@@ -11592,7 +11935,7 @@
       "location": "at the school - enter at gym entrance"
     },
     {
-      "id": "u4-stm-ff6aded45f83d8c1c0",
+      "id": "u4-stm-4bc9c97ae09f594535",
       "title": "Maroon Day",
       "date": "2026-09-28",
       "schools": [
@@ -11635,7 +11978,7 @@
       "end": "12:00"
     },
     {
-      "id": "u4-jefferson-db43cef23bfabce982",
+      "id": "u4-jefferson-c1f6a53c37df85ca5a",
       "title": "Department Collaboration meeting",
       "date": "2026-09-28",
       "schools": [
@@ -11753,7 +12096,7 @@
       "end": "18:30"
     },
     {
-      "id": "u4-district-a84508eeea33cfbbfe",
+      "id": "u4-district-c1ceca08830f487598",
       "title": "Board of Education Regular Meeting - Study Session",
       "date": "2026-09-28",
       "schools": [
@@ -11785,6 +12128,20 @@
       "location": "Champaign Unit 4 - Center for Family and Community Engagement at the Mellon Building, 703 S New St, Champaign, IL 61820, USA"
     },
     {
+      "id": "stjohn-activity-2iajno4k8808qjrn8ebb4c5as6_20260928T223000Z",
+      "title": "Cross Country Practice",
+      "date": "2026-09-28",
+      "start": "17:30",
+      "schools": [
+        "stjohn"
+      ],
+      "scope": "school",
+      "category": "general",
+      "source": "St. John Lutheran Activity Calendar",
+      "sourceUrl": "https://stjohnls.com/calendar/activity-calendar",
+      "end": "18:30"
+    },
+    {
       "id": "stmatthew-e34068b56086902e62",
       "title": "5/6 GB @ Armstrong",
       "date": "2026-09-28",
@@ -11814,7 +12171,7 @@
       "location": "Band Room"
     },
     {
-      "id": "u4-stm-c356fc06360e78f456",
+      "id": "u4-stm-a4e7b6d1dcc5b7a90e",
       "title": "Green Bell 1",
       "date": "2026-09-29",
       "schools": [
@@ -11824,6 +12181,19 @@
       "category": "general",
       "source": "Saint Thomas More Calendar",
       "sourceUrl": "https://www.hs-stm.org/events",
+      "allDay": true
+    },
+    {
+      "id": "stjohn-activity-7md81gpvt8jbqah6selq6mqqpc",
+      "title": "Picture Day (LL 2 Day & 5 Day)",
+      "date": "2026-09-29",
+      "schools": [
+        "stjohn"
+      ],
+      "scope": "school",
+      "category": "general",
+      "source": "St. John Lutheran Activity Calendar",
+      "sourceUrl": "https://stjohnls.com/calendar/activity-calendar",
       "allDay": true
     },
     {
@@ -11856,7 +12226,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28897"
     },
     {
-      "id": "u4-robeson-b18f386f75f37eb9d1",
+      "id": "u4-robeson-29d687449dd9241448",
       "title": "Evacuation Drill",
       "date": "2026-09-29",
       "schools": [
@@ -11959,7 +12329,7 @@
       "end": "17:30"
     },
     {
-      "id": "u4-centennial-1fc6bccc88fc9d2313",
+      "id": "u4-centennial-d893c239d433433220",
       "title": "Fire Drill (#1)",
       "date": "2026-09-29",
       "schools": [
@@ -11985,6 +12355,20 @@
       "sourceUrl": "https://www.stmatt.net/school-news/calendar",
       "start": "16:00",
       "end": "17:00"
+    },
+    {
+      "id": "stjohn-activity-483kjjjuimlkmsrmj9qeek9rbe_20260929T223000Z",
+      "title": "CC Meet - Eastview",
+      "date": "2026-09-29",
+      "start": "16:00",
+      "schools": [
+        "stjohn"
+      ],
+      "scope": "school",
+      "category": "general",
+      "source": "St. John Lutheran Activity Calendar",
+      "sourceUrl": "https://stjohnls.com/calendar/activity-calendar",
+      "end": "18:00"
     },
     {
       "id": "library-champaign-14561792",
@@ -12138,7 +12522,7 @@
       "location": "Champaign Central High School"
     },
     {
-      "id": "u4-central-cfcfcededafff9c1b4",
+      "id": "u4-central-25bbf3c15e4058000a",
       "title": "Boys Soccer vs. Centennial",
       "date": "2026-09-29",
       "schools": [
@@ -12257,7 +12641,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28790"
     },
     {
-      "id": "u4-busey-cd95eb012a6e40579a",
+      "id": "u4-busey-c4ecd98a571afa5212",
       "title": "CB Bobcat Spirit Day",
       "date": "2026-09-30",
       "schools": [
@@ -12270,7 +12654,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-a4edd58e9115ba2d16",
+      "id": "u4-stm-d2b960f9389ed81b98",
       "title": "Gold Bell 1",
       "date": "2026-09-30",
       "schools": [
@@ -12356,7 +12740,7 @@
       "end": "18:00"
     },
     {
-      "id": "u4-ipa-d7780f7d08af8eed2a",
+      "id": "u4-ipa-ffe46b3e717272843e",
       "title": "Boys BB Open Gym",
       "date": "2026-09-30",
       "schools": [
@@ -12577,7 +12961,7 @@
       "location": "Jefferson Middle School"
     },
     {
-      "id": "u4-garden-a21c63cd9eef1dbe83",
+      "id": "u4-garden-37e8737fffcbf881e5",
       "title": "Fall Picture Day",
       "date": "2026-10-01",
       "schools": [
@@ -12590,7 +12974,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-8112e767cea57addf0",
+      "id": "u4-stm-30517b8e447072d50b",
       "title": "Green Bell 1",
       "date": "2026-10-01",
       "schools": [
@@ -12615,6 +12999,19 @@
       "sourceUrl": "https://www.champaignschools.org/",
       "allDay": true,
       "location": "North Gym"
+    },
+    {
+      "id": "stjohn-activity-2metfnofj3e5fomoj72dfdnm8n_20261001",
+      "title": "Ram Rebate Orders Due",
+      "date": "2026-10-01",
+      "schools": [
+        "stjohn"
+      ],
+      "scope": "school",
+      "category": "general",
+      "source": "St. John Lutheran Activity Calendar",
+      "sourceUrl": "https://stjohnls.com/calendar/activity-calendar",
+      "allDay": true
     },
     {
       "id": "u4-jefferson-0346347a-6",
@@ -12751,6 +13148,20 @@
       "sourceUrl": "https://www.stmatt.net/school-news/calendar",
       "start": "15:45",
       "end": "16:45"
+    },
+    {
+      "id": "stjohn-activity-7n5n16cd7l6vektajgo9oqr72s",
+      "title": "CC Meet - Monticello, IL",
+      "date": "2026-10-01",
+      "start": "16:00",
+      "schools": [
+        "stjohn"
+      ],
+      "scope": "school",
+      "category": "general",
+      "source": "St. John Lutheran Activity Calendar",
+      "sourceUrl": "https://stjohnls.com/calendar/activity-calendar",
+      "end": "18:00"
     },
     {
       "id": "library-champaign-14561793",
@@ -12932,7 +13343,7 @@
       "location": "Away - EDISON MIDDLE SCHOOL"
     },
     {
-      "id": "u4-franklin-6046f39bc763afd504",
+      "id": "u4-franklin-33b21088c467d0c89b",
       "title": "Knights GBB-MS Girls @ Edison Middle School (Game)",
       "date": "2026-10-01",
       "schools": [
@@ -13008,7 +13419,7 @@
       "location": "Centennial High School"
     },
     {
-      "id": "u4-central-1f8c7ec52db8c78058",
+      "id": "u4-central-4ae8b24d3a09876640",
       "title": "Volleyball @ Centennial * all levels HUFF HALL",
       "date": "2026-10-01",
       "schools": [
@@ -13140,7 +13551,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28745"
     },
     {
-      "id": "u4-stm-6a701a812422aa017c",
+      "id": "u4-stm-0aac5fc2b03fd040cb",
       "title": "Gold Bell 1",
       "date": "2026-10-02",
       "schools": [
@@ -13167,7 +13578,7 @@
       "location": "Champaign Central High School"
     },
     {
-      "id": "u4-barkstall-fd6f58b4487b50c7f6",
+      "id": "u4-barkstall-50428f4cf2b7a2db21",
       "title": "National Custodian Day",
       "date": "2026-10-02",
       "schools": [
@@ -13232,7 +13643,7 @@
       "source": "Children’s Center 2026 Calendar"
     },
     {
-      "id": "u4-busey-dffb565abe54a7040b",
+      "id": "u4-busey-83bf15a68c920e64a7",
       "title": "University/College Color or Shirt Day",
       "date": "2026-10-02",
       "schools": [
@@ -13395,7 +13806,7 @@
       "location": "Urbana Middle School"
     },
     {
-      "id": "u4-jefferson-2f1244c8a590ed1cd1",
+      "id": "u4-jefferson-414fd755ac51c60439",
       "title": "GBB Tournament @ Urbana Time TBA",
       "date": "2026-10-03",
       "schools": [
@@ -13422,7 +13833,7 @@
       "location": "Champaign Central High School"
     },
     {
-      "id": "u4-centennial-1460ec06fdeafda1a2",
+      "id": "u4-centennial-a542d26880b996c1db",
       "title": "Marching Band Practice/Away Competition",
       "date": "2026-10-03",
       "schools": [
@@ -13701,7 +14112,7 @@
       "sourceUrl": "https://schools.snap.app/Uni/event/4825"
     },
     {
-      "id": "u4-stm-8741bd8493646ff3dc",
+      "id": "u4-stm-3c06ac1aaffe14b3ae",
       "title": "Academic Award Ceremony After Mass",
       "date": "2026-10-05",
       "schools": [
@@ -13714,7 +14125,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-2e7bb09e22977d2410",
+      "id": "u4-stm-0d67b1d08bab4b51f9",
       "title": "Green Bell 2 All School Mass",
       "date": "2026-10-05",
       "schools": [
@@ -13830,7 +14241,7 @@
       "end": "18:00"
     },
     {
-      "id": "u4-jefferson-cb7e62d1a4c2e1ee0f",
+      "id": "u4-jefferson-26e783a52f1a194f43",
       "title": "Faculty Meeting",
       "date": "2026-10-05",
       "schools": [
@@ -13993,6 +14404,20 @@
       "end": "18:30"
     },
     {
+      "id": "stjohn-activity-2iajno4k8808qjrn8ebb4c5as6_20261005T223000Z",
+      "title": "Cross Country Practice",
+      "date": "2026-10-05",
+      "start": "17:30",
+      "schools": [
+        "stjohn"
+      ],
+      "scope": "school",
+      "category": "general",
+      "source": "St. John Lutheran Activity Calendar",
+      "sourceUrl": "https://stjohnls.com/calendar/activity-calendar",
+      "end": "18:30"
+    },
+    {
       "id": "library-urbana-17218050",
       "title": "Quiet Book Club: Banned Books Week",
       "date": "2026-10-05",
@@ -14024,7 +14449,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28681"
     },
     {
-      "id": "u4-stm-274f54f583a342c583",
+      "id": "u4-stm-0bf968b3de948782b8",
       "title": "ABO (Athletic Booster Organization) Meeting",
       "date": "2026-10-05",
       "schools": [
@@ -14053,7 +14478,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28752"
     },
     {
-      "id": "u4-stm-bdd4e2d2f13072b14a",
+      "id": "u4-stm-8078537d6742f88237",
       "title": "Gold Bell 1",
       "date": "2026-10-06",
       "schools": [
@@ -14216,7 +14641,7 @@
       "end": "18:15"
     },
     {
-      "id": "u4-central-27421f1f0f7bb5f948",
+      "id": "u4-central-a94bfdc23b28320b20",
       "title": "Girls tennis @ Urbana",
       "date": "2026-10-06",
       "schools": [
@@ -14452,6 +14877,34 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28617"
     },
     {
+      "id": "stjohn-activity-483kjjjuimlkmsrmj9qeek9rbe_20261006T223000Z",
+      "title": "Cross Country Practice",
+      "date": "2026-10-06",
+      "start": "17:30",
+      "schools": [
+        "stjohn"
+      ],
+      "scope": "school",
+      "category": "general",
+      "source": "St. John Lutheran Activity Calendar",
+      "sourceUrl": "https://stjohnls.com/calendar/activity-calendar",
+      "end": "18:30"
+    },
+    {
+      "id": "stjohn-activity-1qllgk9gla3jgtbjke68ic9bfm_20261006T230000Z",
+      "title": "School Board Meeting",
+      "date": "2026-10-06",
+      "start": "18:00",
+      "schools": [
+        "stjohn"
+      ],
+      "scope": "school",
+      "category": "general",
+      "source": "St. John Lutheran Activity Calendar",
+      "sourceUrl": "https://stjohnls.com/calendar/activity-calendar",
+      "end": "20:00"
+    },
+    {
       "id": "uhs-snap-033fffa54f4f333d20",
       "title": "TIME TBD- SOCCER-JV Boys - VS Peoria HS (Game)",
       "date": "2026-10-06",
@@ -14542,7 +14995,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28807"
     },
     {
-      "id": "u4-busey-cd4cf244e2a4e74a37",
+      "id": "u4-busey-edf852a598ab8439e1",
       "title": "CB Bobcat Spirit Day",
       "date": "2026-10-07",
       "schools": [
@@ -14611,7 +15064,7 @@
       "location": "Franklin STEAM Academy"
     },
     {
-      "id": "u4-stm-26dbadde19e27419dd",
+      "id": "u4-stm-383b7aa12291ebf184",
       "title": "Green Bell 1",
       "date": "2026-10-07",
       "schools": [
@@ -14742,7 +15195,7 @@
       "end": "18:30"
     },
     {
-      "id": "u4-jefferson-6ad7482ed96f107329",
+      "id": "u4-jefferson-4cf01b063101f6e407",
       "title": "GBB @ Franklin",
       "date": "2026-10-07",
       "schools": [
@@ -14772,7 +15225,7 @@
       "location": "HOME -"
     },
     {
-      "id": "u4-franklin-b7beea365f4d05ae69",
+      "id": "u4-franklin-8bc2d73acdf7558bbb",
       "title": "Knights GBB-MS Girls - VS Jefferson Middle School (Game)",
       "date": "2026-10-07",
       "schools": [
@@ -14952,7 +15405,7 @@
       "location": "Dr. Howard Elementary"
     },
     {
-      "id": "u4-stm-c675b1b5dc4afa482d",
+      "id": "u4-stm-6c60c77b9a30be46d9",
       "title": "Gold Bell 1",
       "date": "2026-10-08",
       "schools": [
@@ -14965,7 +15418,7 @@
       "allDay": true
     },
     {
-      "id": "u4-bottenfield-35afa6a6cb1885536a",
+      "id": "u4-bottenfield-32ac3912c279b313ff",
       "title": "No School for Students- Parent Teacher Conference",
       "date": "2026-10-08",
       "schools": [
@@ -14980,7 +15433,7 @@
       "weekdaysOnly": false
     },
     {
-      "id": "u4-garden-2444cd595620fa8106",
+      "id": "u4-garden-68cf8e8a7b96482328",
       "title": "Parent Teacher Conferences - No School for Students",
       "date": "2026-10-08",
       "schools": [
@@ -15023,7 +15476,7 @@
       "sourceUrl": "https://trinity-urbana.org/wp/wp-content/uploads/2026/02/WD-Calendar-of-Events.26-27.pdf"
     },
     {
-      "id": "u4-barkstall-aba7103e7474b7d63c",
+      "id": "u4-barkstall-878186f6b32045cd71",
       "title": "Parent/Teacher Conferences (No School)",
       "date": "2026-10-08",
       "schools": [
@@ -15065,7 +15518,7 @@
       "sourceUrl": "https://www.champaignschools.org/events"
     },
     {
-      "id": "u4-centennial-592acdde0c9d6d02ec",
+      "id": "u4-centennial-5cc27c7cef30861a36",
       "title": "SIP-NO SCHOOL for Students",
       "date": "2026-10-08",
       "schools": [
@@ -15078,7 +15531,7 @@
       "allDay": true
     },
     {
-      "id": "u4-district-3e0eaebc9c732e7bc2",
+      "id": "u4-district-5c4adca91601f0c27f",
       "title": "SIP/PT Conf (no school for students)",
       "date": "2026-10-08",
       "schools": [
@@ -15108,7 +15561,7 @@
       "allDay": true
     },
     {
-      "id": "u4-robeson-3b50a1cb1913179e95",
+      "id": "u4-robeson-d8990f500f2e6cbac9",
       "title": "SIP/PT Conf (no school for students, TA/SSA)",
       "date": "2026-10-08",
       "schools": [
@@ -15121,7 +15574,7 @@
       "allDay": true
     },
     {
-      "id": "u4-westview-3a6d019e1e875e837a",
+      "id": "u4-westview-7dd91ab0b8ad679427",
       "title": "School Improvement Day - No School",
       "date": "2026-10-08",
       "schools": [
@@ -15380,6 +15833,20 @@
       "end": "18:30"
     },
     {
+      "id": "stjohn-activity-0eh4rg9085jmh4i3s2iksk30sq_20261008T223000Z",
+      "title": "Cross Country Practice",
+      "date": "2026-10-08",
+      "start": "17:30",
+      "schools": [
+        "stjohn"
+      ],
+      "scope": "school",
+      "category": "general",
+      "source": "St. John Lutheran Activity Calendar",
+      "sourceUrl": "https://stjohnls.com/calendar/activity-calendar",
+      "end": "18:30"
+    },
+    {
       "id": "stmatthew-d0a403a740d6c15955",
       "title": "5/6 GB @ PVO",
       "date": "2026-10-08",
@@ -15471,7 +15938,7 @@
       "sourceUrl": "https://092db9f9-c045-47d1-91a6-5339c081a44a.filesusr.com/ugd/a4a196_54ae12c64ebf42859edbcfbddcdc7d43.pdf"
     },
     {
-      "id": "u4-centennial-c7ff0f869829a96dcb",
+      "id": "u4-centennial-5e0e1af88578037491",
       "title": "NO SCHOOL for Students",
       "date": "2026-10-09",
       "schools": [
@@ -15484,7 +15951,20 @@
       "allDay": true
     },
     {
-      "id": "u4-district-3835a3d6b137d20983",
+      "id": "stjohn-activity-64du1nmvg7um8mtkn4qounirdl",
+      "title": "No School - Teacher In-Service",
+      "date": "2026-10-09",
+      "schools": [
+        "stjohn"
+      ],
+      "scope": "school",
+      "category": "general",
+      "source": "St. John Lutheran Activity Calendar",
+      "sourceUrl": "https://stjohnls.com/calendar/activity-calendar",
+      "allDay": true
+    },
+    {
+      "id": "u4-district-aace1945dcf64cb9ae",
       "title": "PT Conf (no school for students)",
       "date": "2026-10-09",
       "schools": [
@@ -15514,7 +15994,7 @@
       "allDay": true
     },
     {
-      "id": "u4-robeson-d03675181fa87e207d",
+      "id": "u4-robeson-bc32783e43ba598754",
       "title": "PT Conf (no school for students, TA/SSA)",
       "date": "2026-10-09",
       "schools": [
@@ -15527,7 +16007,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-6d171c4dbb9ea59481",
+      "id": "u4-stm-9647284a0fce4232ee",
       "title": "Parent Teacher Conferences - No Classes",
       "date": "2026-10-09",
       "schools": [
@@ -15569,7 +16049,7 @@
       "sourceUrl": "https://www.champaignschools.org/events"
     },
     {
-      "id": "u4-barkstall-5e8eade339c34473c4",
+      "id": "u4-barkstall-28fcaf9f937dad764f",
       "title": "Parent/Teacher Conferences (No School)",
       "date": "2026-10-09",
       "schools": [
@@ -15582,7 +16062,7 @@
       "allDay": true
     },
     {
-      "id": "u4-busey-a7813c5622631e6492",
+      "id": "u4-busey-fe6205220874e471a4",
       "title": "University/College Color or Shirt Day",
       "date": "2026-10-09",
       "schools": [
@@ -15640,7 +16120,7 @@
       "location": "Franklin STEAM Academy"
     },
     {
-      "id": "u4-westview-8ca0526e58c6192749",
+      "id": "u4-westview-752077b00a0997d0c1",
       "title": "Family/Teacher Conferences - No School",
       "date": "2026-10-09",
       "schools": [
@@ -15851,7 +16331,20 @@
       "end": "21:00"
     },
     {
-      "id": "u4-centennial-da2927d89d392f97eb",
+      "id": "stjohn-activity-4mn9rc8uv318jll04bdr0gaqvm",
+      "title": "CC Meet - CID",
+      "date": "2026-10-10",
+      "schools": [
+        "stjohn"
+      ],
+      "scope": "school",
+      "category": "general",
+      "source": "St. John Lutheran Activity Calendar",
+      "sourceUrl": "https://stjohnls.com/calendar/activity-calendar",
+      "allDay": true
+    },
+    {
+      "id": "u4-centennial-5c8c109d1f772adeac",
       "title": "Marching Band Practice/Away Competition",
       "date": "2026-10-10",
       "schools": [
@@ -15923,7 +16416,7 @@
       "end": "13:00"
     },
     {
-      "id": "u4-central-9ff8b29ddeee3ae503",
+      "id": "u4-central-9f92273055d3f00a66",
       "title": "Girls Swim and Dive @ Urbana",
       "date": "2026-10-10",
       "schools": [
@@ -16134,7 +16627,7 @@
       "end": "15:45"
     },
     {
-      "id": "u4-centennial-0001ad0b8855aae312",
+      "id": "u4-centennial-84c44437f10af6cdc4",
       "title": "FALL BREAK - NO SCHOOL",
       "date": "2026-10-12",
       "schools": [
@@ -16149,7 +16642,7 @@
       "weekdaysOnly": false
     },
     {
-      "id": "u4-district-e0ce49a483d42773de",
+      "id": "u4-district-96f44cd72717ba8166",
       "title": "Fall Break",
       "date": "2026-10-12",
       "schools": [
@@ -16181,7 +16674,7 @@
       "weekdaysOnly": false
     },
     {
-      "id": "u4-barkstall-9d096471ab09db0a93",
+      "id": "u4-barkstall-cda472073e25821a6c",
       "title": "Fall Break (No School)",
       "date": "2026-10-12",
       "schools": [
@@ -16194,7 +16687,7 @@
       "allDay": true
     },
     {
-      "id": "u4-westview-6c43020bfe6ca92f7d",
+      "id": "u4-westview-c12bd956f6a0595098",
       "title": "Fall Break - No School",
       "date": "2026-10-12",
       "schools": [
@@ -16293,7 +16786,7 @@
       "weekdaysOnly": true
     },
     {
-      "id": "u4-franklin-360c72f7052c77275f",
+      "id": "u4-franklin-4252669621df389702",
       "title": "Fall Break- No School",
       "date": "2026-10-12",
       "schools": [
@@ -16308,7 +16801,7 @@
       "weekdaysOnly": false
     },
     {
-      "id": "u4-howard-16c62468c0c670c095",
+      "id": "u4-howard-59fd86c220e1890388",
       "title": "Fall Break- No Student Attendance",
       "date": "2026-10-12",
       "schools": [
@@ -16323,7 +16816,7 @@
       "weekdaysOnly": false
     },
     {
-      "id": "u4-district-b9db113116252cbbc9",
+      "id": "u4-district-d25d221bafd123e9df",
       "title": "Fall Holiday",
       "date": "2026-10-12",
       "schools": [
@@ -16353,7 +16846,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-b79661889f3f1c0944",
+      "id": "u4-stm-32956bbc6a8b8fbb81",
       "title": "Juniors Only - PSAT/NMSQT Test Day",
       "date": "2026-10-12",
       "schools": [
@@ -16366,7 +16859,7 @@
       "allDay": true
     },
     {
-      "id": "u4-bottenfield-8a04fa9dc17c71e300",
+      "id": "u4-bottenfield-adbc09db412e0100a9",
       "title": "No School - Fall Break",
       "date": "2026-10-12",
       "schools": [
@@ -16456,7 +16949,7 @@
       "end": "18:00"
     },
     {
-      "id": "u4-central-647b64d9499b1b0c6a",
+      "id": "u4-central-95c74389aca6fa9bd8",
       "title": "Girls Tennis @ Centennial",
       "date": "2026-10-12",
       "schools": [
@@ -16542,7 +17035,7 @@
       "end": "19:00"
     },
     {
-      "id": "u4-barkstall-f98e161234194e6439",
+      "id": "u4-barkstall-bd492173aa3b4b81b9",
       "title": "Fall Break (No School)",
       "date": "2026-10-13",
       "schools": [
@@ -16555,7 +17048,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-6c62a0e173baa41db7",
+      "id": "u4-stm-8ddc1ea4375854335d",
       "title": "Green Bell 1",
       "date": "2026-10-13",
       "schools": [
@@ -16790,7 +17283,7 @@
       "end": "19:00"
     },
     {
-      "id": "u4-busey-ecd8cb3fdba0c20bb2",
+      "id": "u4-busey-d10b87fef0830f7474",
       "title": "CB Bobcat Spirit Day",
       "date": "2026-10-14",
       "schools": [
@@ -16803,7 +17296,7 @@
       "allDay": true
     },
     {
-      "id": "u4-barkstall-7535420ab0886c8d98",
+      "id": "u4-barkstall-f914f914bcc7e3fbae",
       "title": "Fall Break (No School)",
       "date": "2026-10-14",
       "schools": [
@@ -16816,7 +17309,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-c0f148c67ed074a722",
+      "id": "u4-stm-722f23270ab4b5dccb",
       "title": "Gold Bell 1",
       "date": "2026-10-14",
       "schools": [
@@ -16903,7 +17396,7 @@
       "end": "18:30"
     },
     {
-      "id": "u4-stm-48230710e79c0a8266",
+      "id": "u4-stm-db198ae8fc43ef7195",
       "title": "STM Preview Nights",
       "date": "2026-10-14",
       "schools": [
@@ -16917,7 +17410,7 @@
       "end": "20:00"
     },
     {
-      "id": "u4-barkstall-052d17a5c41ff57008",
+      "id": "u4-barkstall-33e9038a9ace01757f",
       "title": "Fall Break (No School)",
       "date": "2026-10-15",
       "schools": [
@@ -16930,7 +17423,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-ce6f7a83ec91569d10",
+      "id": "u4-stm-3bd97b315485dcd2f6",
       "title": "Green Bell 1",
       "date": "2026-10-15",
       "schools": [
@@ -17036,7 +17529,7 @@
       "location": "Champaign Central High School"
     },
     {
-      "id": "u4-central-3f3b0f7f8b125c8d43",
+      "id": "u4-central-4c476cd501188695b9",
       "title": "Freshman Football vs. Centennial",
       "date": "2026-10-15",
       "schools": [
@@ -17214,7 +17707,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28804"
     },
     {
-      "id": "u4-barkstall-90b8de1e70f87dc7f0",
+      "id": "u4-barkstall-4279701832bed40dba",
       "title": "Fall Break (No School)",
       "date": "2026-10-16",
       "schools": [
@@ -17227,7 +17720,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-7a8944e64a1b1f4649",
+      "id": "u4-stm-033be8d9356571b2c2",
       "title": "Gold Bell 1",
       "date": "2026-10-16",
       "schools": [
@@ -17252,7 +17745,7 @@
       "source": "CDL 2026–27 Calendar"
     },
     {
-      "id": "u4-busey-3c1019c331186692df",
+      "id": "u4-busey-045f22528e2d543bd4",
       "title": "University/College Color or Shirt Day",
       "date": "2026-10-16",
       "schools": [
@@ -17384,7 +17877,7 @@
       "location": "Centennial High School"
     },
     {
-      "id": "u4-centennial-1d293848961b5cb994",
+      "id": "u4-centennial-cff402509b162a9958",
       "title": "Central vs. Centennial Football Game",
       "date": "2026-10-16",
       "schools": [
@@ -17428,7 +17921,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28741"
     },
     {
-      "id": "u4-central-c8dbb2e36ffb3a79b9",
+      "id": "u4-central-4ee3caba917be9283f",
       "title": "Varsity Football @ Centennial",
       "date": "2026-10-16",
       "schools": [
@@ -17693,7 +18186,7 @@
       "end": "15:00"
     },
     {
-      "id": "u4-stm-4dec3010bbf45463f6",
+      "id": "u4-stm-96f13defca7d16bcd6",
       "title": "Maroon Bell 3 Late Start",
       "date": "2026-10-19",
       "schools": [
@@ -17742,7 +18235,7 @@
       "end": "09:50"
     },
     {
-      "id": "u4-jefferson-59724d896d1e70a840",
+      "id": "u4-jefferson-c33c12ea7c5a8a6cf0",
       "title": "Department Collaboration Meeting",
       "date": "2026-10-19",
       "schools": [
@@ -17818,7 +18311,7 @@
       "location": "Champaign Central High School"
     },
     {
-      "id": "u4-central-6b88d95a50b7cebf06",
+      "id": "u4-central-81b1917455823ddedd",
       "title": "JV Football vs. Centennial",
       "date": "2026-10-19",
       "schools": [
@@ -17921,7 +18414,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28726"
     },
     {
-      "id": "u4-stm-cb7c007f10d7a1b4e3",
+      "id": "u4-stm-c98067c9e0a247320e",
       "title": "Green Bell 1",
       "date": "2026-10-20",
       "schools": [
@@ -17965,7 +18458,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28172"
     },
     {
-      "id": "u4-centennial-d1b60680e1cc682720",
+      "id": "u4-centennial-9525b251952cd50a9f",
       "title": "Fire Drill (#2)",
       "date": "2026-10-20",
       "schools": [
@@ -18070,7 +18563,7 @@
       "end": "19:00"
     },
     {
-      "id": "u4-central-c871725c755f4b376d",
+      "id": "u4-central-f0c6b703341af88e0e",
       "title": "Girls Swim and Dive @ Urbana",
       "date": "2026-10-20",
       "schools": [
@@ -18188,7 +18681,7 @@
       "end": "19:00"
     },
     {
-      "id": "u4-busey-fb9711c935a47e0d7b",
+      "id": "u4-busey-15528d0ecf1949566c",
       "title": "CB Bobcat Spirit Day",
       "date": "2026-10-21",
       "schools": [
@@ -18215,7 +18708,7 @@
       "location": "Centennial High School"
     },
     {
-      "id": "u4-stm-27b5973e738edd4ad1",
+      "id": "u4-stm-ebb4aafb08cb83969b",
       "title": "Gold Bell 1",
       "date": "2026-10-21",
       "schools": [
@@ -18228,7 +18721,7 @@
       "allDay": true
     },
     {
-      "id": "u4-garden-5f7df8530195325c72",
+      "id": "u4-garden-a2ca3a7254330e6c7b",
       "title": "IEP",
       "date": "2026-10-21",
       "schools": [
@@ -18284,7 +18777,7 @@
       "end": "10:00"
     },
     {
-      "id": "u4-robeson-34f0922507dfec4075",
+      "id": "u4-robeson-fb11158da6a6616ecd",
       "title": "Lockdown Drill",
       "date": "2026-10-21",
       "schools": [
@@ -18359,7 +18852,7 @@
       "location": "HOME -"
     },
     {
-      "id": "u4-franklin-a19c02c967a9eaf272",
+      "id": "u4-franklin-3d211b8ad31307cf36",
       "title": "Knights GBB-MS Girls - VS Urbana Middle School (Game)",
       "date": "2026-10-21",
       "schools": [
@@ -18476,7 +18969,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-b49f41616d668c690b",
+      "id": "u4-stm-ddc0fde36d1bfe9cea",
       "title": "Green Bell 1",
       "date": "2026-10-22",
       "schools": [
@@ -18489,7 +18982,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-84a56bd7149f531d1f",
+      "id": "u4-stm-623b051015d9039b36",
       "title": "Picture Retake Day",
       "date": "2026-10-22",
       "schools": [
@@ -18712,7 +19205,7 @@
       "end": "19:30"
     },
     {
-      "id": "u4-stm-d50a0b04163dd3cb8b",
+      "id": "u4-stm-2e5250cac7b9116c35",
       "title": "Freshman Class Retreat",
       "date": "2026-10-23",
       "schools": [
@@ -18739,7 +19232,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-e947ca5500252227d6",
+      "id": "u4-stm-02ac0064e0c755e2be",
       "title": "Gold Bell 1",
       "date": "2026-10-23",
       "schools": [
@@ -18752,7 +19245,7 @@
       "allDay": true
     },
     {
-      "id": "u4-busey-dc58ac4d94c73d6d7e",
+      "id": "u4-busey-3eaf90e14cfe7af854",
       "title": "University/College Color or Shirt Day",
       "date": "2026-10-23",
       "schools": [
@@ -19151,7 +19644,7 @@
       "location": "Centennial High School"
     },
     {
-      "id": "u4-central-d28dd4d39b492960a8",
+      "id": "u4-central-b3bb83adc92e85dfe7",
       "title": "JV Volleyball @ Centennial",
       "date": "2026-10-24",
       "schools": [
@@ -19255,7 +19748,7 @@
       "end": "15:00"
     },
     {
-      "id": "u4-stm-5adb75fd9e79854c16",
+      "id": "u4-stm-9b321a0cefc06602d3",
       "title": "Maroon Day",
       "date": "2026-10-26",
       "schools": [
@@ -19360,7 +19853,7 @@
       "location": "Urbana Middle School"
     },
     {
-      "id": "u4-jefferson-5a4a87f6d5c34a40b1",
+      "id": "u4-jefferson-e1c851325602273dec",
       "title": "GBB @ Urbana",
       "date": "2026-10-26",
       "schools": [
@@ -19418,7 +19911,7 @@
       "end": "18:30"
     },
     {
-      "id": "u4-district-70b0c2803fa49ee820",
+      "id": "u4-district-f30ed92cd7018b836f",
       "title": "Board of Education Regular Meeting",
       "date": "2026-10-26",
       "schools": [
@@ -19494,7 +19987,7 @@
       "location": "Garden Hills Academy"
     },
     {
-      "id": "u4-stm-ffab14c914ef625e2a",
+      "id": "u4-stm-0f61c1a6d25e108f24",
       "title": "Green Bell 1",
       "date": "2026-10-27",
       "schools": [
@@ -19642,7 +20135,7 @@
       "location": "Garden Hills Academy"
     },
     {
-      "id": "u4-jefferson-ce06e03df29cd32066",
+      "id": "u4-jefferson-f961d555698e535358",
       "title": "GBB vs. Franklin",
       "date": "2026-10-27",
       "schools": [
@@ -19672,7 +20165,7 @@
       "location": "Away - JEFFERSON MIDDLE SCHOOL"
     },
     {
-      "id": "u4-franklin-7088ec06335db5454f",
+      "id": "u4-franklin-14337baab8d40816eb",
       "title": "Knights GBB-MS Girls @ Jefferson Middle School (Game)",
       "date": "2026-10-27",
       "schools": [
@@ -19701,7 +20194,7 @@
       "end": "18:30"
     },
     {
-      "id": "u4-busey-bccf43c35f60ad4c34",
+      "id": "u4-busey-d5a8ab773c14c4cc83",
       "title": "CB Bobcat Spirit Day",
       "date": "2026-10-28",
       "schools": [
@@ -19714,7 +20207,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-c1936e5ca0bf503a9b",
+      "id": "u4-stm-9e109a8ae54553e184",
       "title": "Gold Bell 1",
       "date": "2026-10-28",
       "schools": [
@@ -19727,7 +20220,7 @@
       "allDay": true
     },
     {
-      "id": "u4-garden-a39192b67e253283d2",
+      "id": "u4-garden-d109528cae975c644f",
       "title": "IEP",
       "date": "2026-10-28",
       "schools": [
@@ -19830,7 +20323,7 @@
       "end": "17:00"
     },
     {
-      "id": "u4-franklin-6b8d7d33564708731e",
+      "id": "u4-franklin-0a0f27e9c3a07a7aa7",
       "title": "Knights GBB-MS Girls @ International Prep Academy (Game)",
       "date": "2026-10-28",
       "schools": [
@@ -19875,7 +20368,7 @@
       "location": "IPA gym"
     },
     {
-      "id": "u4-ipa-7501b53917678faa32",
+      "id": "u4-ipa-533f1ff397a81d9509",
       "title": "GBB vs. Franklin (home)",
       "date": "2026-10-28",
       "schools": [
@@ -19918,7 +20411,7 @@
       "sourceUrl": "https://trinity-urbana.org/wp/wp-content/uploads/2026/02/WD-Calendar-of-Events.26-27.pdf"
     },
     {
-      "id": "u4-stm-aea828f41741fe8d21",
+      "id": "u4-stm-60692e914ac8d92601",
       "title": "Green Bell 1",
       "date": "2026-10-29",
       "schools": [
@@ -20007,7 +20500,7 @@
       "end": "11:00"
     },
     {
-      "id": "u4-garden-e048656fb938602e03",
+      "id": "u4-garden-dcd36eca5b3ba6c8d5",
       "title": "Steward Meeting with Admin",
       "date": "2026-10-29",
       "schools": [
@@ -20112,7 +20605,7 @@
       "location": "Kenwood Elementary"
     },
     {
-      "id": "u4-stm-0039ed223d5d2c4c24",
+      "id": "u4-stm-d64993a508de77f460",
       "title": "Gold Bell 2 All School Adoration",
       "date": "2026-10-30",
       "schools": [
@@ -20141,7 +20634,7 @@
       "location": "Kenwood Elementary"
     },
     {
-      "id": "u4-busey-f21468c55283a014e6",
+      "id": "u4-busey-05245da7e1542b48c9",
       "title": "University/College Color or Shirt Day",
       "date": "2026-10-30",
       "schools": [
@@ -20365,7 +20858,7 @@
       "end": "23:59"
     },
     {
-      "id": "u4-stm-cced4bc822d94cd47e",
+      "id": "u4-stm-c213edcb802eabf5f8",
       "title": "Maroon Bell 2 All School Mass",
       "date": "2026-11-02",
       "schools": [
@@ -20465,7 +20958,7 @@
       "start": "13:25"
     },
     {
-      "id": "u4-jefferson-15866821fc5152d22f",
+      "id": "u4-jefferson-bafe1f064cc8ec849c",
       "title": "Faculty Meeting",
       "date": "2026-11-02",
       "schools": [
@@ -20584,7 +21077,7 @@
       "location": "HOME -"
     },
     {
-      "id": "u4-franklin-73a504ce5e199d32aa",
+      "id": "u4-franklin-3ca18f1888bf76e810",
       "title": "Knights GBB-MS Girls - VS Edison Middle School (Game)",
       "date": "2026-11-02",
       "schools": [
