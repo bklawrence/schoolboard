@@ -13,6 +13,7 @@ from collectors.unit4 import UNIT4_GROUPS, fetch_unit4_menus
 from collectors.countryside import SOURCE_NAME as COUNTRYSIDE_SOURCE, fetch_countryside_calendar
 from collectors.libraries import LIBRARIES, fetch_library_calendar
 from collectors.stmatthew import SOURCE_NAME as STMATTHEW_SOURCE, fetch_stmatthew_calendar
+from collectors.stjohn import SOURCE_NAME as STJOHN_SOURCE, fetch_stjohn_calendar
 from collectors.usd116_calendar import SOURCE_NAME as USD116_CALENDAR_SOURCE, fetch_usd116_calendar
 from collectors.usd116_schoolfeeds import SCHOOL_FEEDS, SOURCE_PREFIX as USD116_SCHOOLFEED_PREFIX, fetch_school_feed
 from collectors.apptegy_calendars import (
@@ -572,6 +573,49 @@ def build(*, offline: bool = False) -> dict:
                 "error": f"{type(exc).__name__}: {exc}",
             })
 
+    # St. John Lutheran School / Little Lamb Preschool. The public school
+    # calendar page links its current annual PDF through Beehively; the
+    # collector rediscovers that document each run so yearly replacements do
+    # not require a GitHub edit.
+    if offline:
+        stjohn_events = previous_source_events(STJOHN_SOURCE)
+        stjohn_events, _, _ = filter_events_to_rolling_window(
+            stjohn_events,
+            reference=today,
+        )
+        source_status.append({
+            "id": "stjohn-calendar",
+            "status": "cached" if stjohn_events else "failed",
+            "count": len(stjohn_events),
+            "unit": "events",
+        })
+    else:
+        try:
+            stjohn_events = fetch_stjohn_calendar(reference=today)
+            stjohn_events, _, _ = filter_events_to_rolling_window(
+                stjohn_events,
+                reference=today,
+            )
+            source_status.append({
+                "id": "stjohn-calendar",
+                "status": "live",
+                "count": len(stjohn_events),
+                "unit": "events",
+            })
+        except Exception as exc:
+            stjohn_events = previous_source_events(STJOHN_SOURCE)
+            stjohn_events, _, _ = filter_events_to_rolling_window(
+                stjohn_events,
+                reference=today,
+            )
+            source_status.append({
+                "id": "stjohn-calendar",
+                "status": "cached" if stjohn_events else "failed",
+                "count": len(stjohn_events),
+                "unit": "events",
+                "error": f"{type(exc).__name__}: {exc}",
+            })
+
     # Countryside School (independent K-8) public Finalsite calendar.
     if offline:
         countryside_events = previous_source_events(COUNTRYSIDE_SOURCE)
@@ -716,6 +760,7 @@ def build(*, offline: bool = False) -> dict:
         + unit4_school_events
         + stm_events
         + stmatthew_events
+        + stjohn_events
         + countryside_events
         + library_events
     )
