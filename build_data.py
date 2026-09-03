@@ -20,6 +20,12 @@ from collectors.judah import (
     fetch_judah_calendar,
     fetch_judah_athletics,
 )
+from collectors.academyhigh import (
+    CALENDAR_SOURCE_NAME as ACADEMY_CALENDAR_SOURCE,
+    NEWSLETTER_SOURCE_NAME as ACADEMY_NEWSLETTER_SOURCE,
+    fetch_academy_calendar,
+    fetch_academy_newsletter,
+)
 from collectors.usd116_calendar import SOURCE_NAME as USD116_CALENDAR_SOURCE, fetch_usd116_calendar
 from collectors.usd116_schoolfeeds import SCHOOL_FEEDS, SOURCE_PREFIX as USD116_SCHOOLFEED_PREFIX, fetch_school_feed
 from collectors.apptegy_calendars import (
@@ -651,6 +657,86 @@ def build(*, offline: bool = False) -> dict:
             judah_athletics_events, _, _ = filter_events_to_rolling_window(judah_athletics_events, reference=today)
             source_status.append({"id":"judah-athletics","status":"cached" if judah_athletics_events else "failed","count":len(judah_athletics_events),"unit":"events","error":f"{type(exc).__name__}: {exc}"})
 
+    # Academy High: annual academic calendar plus Important Dates from the
+    # latest Smore newsletter linked on Academy High's own homepage.
+    if offline:
+        academy_calendar_events = previous_source_events(ACADEMY_CALENDAR_SOURCE)
+        academy_calendar_events, _, _ = filter_events_to_rolling_window(
+            academy_calendar_events,
+            reference=today,
+        )
+        source_status.append({
+            "id": "academy-calendar",
+            "status": "cached" if academy_calendar_events else "failed",
+            "count": len(academy_calendar_events),
+            "unit": "events",
+        })
+    else:
+        try:
+            academy_calendar_events = fetch_academy_calendar(reference=today)
+            academy_calendar_events, _, _ = filter_events_to_rolling_window(
+                academy_calendar_events,
+                reference=today,
+            )
+            source_status.append({
+                "id": "academy-calendar",
+                "status": "live",
+                "count": len(academy_calendar_events),
+                "unit": "events",
+            })
+        except Exception as exc:
+            academy_calendar_events = previous_source_events(ACADEMY_CALENDAR_SOURCE)
+            academy_calendar_events, _, _ = filter_events_to_rolling_window(
+                academy_calendar_events,
+                reference=today,
+            )
+            source_status.append({
+                "id": "academy-calendar",
+                "status": "cached" if academy_calendar_events else "failed",
+                "count": len(academy_calendar_events),
+                "unit": "events",
+                "error": f"{type(exc).__name__}: {exc}",
+            })
+
+    if offline:
+        academy_newsletter_events = previous_source_events(ACADEMY_NEWSLETTER_SOURCE)
+        academy_newsletter_events, _, _ = filter_events_to_rolling_window(
+            academy_newsletter_events,
+            reference=today,
+        )
+        source_status.append({
+            "id": "academy-newsletter",
+            "status": "cached" if academy_newsletter_events else "failed",
+            "count": len(academy_newsletter_events),
+            "unit": "events",
+        })
+    else:
+        try:
+            academy_newsletter_events = fetch_academy_newsletter(reference=today)
+            academy_newsletter_events, _, _ = filter_events_to_rolling_window(
+                academy_newsletter_events,
+                reference=today,
+            )
+            source_status.append({
+                "id": "academy-newsletter",
+                "status": "live",
+                "count": len(academy_newsletter_events),
+                "unit": "events",
+            })
+        except Exception as exc:
+            academy_newsletter_events = previous_source_events(ACADEMY_NEWSLETTER_SOURCE)
+            academy_newsletter_events, _, _ = filter_events_to_rolling_window(
+                academy_newsletter_events,
+                reference=today,
+            )
+            source_status.append({
+                "id": "academy-newsletter",
+                "status": "cached" if academy_newsletter_events else "failed",
+                "count": len(academy_newsletter_events),
+                "unit": "events",
+                "error": f"{type(exc).__name__}: {exc}",
+            })
+
     # Countryside School (independent K-8) public Finalsite calendar.
     if offline:
         countryside_events = previous_source_events(COUNTRYSIDE_SOURCE)
@@ -798,6 +884,8 @@ def build(*, offline: bool = False) -> dict:
         + stjohn_events
         + judah_calendar_events
         + judah_athletics_events
+        + academy_calendar_events
+        + academy_newsletter_events
         + countryside_events
         + library_events
     )
