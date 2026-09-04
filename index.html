@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Chambana Schoolboard — your school day + week</title>
-  <!-- Chambana Schoolboard v23; selection storage intentionally remains v18-compatible. -->
+  <!-- Chambana Schoolboard v24; selection storage intentionally remains v18-compatible. -->
   <style>
     :root{
       --paper:#f3eedf;
@@ -1066,8 +1066,8 @@
     "short": "Chesterbrook",
     "full": "Chesterbrook Academy Preschool at UIUC",
     "system": "Private",
-    "level": "Infant–Pre-K",
-    "color": "#4D8B57"
+    "level": "Preschool",
+    "color": "#67B346"
   },
   {
     "id": "holycross",
@@ -16073,7 +16073,6 @@
     grid.innerHTML = "";
 
     const levelRank = {
-      "Infant–Pre-K": 0,
       "Infant–TK": 0,
       "Preschool": 0,
       "Elementary": 1,
@@ -16180,7 +16179,7 @@
       .forEach(s => privateColumn.appendChild(makePickerLabel(s)));
 
     const privateSchools = SCHOOLS
-      .filter(s => ["uniprimary", "countryside", "chesterbrook", "holycross", "nextgen", "nextgen-early", "stm", "stmatthew", "stjohn", "judah", "academyhigh", "montessoricu"].includes(s.id))
+      .filter(s => ["uniprimary", "countryside", "holycross", "nextgen", "nextgen-early", "stm", "stmatthew", "stjohn", "judah", "academyhigh", "montessoricu"].includes(s.id))
       .sort(byAgeThenName);
 
     if (privateSchools.length){
