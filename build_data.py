@@ -38,6 +38,14 @@ from collectors.nextgen import (
     EARLY_SOURCE_NAME as NEXTGEN_EARLY_SOURCE,
     fetch_nextgen_early_closures,
 )
+from collectors.chesterbrook import (
+    CALENDAR_SOURCE_NAME as CHESTERBROOK_CALENDAR_SOURCE,
+    EVENTS_SOURCE_NAME as CHESTERBROOK_EVENTS_SOURCE,
+    MENU_GROUP as CHESTERBROOK_MENU_GROUP,
+    fetch_chesterbrook_calendar,
+    fetch_chesterbrook_menu,
+    fetch_chesterbrook_website_events,
+)
 from collectors.montessori import SOURCE_NAME as MONTESSORI_SOURCE, fetch_montessori_calendar
 from collectors.usd116_calendar import SOURCE_NAME as USD116_CALENDAR_SOURCE, fetch_usd116_calendar
 from collectors.usd116_schoolfeeds import SCHOOL_FEEDS, SOURCE_PREFIX as USD116_SCHOOLFEED_PREFIX, fetch_school_feed
@@ -1068,6 +1076,130 @@ def build(*, offline: bool = False) -> dict:
         "unit": "events",
     })
 
+    # Chesterbrook Academy Preschool at UIUC: annual school-year PDF,
+    # public monthly website calendar, and the current published
+    # breakfast/lunch/PM-snack menu PDF.
+    if offline:
+        chesterbrook_calendar_events = previous_source_events(
+            CHESTERBROOK_CALENDAR_SOURCE
+        )
+        chesterbrook_calendar_events, _, _ = filter_events_to_rolling_window(
+            chesterbrook_calendar_events,
+            reference=today,
+        )
+        source_status.append({
+            "id": "chesterbrook-calendar",
+            "status": "cached" if chesterbrook_calendar_events else "failed",
+            "count": len(chesterbrook_calendar_events),
+            "unit": "events",
+        })
+    else:
+        try:
+            chesterbrook_calendar_events = fetch_chesterbrook_calendar(
+                reference=today
+            )
+            chesterbrook_calendar_events, _, _ = filter_events_to_rolling_window(
+                chesterbrook_calendar_events,
+                reference=today,
+            )
+            source_status.append({
+                "id": "chesterbrook-calendar",
+                "status": "live",
+                "count": len(chesterbrook_calendar_events),
+                "unit": "events",
+            })
+        except Exception as exc:
+            chesterbrook_calendar_events = previous_source_events(
+                CHESTERBROOK_CALENDAR_SOURCE
+            )
+            chesterbrook_calendar_events, _, _ = filter_events_to_rolling_window(
+                chesterbrook_calendar_events,
+                reference=today,
+            )
+            source_status.append({
+                "id": "chesterbrook-calendar",
+                "status": "cached" if chesterbrook_calendar_events else "failed",
+                "count": len(chesterbrook_calendar_events),
+                "unit": "events",
+                "error": f"{type(exc).__name__}: {exc}",
+            })
+
+    if offline:
+        chesterbrook_website_events = previous_source_events(
+            CHESTERBROOK_EVENTS_SOURCE
+        )
+        chesterbrook_website_events, _, _ = filter_events_to_rolling_window(
+            chesterbrook_website_events,
+            reference=today,
+        )
+        source_status.append({
+            "id": "chesterbrook-events",
+            "status": "cached" if chesterbrook_website_events else "failed",
+            "count": len(chesterbrook_website_events),
+            "unit": "events",
+        })
+    else:
+        try:
+            chesterbrook_website_events = fetch_chesterbrook_website_events(
+                reference=today
+            )
+            chesterbrook_website_events, _, _ = filter_events_to_rolling_window(
+                chesterbrook_website_events,
+                reference=today,
+            )
+            source_status.append({
+                "id": "chesterbrook-events",
+                "status": "live",
+                "count": len(chesterbrook_website_events),
+                "unit": "events",
+            })
+        except Exception as exc:
+            chesterbrook_website_events = previous_source_events(
+                CHESTERBROOK_EVENTS_SOURCE
+            )
+            chesterbrook_website_events, _, _ = filter_events_to_rolling_window(
+                chesterbrook_website_events,
+                reference=today,
+            )
+            source_status.append({
+                "id": "chesterbrook-events",
+                "status": "cached" if chesterbrook_website_events else "failed",
+                "count": len(chesterbrook_website_events),
+                "unit": "events",
+                "error": f"{type(exc).__name__}: {exc}",
+            })
+
+    if offline:
+        chesterbrook_meals = previous_group_meals(CHESTERBROOK_MENU_GROUP)
+        source_status.append({
+            "id": "chesterbrook-menu",
+            "status": "cached" if chesterbrook_meals else "failed",
+            "count": len(chesterbrook_meals),
+            "unit": "menu days",
+        })
+    else:
+        try:
+            chesterbrook_meals = fetch_chesterbrook_menu(reference=today)
+            if not chesterbrook_meals:
+                raise RuntimeError(
+                    "Chesterbrook menu collector returned zero menu records"
+                )
+            source_status.append({
+                "id": "chesterbrook-menu",
+                "status": "live",
+                "count": len(chesterbrook_meals),
+                "unit": "menu days",
+            })
+        except Exception as exc:
+            chesterbrook_meals = previous_group_meals(CHESTERBROOK_MENU_GROUP)
+            source_status.append({
+                "id": "chesterbrook-menu",
+                "status": "cached" if chesterbrook_meals else "failed",
+                "count": len(chesterbrook_meals),
+                "unit": "menu days",
+                "error": f"{type(exc).__name__}: {exc}",
+            })
+
     # Montessori School of Champaign-Urbana: public Google Calendar
     # discovered from the school's own Import Google Calendar control.
     if offline:
@@ -1263,6 +1395,8 @@ def build(*, offline: bool = False) -> dict:
         + holycross_calendar_events
         + holycross_homepage_events
         + nextgen_early_events
+        + chesterbrook_calendar_events
+        + chesterbrook_website_events
         + montessori_events
         + countryside_events
         + library_events
@@ -1292,7 +1426,12 @@ def build(*, offline: bool = False) -> dict:
         f"{unfiltered_event_count} merged events"
     )
 
-    meals = merge_meals(static_meals + quest_meals + unit4_meals)
+    meals = merge_meals(
+        static_meals
+        + quest_meals
+        + unit4_meals
+        + chesterbrook_meals
+    )
     now = datetime.now(ZoneInfo("America/Chicago")).isoformat(timespec="seconds")
     return {
         "updated": now,
