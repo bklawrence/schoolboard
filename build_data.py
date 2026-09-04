@@ -47,9 +47,7 @@ from collectors.chesterbrook import (
     fetch_chesterbrook_website_events,
 )
 from collectors.hidaya import (
-    BASKETBALL_SOURCE_NAME as HIDAYA_BASKETBALL_SOURCE,
     SOURCE_NAME as HIDAYA_CALENDAR_SOURCE,
-    fetch_hidaya_basketball,
     fetch_hidaya_calendar,
 )
 from collectors.montessori import SOURCE_NAME as MONTESSORI_SOURCE, fetch_montessori_calendar
@@ -1249,51 +1247,6 @@ def build(*, offline: bool = False) -> dict:
                 "error": f"{type(exc).__name__}: {exc}",
             })
 
-    if offline:
-        hidaya_basketball_events = previous_source_events(
-            HIDAYA_BASKETBALL_SOURCE
-        )
-        hidaya_basketball_events, _, _ = filter_events_to_rolling_window(
-            hidaya_basketball_events,
-            reference=today,
-        )
-        source_status.append({
-            "id": "hidaya-basketball",
-            "status": "cached" if hidaya_basketball_events else "failed",
-            "count": len(hidaya_basketball_events),
-            "unit": "events",
-        })
-    else:
-        try:
-            hidaya_basketball_events = fetch_hidaya_basketball(
-                reference=today
-            )
-            hidaya_basketball_events, _, _ = filter_events_to_rolling_window(
-                hidaya_basketball_events,
-                reference=today,
-            )
-            source_status.append({
-                "id": "hidaya-basketball",
-                "status": "live",
-                "count": len(hidaya_basketball_events),
-                "unit": "events",
-            })
-        except Exception as exc:
-            hidaya_basketball_events = previous_source_events(
-                HIDAYA_BASKETBALL_SOURCE
-            )
-            hidaya_basketball_events, _, _ = filter_events_to_rolling_window(
-                hidaya_basketball_events,
-                reference=today,
-            )
-            source_status.append({
-                "id": "hidaya-basketball",
-                "status": "cached" if hidaya_basketball_events else "failed",
-                "count": len(hidaya_basketball_events),
-                "unit": "events",
-                "error": f"{type(exc).__name__}: {exc}",
-            })
-
     # Montessori School of Champaign-Urbana: public Google Calendar
     # discovered from the school's own Import Google Calendar control.
     if offline:
@@ -1492,7 +1445,6 @@ def build(*, offline: bool = False) -> dict:
         + chesterbrook_calendar_events
         + chesterbrook_website_events
         + hidaya_events
-        + hidaya_basketball_events
         + montessori_events
         + countryside_events
         + library_events
