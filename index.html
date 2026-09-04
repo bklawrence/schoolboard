@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Chambana Schoolboard — your school day + week</title>
-  <!-- Chambana Schoolboard v19; selection storage intentionally remains v18-compatible. -->
+  <!-- Chambana Schoolboard v20; selection storage intentionally remains v18-compatible. -->
   <style>
     :root{
       --paper:#f3eedf;
@@ -917,7 +917,7 @@
 
     <footer class="footer">
       <div>
-        Sources: preschool school-year calendars · USD 116 calendars/ParentSquare · Quest · Uni Calendar · UniWeek · Outlook Tests · Snap! athletics · private school calendars · Champaign Unit 4 district/school calendars · public library youth calendars · Unit 4 School Nutrition
+        Sources: preschool school-year calendars · USD 116 calendars/ParentSquare · Quest · UIUC school calendars · UniWeek · Outlook Tests · Snap! athletics · private school calendars · Champaign Unit 4 district/school calendars · public library youth calendars · Unit 4 School Nutrition
         <div class="menu-disclaimer"><strong>Lunch menu note:</strong> Published district menus are used when available. When future menus have not yet been published, Chambana Schoolboard may fill dates using repeating patterns inferred from recent published menus. Predicted meals may change; check the district menu for the latest information.</div>
         <div class="support-row"><a class="coffee-button" href="https://www.paypal.com/ncp/payment/J78AM77UMPFBC" target="_blank" rel="noopener noreferrer">☕ Buy me a coffee</a></div>
       </div>
@@ -1044,6 +1044,14 @@
     "system": "UIUC",
     "level": "High School",
     "color": "#9D7AD2"
+  },
+  {
+    "id": "uniprimary",
+    "short": "University Primary",
+    "full": "University Primary School",
+    "system": "UIUC",
+    "level": "Preschool–5",
+    "color": "#4D8B57"
   },
   {
     "id": "countryside",
@@ -1426,6 +1434,15 @@
     ],
     "url": "https://schools.snap.app/urbana",
     "feedUrl": "https://manage.snap.app/ical/link/Urbana/2026-2027/ALL/CDT/athletic%2Cactivities/0/0"
+  },
+  {
+    "id": "uniprimary-calendar",
+    "kind": "School calendar",
+    "name": "University Primary School Calendar",
+    "schools": [
+      "uniprimary"
+    ],
+    "url": "https://calendars.illinois.edu/list/7187"
   },
   {
     "id": "uni-events",
@@ -15916,6 +15933,7 @@
     const levelRank = {
       "Preschool": 0,
       "Elementary": 1,
+      "Preschool–5": 2,
       "PK–6": 2,
       "PK–8": 2,
       "K–8": 2,
@@ -16018,7 +16036,7 @@
       .forEach(s => privateColumn.appendChild(makePickerLabel(s)));
 
     const privateSchools = SCHOOLS
-      .filter(s => ["countryside", "stm", "stmatthew", "stjohn", "judah", "academyhigh", "montessoricu"].includes(s.id))
+      .filter(s => ["uniprimary", "countryside", "stm", "stmatthew", "stjohn", "judah", "academyhigh", "montessoricu"].includes(s.id))
       .sort(byAgeThenName);
 
     if (privateSchools.length){
