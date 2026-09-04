@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Chambana Schoolboard — your school day + week</title>
-  <!-- Chambana Schoolboard v30 trilingual; selection storage intentionally remains v18-compatible. -->
+  <!-- Chambana Schoolboard v31 food translations; selection storage intentionally remains v18-compatible. -->
   <style>
     :root{
       --paper:#f3eedf;
@@ -1387,6 +1387,525 @@
       })[label] || label;
     }
     return label;
+  }
+
+  const FOOD_TRANSLATIONS = {
+    es: {
+      // Chesterbrook/current elementary-menu vocabulary.
+      "wg blueberry loaf": "pan de arándanos integral",
+      "wg pizza": "pizza de masa integral",
+      "diced pears": "peras en cubitos",
+      "diced carrots": "zanahorias en cubitos",
+      "fruit mix": "mezcla de frutas",
+      "1% milk": "leche al 1 %",
+      "whole milk": "leche entera",
+      "that's it apple/banana fruit bar": "That's It (barra de fruta de manzana y banana)",
+      "animal crackers": "galletas de animalitos",
+
+      // Product names / culturally specific dishes: preserve the recognizable
+      // name and add a short explanation where that is more useful than a
+      // forced literal translation.
+      "bosco sticks with marinara": "Bosco Sticks (palitos de pan rellenos de queso) con salsa marinara",
+      "bosco cheese sticks": "Bosco Sticks (palitos de pan rellenos de queso)",
+      "bosco sticks": "Bosco Sticks (palitos de pan rellenos de queso)",
+      "walking taco": "Walking taco (taco servido en una bolsa de chips)",
+      "corn dog": "corn dog (salchicha cubierta con masa de maíz)",
+      "mini chicken corn dogs": "mini corn dogs de pollo (salchichas de pollo cubiertas con masa de maíz)",
+      "pretzel dog": "pretzel dog (salchicha envuelta en masa de pretzel)",
+      "pizza crunchers": "Pizza Crunchers",
+      "sloppy joe sandwich": "sándwich Sloppy Joe",
+      "sunbutter & jelly sandwich": "sándwich de SunButter y mermelada",
+      "sunbutter & grape sandwich": "sándwich de SunButter y mermelada de uva",
+
+      // Common entrées.
+      "popcorn chicken bowl": "tazón de pollo crujiente en bocados",
+      "popcorn chicken": "pollo crujiente en bocados",
+      "personal turkey & beef pepperoni pizza": "pizza individual de pepperoni de pavo y res",
+      "personal cheese pizza": "pizza individual de queso",
+      "cheese pizza": "pizza de queso",
+      "pepperoni pizza": "pizza de pepperoni",
+      "hawaiian pizza": "pizza hawaiana",
+      "bbq chicken pizza": "pizza de pollo a la barbacoa",
+      "buffalo chicken pizza": "pizza de pollo estilo Buffalo",
+      "philly cheesesteak pizza": "pizza de cheesesteak estilo Filadelfia",
+      "veggie pizza": "pizza de verduras",
+      "cheeseburger on a bun": "hamburguesa con queso en pan",
+      "hamburger on a bun": "hamburguesa en pan",
+      "cheeseburger / hamburger": "hamburguesa con queso / hamburguesa",
+      "all-beef hot dog": "hot dog de res",
+      "beef hot dog on bun": "hot dog de res en pan",
+      "hot dog": "hot dog",
+      "spicy chicken sandwich": "sándwich de pollo picante",
+      "spicy breaded chicken sandwich": "sándwich de pollo empanizado picante",
+      "crispy chicken sandwich": "sándwich de pollo crujiente",
+      "breaded chicken breast patty sandwich": "sándwich de pechuga de pollo empanizada",
+      "baked chicken breast sandwich - halal friendly": "sándwich de pechuga de pollo al horno — apto para halal",
+      "baked chicken breast - halal": "pechuga de pollo al horno — halal",
+      "bbq chicken sandwich": "sándwich de pollo a la barbacoa",
+      "bbq beef sandwich": "sándwich de res a la barbacoa",
+      "chicken philly cheesesteak sandwich": "sándwich de pollo estilo cheesesteak de Filadelfia",
+      "italian beef sandwich": "sándwich italiano de res",
+      "grilled cheese sandwich": "sándwich de queso a la plancha",
+      "gourmet grilled cheese": "sándwich gourmet de queso a la plancha",
+      "spicy grilled cheese": "sándwich picante de queso a la plancha",
+      "black bean burger": "hamburguesa de frijoles negros",
+      "california veggie burger": "hamburguesa vegetariana estilo California",
+      "bacon-jalapeño cheeseburger": "hamburguesa con queso, tocino y jalapeño",
+      "bacon-jalapeÃ±o cheeseburger": "hamburguesa con queso, tocino y jalapeño",
+
+      // Chicken / meat dishes.
+      "chicken nuggets & dinner roll": "nuggets de pollo y panecillo",
+      "chicken nuggets": "nuggets de pollo",
+      "chicken tenders & dinner roll": "tiras de pollo y panecillo",
+      "hot & spicy chicken tenders & dinner roll": "tiras de pollo muy picantes y panecillo",
+      "chicken tenders": "tiras de pollo",
+      "spicy chicken tenders": "tiras de pollo picantes",
+      "bbq chicken boneless wings": "alitas de pollo deshuesadas a la barbacoa",
+      "boneless wings & biscuit": "alitas deshuesadas y biscuit",
+      "chicken wings": "alitas de pollo",
+      "buffalo chicken bites": "bocados de pollo estilo Buffalo",
+      "buffalo chicken wrap": "wrap de pollo estilo Buffalo",
+      "bbq chicken flatbread": "pan plano con pollo a la barbacoa",
+      "bbq pulled chicken": "pollo desmenuzado a la barbacoa",
+      "breaded chicken drumstick": "muslo de pollo empanizado",
+      "orange chicken": "pollo a la naranja",
+      "orange chicken bowl": "tazón de pollo a la naranja",
+      "general tso chicken": "pollo General Tso",
+      "honey lemon chicken": "pollo con miel y limón",
+      "teriyaki meatballs": "albóndigas teriyaki",
+      "teriyaki chicken stir-fry rice bowl": "tazón de arroz con pollo teriyaki salteado",
+      "chicken stir-fry": "pollo salteado",
+      "chicken fried rice": "arroz frito con pollo",
+      "chicken & vegetable dumplings": "dumplings de pollo y verduras",
+      "chicken fajita tacos": "tacos de fajita de pollo",
+      "chicken tacos": "tacos de pollo",
+      "beef tacos": "tacos de res",
+      "soft beef tacos": "tacos suaves de res",
+      "black bean fajita tacos": "tacos de fajita de frijoles negros",
+      "beef quesadilla": "quesadilla de res",
+      "cheese quesadilla": "quesadilla de queso",
+      "beef chili nachos": "nachos con chili de res",
+      "cheese nachos": "nachos con queso",
+      "bbq meatball sub": "sub de albóndigas a la barbacoa",
+      "cheesy meatball sub": "sub de albóndigas con queso",
+      "beef meatball sub": "sub de albóndigas de res",
+      "beef or vegetarian meatball sub": "sub de albóndigas de res o vegetarianas",
+      "philly cheesesteak": "cheesesteak estilo Filadelfia",
+      "beef gyros": "gyro de res",
+      "chicken shawarma": "shawarma de pollo",
+      "bbq pork sliders": "mini sándwiches de cerdo a la barbacoa",
+
+      // Pasta, grains, breakfast.
+      "macaroni & cheese": "macarrones con queso",
+      "mac ’n cheese": "macarrones con queso",
+      "mac 'n cheese": "macarrones con queso",
+      "penne pasta with chicken": "pasta penne con pollo",
+      "penne pasta & chicken parmesan": "pasta penne y pollo a la parmesana",
+      "rotini pasta with meat sauce": "pasta rotini con salsa de carne",
+      "cheese ravioli": "ravioles de queso",
+      "spaghetti": "espaguetis",
+      "spaghetti & meatballs": "espaguetis con albóndigas",
+      "alfredo or red sauce": "salsa Alfredo o salsa roja",
+      "alfredo or meat sauce": "salsa Alfredo o salsa de carne",
+      "pancakes with syrup & turkey sausage links": "panqueques con jarabe y salchichas de pavo",
+      "pancakes with strawberry topping": "panqueques con cobertura de fresa",
+      "pancakes & scrambled eggs": "panqueques y huevos revueltos",
+      "waffles & scrambled eggs": "waffles y huevos revueltos",
+      "chicken & waffles": "pollo con waffles",
+      "chicken ’n waffles": "pollo con waffles",
+      "chicken 'n waffles": "pollo con waffles",
+      "chicken & waffles syrup": "pollo con waffles y jarabe",
+      "french toast bites": "bocados de tostada francesa",
+      "biscuit & gravy": "biscuit con salsa gravy",
+      "scrambled eggs": "huevos revueltos",
+      "sausage link": "salchicha",
+      "turkey sausage links": "salchichas de pavo",
+      "bacon": "tocino",
+      "hash browns": "papas hash brown",
+      "roasted potatoes": "papas asadas",
+      "breakfast bar": "barra de desayuno",
+
+      // Salads, wraps, subs, snack packs.
+      "garden salad with cheese": "ensalada de jardín con queso",
+      "vegetarian chopped salad": "ensalada vegetariana picada",
+      "vegetarian chopped salad with": "ensalada vegetariana picada con",
+      "crispy chicken caesar salad": "ensalada César con pollo crujiente",
+      "crispy chicken garden salad": "ensalada de jardín con pollo crujiente",
+      "chicken garden salad": "ensalada de jardín con pollo",
+      "chef salad": "ensalada del chef",
+      "spinach berry salad": "ensalada de espinaca y frutos rojos",
+      "blt ranch wrap": "wrap BLT con aderezo ranch",
+      "veggie & cheese wrap": "wrap de verduras y queso",
+      "hummus & roasted vegetable wrap": "wrap de hummus y verduras asadas",
+      "hummus, cheese & vegetable wrap": "wrap de hummus, queso y verduras",
+      "turkey & cheese sub": "sub de pavo y queso",
+      "turkey ham & cheese sub": "sub de jamón de pavo y queso",
+      "hummus & veggie snack pack": "paquete de merienda con hummus y verduras",
+      "homemade hummus & veggie snack pack": "paquete de merienda con hummus casero y verduras",
+      "taco hummus & veggie snack pack": "paquete de merienda con hummus estilo taco y verduras",
+      "chocolate chickpea & apple snack pack": "paquete de merienda de garbanzo con chocolate y manzana",
+      "chocolate chickpea & strawberry snack pack": "paquete de merienda de garbanzo con chocolate y fresa",
+      "chocolate chickpea sandwich": "sándwich de garbanzo con chocolate",
+      "granola, yogurt & fruit pack": "paquete de granola, yogur y fruta",
+      "yogurt & fruit pack": "paquete de yogur y fruta",
+      "yogurt fruit & cheese snack pack": "paquete de merienda con yogur, fruta y queso",
+      "crackers & cheese snack pack": "paquete de merienda con galletas saladas y queso",
+      "power pack snack kit": "kit de merienda Power Pack",
+      "fruit ’n yogurt kit": "kit de fruta y yogur",
+      "fruit 'n yogurt kit": "kit de fruta y yogur",
+      "protein power pack": "Power Pack de proteína",
+      "yogurt & muffin power pack": "Power Pack de yogur y muffin",
+      "hummus & pita power pack": "Power Pack de hummus y pita",
+      "italian turkey sandwich": "sándwich italiano de pavo",
+
+      // Sides / sauces / vegetables.
+      "mashed potatoes": "puré de papas",
+      "green beans": "ejotes",
+      "tomato soup": "sopa de tomate",
+      "baked beans": "frijoles horneados",
+      "refried beans": "frijoles refritos",
+      "fiesta black beans": "frijoles negros estilo fiesta",
+      "seasoned pinto beans": "frijoles pintos sazonados",
+      "spanish rice": "arroz español",
+      "vegetable fried rice": "arroz frito con verduras",
+      "mexican street corn": "elote estilo callejero mexicano",
+      "roasted corn & peppers": "maíz y pimientos asados",
+      "peppers & onions": "pimientos y cebollas",
+      "baked potato": "papa al horno",
+      "cornbread": "pan de maíz",
+      "texas toast": "pan tostado estilo Texas",
+      "garlic breadstick": "palito de pan con ajo",
+      "cheesy garlic bread": "pan de ajo con queso",
+      "cheesy garlic breadstick": "palito de pan con ajo y queso",
+      "jalapeño cheese sauce": "salsa de queso con jalapeño",
+      "jalapeño cheddar biscuit": "biscuit de cheddar y jalapeño",
+      "cheese sauce": "salsa de queso",
+      "soft pretzel sticks & cheese sauce": "palitos de pretzel suaves con salsa de queso",
+      "mozzarella sticks": "palitos de mozzarella",
+      "mozzarella cheese stick": "palito de mozzarella",
+      "vegetable eggroll": "rollito de primavera con verduras",
+      "pita, hummus & tzatziki": "pita, hummus y tzatziki",
+
+      // Smoothies / sweets.
+      "strawberry yogurt smoothie": "batido de yogur y fresa",
+      "mixed berry yogurt smoothie": "batido de yogur y frutos rojos",
+      "strawberry orange yogurt smoothie": "batido de yogur, fresa y naranja",
+      "strawberry pineapple yogurt smoothie": "batido de yogur, fresa y piña",
+      "cinnamon sugar donut holes": "bolitas de dona con azúcar y canela",
+
+      // Miscellaneous Unit 4 wording.
+      "build-your-own nacho kit": "kit para preparar tus propios nachos",
+      "build-your-own pizza kit": "kit para preparar tu propia pizza",
+      "vegetarian chicken nuggets": "nuggets vegetarianos estilo pollo",
+      "vegetarian nuggets": "nuggets vegetarianos",
+      "beef with broccoli": "res con brócoli",
+      "beef or vegetarian chili": "chili de res o vegetariano",
+      "chili": "chili",
+      "vegetarian chili": "chili vegetariano",
+      "cajun chicken pasta": "pasta cajún con pollo",
+      "seasoned taco beef - sub recipe": "res sazonada para tacos — receta alternativa",
+      "seasoned taco chicken": "pollo sazonado para tacos",
+      "school closed": "escuela cerrada"
+    },
+
+    fr: {
+      // Chesterbrook/current elementary-menu vocabulary.
+      "wg blueberry loaf": "pain aux bleuets à grains entiers",
+      "wg pizza": "pizza à pâte de grains entiers",
+      "diced pears": "poires en dés",
+      "diced carrots": "carottes en dés",
+      "fruit mix": "mélange de fruits",
+      "1% milk": "lait 1 %",
+      "whole milk": "lait entier",
+      "that's it apple/banana fruit bar": "That's It (barre aux fruits pomme-banane)",
+      "animal crackers": "biscuits en forme d’animaux",
+
+      // Product names / culturally specific dishes.
+      "bosco sticks with marinara": "Bosco Sticks (bâtonnets de pain fourrés au fromage) avec sauce marinara",
+      "bosco cheese sticks": "Bosco Sticks (bâtonnets de pain fourrés au fromage)",
+      "bosco sticks": "Bosco Sticks (bâtonnets de pain fourrés au fromage)",
+      "walking taco": "Walking taco (taco servi dans un sachet de croustilles)",
+      "corn dog": "corn dog (saucisse enrobée de pâte de maïs)",
+      "mini chicken corn dogs": "mini corn dogs au poulet (saucisses de poulet enrobées de pâte de maïs)",
+      "pretzel dog": "pretzel dog (saucisse enveloppée de pâte à bretzel)",
+      "pizza crunchers": "Pizza Crunchers",
+      "sloppy joe sandwich": "sandwich Sloppy Joe",
+      "sunbutter & jelly sandwich": "sandwich au SunButter et à la confiture",
+      "sunbutter & grape sandwich": "sandwich au SunButter et à la gelée de raisin",
+
+      // Common entrées.
+      "popcorn chicken bowl": "bol de bouchées de poulet croustillant",
+      "popcorn chicken": "bouchées de poulet croustillant",
+      "personal turkey & beef pepperoni pizza": "pizza individuelle au pepperoni de dinde et de bœuf",
+      "personal cheese pizza": "pizza individuelle au fromage",
+      "cheese pizza": "pizza au fromage",
+      "pepperoni pizza": "pizza au pepperoni",
+      "hawaiian pizza": "pizza hawaïenne",
+      "bbq chicken pizza": "pizza au poulet barbecue",
+      "buffalo chicken pizza": "pizza au poulet Buffalo",
+      "philly cheesesteak pizza": "pizza au cheesesteak de Philadelphie",
+      "veggie pizza": "pizza aux légumes",
+      "cheeseburger on a bun": "cheeseburger sur pain",
+      "hamburger on a bun": "hamburger sur pain",
+      "cheeseburger / hamburger": "cheeseburger / hamburger",
+      "all-beef hot dog": "hot-dog tout bœuf",
+      "beef hot dog on bun": "hot-dog de bœuf sur pain",
+      "hot dog": "hot-dog",
+      "spicy chicken sandwich": "sandwich au poulet épicé",
+      "spicy breaded chicken sandwich": "sandwich au poulet pané épicé",
+      "crispy chicken sandwich": "sandwich au poulet croustillant",
+      "breaded chicken breast patty sandwich": "sandwich à la galette de poitrine de poulet panée",
+      "baked chicken breast sandwich - halal friendly": "sandwich à la poitrine de poulet cuite au four — compatible halal",
+      "baked chicken breast - halal": "poitrine de poulet cuite au four — halal",
+      "bbq chicken sandwich": "sandwich au poulet barbecue",
+      "bbq beef sandwich": "sandwich au bœuf barbecue",
+      "chicken philly cheesesteak sandwich": "sandwich au poulet façon cheesesteak de Philadelphie",
+      "italian beef sandwich": "sandwich italien au bœuf",
+      "grilled cheese sandwich": "sandwich au fromage grillé",
+      "gourmet grilled cheese": "sandwich gourmet au fromage grillé",
+      "spicy grilled cheese": "sandwich épicé au fromage grillé",
+      "black bean burger": "burger aux haricots noirs",
+      "california veggie burger": "burger végétarien façon Californie",
+      "bacon-jalapeño cheeseburger": "cheeseburger au bacon et jalapeño",
+      "bacon-jalapeÃ±o cheeseburger": "cheeseburger au bacon et jalapeño",
+
+      // Chicken / meat dishes.
+      "chicken nuggets & dinner roll": "nuggets de poulet et petit pain",
+      "chicken nuggets": "nuggets de poulet",
+      "chicken tenders & dinner roll": "aiguillettes de poulet et petit pain",
+      "hot & spicy chicken tenders & dinner roll": "aiguillettes de poulet très épicées et petit pain",
+      "chicken tenders": "aiguillettes de poulet",
+      "spicy chicken tenders": "aiguillettes de poulet épicées",
+      "bbq chicken boneless wings": "ailes de poulet désossées barbecue",
+      "boneless wings & biscuit": "ailes désossées et biscuit",
+      "chicken wings": "ailes de poulet",
+      "buffalo chicken bites": "bouchées de poulet Buffalo",
+      "buffalo chicken wrap": "wrap au poulet Buffalo",
+      "bbq chicken flatbread": "pain plat au poulet barbecue",
+      "bbq pulled chicken": "poulet effiloché barbecue",
+      "breaded chicken drumstick": "pilon de poulet pané",
+      "orange chicken": "poulet à l’orange",
+      "orange chicken bowl": "bol de poulet à l’orange",
+      "general tso chicken": "poulet General Tso",
+      "honey lemon chicken": "poulet au miel et au citron",
+      "teriyaki meatballs": "boulettes teriyaki",
+      "teriyaki chicken stir-fry rice bowl": "bol de riz au poulet teriyaki sauté",
+      "chicken stir-fry": "sauté de poulet",
+      "chicken fried rice": "riz frit au poulet",
+      "chicken & vegetable dumplings": "raviolis de poulet et légumes",
+      "chicken fajita tacos": "tacos aux fajitas de poulet",
+      "chicken tacos": "tacos au poulet",
+      "beef tacos": "tacos au bœuf",
+      "soft beef tacos": "tacos mous au bœuf",
+      "black bean fajita tacos": "tacos aux fajitas de haricots noirs",
+      "beef quesadilla": "quesadilla au bœuf",
+      "cheese quesadilla": "quesadilla au fromage",
+      "beef chili nachos": "nachos au chili de bœuf",
+      "cheese nachos": "nachos au fromage",
+      "bbq meatball sub": "sous-marin aux boulettes barbecue",
+      "cheesy meatball sub": "sous-marin aux boulettes et au fromage",
+      "beef meatball sub": "sous-marin aux boulettes de bœuf",
+      "beef or vegetarian meatball sub": "sous-marin aux boulettes de bœuf ou végétariennes",
+      "philly cheesesteak": "cheesesteak de Philadelphie",
+      "beef gyros": "gyro au bœuf",
+      "chicken shawarma": "shawarma au poulet",
+      "bbq pork sliders": "mini-sandwichs au porc barbecue",
+
+      // Pasta, grains, breakfast.
+      "macaroni & cheese": "macaroni au fromage",
+      "mac ’n cheese": "macaroni au fromage",
+      "mac 'n cheese": "macaroni au fromage",
+      "penne pasta with chicken": "penne au poulet",
+      "penne pasta & chicken parmesan": "penne et poulet parmesan",
+      "rotini pasta with meat sauce": "rotini à la sauce à la viande",
+      "cheese ravioli": "raviolis au fromage",
+      "spaghetti": "spaghettis",
+      "spaghetti & meatballs": "spaghettis aux boulettes",
+      "alfredo or red sauce": "sauce Alfredo ou sauce tomate",
+      "alfredo or meat sauce": "sauce Alfredo ou sauce à la viande",
+      "pancakes with syrup & turkey sausage links": "crêpes américaines au sirop et saucisses de dinde",
+      "pancakes with strawberry topping": "crêpes américaines avec garniture aux fraises",
+      "pancakes & scrambled eggs": "crêpes américaines et œufs brouillés",
+      "waffles & scrambled eggs": "gaufres et œufs brouillés",
+      "chicken & waffles": "poulet et gaufres",
+      "chicken ’n waffles": "poulet et gaufres",
+      "chicken 'n waffles": "poulet et gaufres",
+      "chicken & waffles syrup": "poulet, gaufres et sirop",
+      "french toast bites": "bouchées de pain doré",
+      "biscuit & gravy": "biscuit avec sauce gravy",
+      "scrambled eggs": "œufs brouillés",
+      "sausage link": "saucisse",
+      "turkey sausage links": "saucisses de dinde",
+      "bacon": "bacon",
+      "hash browns": "pommes de terre rissolées",
+      "roasted potatoes": "pommes de terre rôties",
+      "breakfast bar": "bar du petit-déjeuner",
+
+      // Salads, wraps, subs, snack packs.
+      "garden salad with cheese": "salade composée avec fromage",
+      "vegetarian chopped salad": "salade végétarienne hachée",
+      "vegetarian chopped salad with": "salade végétarienne hachée avec",
+      "crispy chicken caesar salad": "salade César au poulet croustillant",
+      "crispy chicken garden salad": "salade composée au poulet croustillant",
+      "chicken garden salad": "salade composée au poulet",
+      "chef salad": "salade du chef",
+      "spinach berry salad": "salade d’épinards et de petits fruits",
+      "blt ranch wrap": "wrap BLT à la sauce ranch",
+      "veggie & cheese wrap": "wrap aux légumes et au fromage",
+      "hummus & roasted vegetable wrap": "wrap au houmous et aux légumes rôtis",
+      "hummus, cheese & vegetable wrap": "wrap au houmous, fromage et légumes",
+      "turkey & cheese sub": "sous-marin à la dinde et au fromage",
+      "turkey ham & cheese sub": "sous-marin au jambon de dinde et au fromage",
+      "hummus & veggie snack pack": "collation de houmous et légumes",
+      "homemade hummus & veggie snack pack": "collation de houmous maison et légumes",
+      "taco hummus & veggie snack pack": "collation de houmous façon taco et légumes",
+      "chocolate chickpea & apple snack pack": "collation de pois chiches au chocolat et pomme",
+      "chocolate chickpea & strawberry snack pack": "collation de pois chiches au chocolat et fraise",
+      "chocolate chickpea sandwich": "sandwich aux pois chiches au chocolat",
+      "granola, yogurt & fruit pack": "collation de granola, yogourt et fruits",
+      "yogurt & fruit pack": "collation de yogourt et fruits",
+      "yogurt fruit & cheese snack pack": "collation de yogourt, fruits et fromage",
+      "crackers & cheese snack pack": "collation de craquelins et fromage",
+      "power pack snack kit": "trousse de collation Power Pack",
+      "fruit ’n yogurt kit": "trousse de fruits et yogourt",
+      "fruit 'n yogurt kit": "trousse de fruits et yogourt",
+      "protein power pack": "Power Pack protéiné",
+      "yogurt & muffin power pack": "Power Pack au yogourt et muffin",
+      "hummus & pita power pack": "Power Pack au houmous et pita",
+      "italian turkey sandwich": "sandwich italien à la dinde",
+
+      // Sides / sauces / vegetables.
+      "mashed potatoes": "purée de pommes de terre",
+      "green beans": "haricots verts",
+      "tomato soup": "soupe aux tomates",
+      "baked beans": "fèves au lard",
+      "refried beans": "haricots frits",
+      "fiesta black beans": "haricots noirs façon fiesta",
+      "seasoned pinto beans": "haricots pinto assaisonnés",
+      "spanish rice": "riz espagnol",
+      "vegetable fried rice": "riz frit aux légumes",
+      "mexican street corn": "maïs de rue mexicain",
+      "roasted corn & peppers": "maïs et poivrons rôtis",
+      "peppers & onions": "poivrons et oignons",
+      "baked potato": "pomme de terre au four",
+      "cornbread": "pain de maïs",
+      "texas toast": "pain grillé façon Texas",
+      "garlic breadstick": "bâtonnet de pain à l’ail",
+      "cheesy garlic bread": "pain à l’ail gratiné",
+      "cheesy garlic breadstick": "bâtonnet de pain à l’ail et au fromage",
+      "jalapeño cheese sauce": "sauce au fromage et jalapeño",
+      "jalapeño cheddar biscuit": "biscuit au cheddar et jalapeño",
+      "cheese sauce": "sauce au fromage",
+      "soft pretzel sticks & cheese sauce": "bâtonnets de bretzel moelleux avec sauce au fromage",
+      "mozzarella sticks": "bâtonnets de mozzarella",
+      "mozzarella cheese stick": "bâtonnet de mozzarella",
+      "vegetable eggroll": "rouleau aux légumes",
+      "pita, hummus & tzatziki": "pita, houmous et tzatziki",
+
+      // Smoothies / sweets.
+      "strawberry yogurt smoothie": "smoothie au yogourt et aux fraises",
+      "mixed berry yogurt smoothie": "smoothie au yogourt et aux petits fruits",
+      "strawberry orange yogurt smoothie": "smoothie au yogourt, fraises et orange",
+      "strawberry pineapple yogurt smoothie": "smoothie au yogourt, fraises et ananas",
+      "cinnamon sugar donut holes": "bouchées de beignet au sucre et à la cannelle",
+
+      // Miscellaneous Unit 4 wording.
+      "build-your-own nacho kit": "trousse pour préparer ses propres nachos",
+      "build-your-own pizza kit": "trousse pour préparer sa propre pizza",
+      "vegetarian chicken nuggets": "nuggets végétariens style poulet",
+      "vegetarian nuggets": "nuggets végétariens",
+      "beef with broccoli": "bœuf au brocoli",
+      "beef or vegetarian chili": "chili au bœuf ou végétarien",
+      "chili": "chili",
+      "vegetarian chili": "chili végétarien",
+      "cajun chicken pasta": "pâtes cajun au poulet",
+      "seasoned taco beef - sub recipe": "bœuf assaisonné pour tacos — recette de remplacement",
+      "seasoned taco chicken": "poulet assaisonné pour tacos",
+      "school closed": "école fermée"
+    }
+  };
+
+  const MEAL_ROW_LABELS = {
+    es: {
+      "breakfast": "Desayuno",
+      "lunch": "Almuerzo",
+      "pm snack": "Merienda"
+    },
+    fr: {
+      "breakfast": "Petit-déjeuner",
+      "lunch": "Déjeuner",
+      "pm snack": "Collation de l’après-midi"
+    }
+  };
+
+  function foodKey(value){
+    return String(value || "")
+      .trim()
+      .replace(/[–—]/g, "-")
+      .replace(/[‘’]/g, "’")
+      .replace(/\s+/g, " ")
+      .toLowerCase();
+  }
+
+  function exactFoodTranslation(value){
+    if (language === "en") return String(value || "");
+    const raw = String(value || "").trim();
+    return FOOD_TRANSLATIONS[language]?.[foodKey(raw)] || raw;
+  }
+
+  function translateFoodSegments(value, separator){
+    const parts = String(value).split(separator);
+    if (parts.length <= 1) return exactFoodTranslation(value);
+    return parts
+      .map(part => exactFoodTranslation(part.trim()))
+      .join(separator);
+  }
+
+  function translateFoodItem(value){
+    const raw = String(value || "").trim();
+    if (!raw || language === "en") return raw;
+
+    const exact = FOOD_TRANSLATIONS[language]?.[foodKey(raw)];
+    if (exact) return exact;
+
+    // Chesterbrook publishes each meal period as a single row such as:
+    // "Breakfast: WG Blueberry Loaf, Diced Pears, 1% Milk, Whole Milk".
+    // Translate the row label and each recognizable food component while
+    // leaving any unfamiliar component exactly as the school published it.
+    const mealMatch = raw.match(/^(Breakfast|Lunch|PM Snack)\s*:\s*(.+)$/i);
+    if (mealMatch){
+      const labelKey = mealMatch[1].toLowerCase();
+      const label = MEAL_ROW_LABELS[language]?.[labelKey] || mealMatch[1];
+      const foods = mealMatch[2]
+        .split(/\s*,\s*/)
+        .map(part => exactFoodTranslation(part))
+        .join(", ");
+      return `${label}: ${foods}`;
+    }
+
+    // Some Unit 4 strings contain a station name followed by several foods.
+    // Keep the official station name, translating only the food portion.
+    const stationMatch = raw.match(
+      /^(Cafe Classics|Grill Zone|Grab [’']n Go|Breakfast bar)\s*:\s*(.+)$/i
+    );
+    if (stationMatch){
+      const translatedFoods = stationMatch[2]
+        .split(/\s*\/\s*/)
+        .map(part => exactFoodTranslation(part))
+        .join(" / ");
+      return `${stationMatch[1]}: ${translatedFoods}`;
+    }
+
+    // Slash-separated menu choices are common. Translate each recognized
+    // component independently; unknown components remain English.
+    if (raw.includes("/")){
+      return raw
+        .split(/\s*\/\s*/)
+        .map(part => exactFoodTranslation(part))
+        .join(" / ");
+    }
+
+    return raw;
   }
 
   function applyStaticTranslations(){
@@ -16879,10 +17398,10 @@
     const visible = items.slice(0,6);
     const extra = items.slice(6);
     return `
-      ${visible.map(c => `<div class="menu-choice">${escapeHtml(c)}</div>`).join("")}
+      ${visible.map(c => `<div class="menu-choice">${escapeHtml(translateFoodItem(c))}</div>`).join("")}
       ${extra.length ? `
         <div class="menu-extra" id="${idPrefix}-extra" hidden>
-          ${extra.map(c => `<div class="menu-choice">${escapeHtml(c)}</div>`).join("")}
+          ${extra.map(c => `<div class="menu-choice">${escapeHtml(translateFoodItem(c))}</div>`).join("")}
         </div>
         <button type="button" class="menu-more" data-target="${idPrefix}-extra">${escapeHtml(t("moreChoices",{count:extra.length}))}</button>
       ` : ""}
@@ -16987,7 +17506,7 @@
         return `<span style="display:block;margin-top:5px">${schoolPips(mealSchoolIds)}<strong>${escapeHtml(mealNames)} · ${escapeHtml(translateMenuGroupLabel(x.group.label))}:</strong> ${escapeHtml(x.lunch.label)}</span>`;
       }
 
-      const preview = x.lunch.items.slice(0,3).map(escapeHtml).join(" · ");
+      const preview = x.lunch.items.slice(0,3).map(item => escapeHtml(translateFoodItem(item))).join(" · ");
       const more = Math.max(0, x.lunch.items.length - 3);
       return `<span style="display:block;margin-top:5px">
         ${schoolPips(mealSchoolIds)}<strong>${escapeHtml(mealNames)} · ${escapeHtml(translateMenuGroupLabel(x.group.label))}:</strong> ${preview}${more ? ` · ${escapeHtml(t("more",{count:more}))}` : ""}
@@ -17008,7 +17527,7 @@
         if (x.lunch.status === "none"){
           return `<span class="week-meal-station"><strong>${escapeHtml(label)}:</strong> ${escapeHtml(x.lunch.label)}</span>`;
         }
-        const preview = x.lunch.items.slice(0,3).map(escapeHtml).join(" · ");
+        const preview = x.lunch.items.slice(0,3).map(item => escapeHtml(translateFoodItem(item))).join(" · ");
         const more = Math.max(0, x.lunch.items.length - 3);
         return `<span class="week-meal-station">
           <strong>${escapeHtml(label)}:</strong> ${preview}${more ? ` · ${escapeHtml(t("more",{count:more}))}` : ""}
