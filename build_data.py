@@ -33,6 +33,11 @@ from collectors.holycross import (
     fetch_holycross_calendar,
     fetch_holycross_homepage,
 )
+from collectors.arbiter import ARBITER_SOURCES, fetch_arbiter_source
+from collectors.nextgen import (
+    EARLY_SOURCE_NAME as NEXTGEN_EARLY_SOURCE,
+    fetch_nextgen_early_closures,
+)
 from collectors.montessori import SOURCE_NAME as MONTESSORI_SOURCE, fetch_montessori_calendar
 from collectors.usd116_calendar import SOURCE_NAME as USD116_CALENDAR_SOURCE, fetch_usd116_calendar
 from collectors.usd116_schoolfeeds import SCHOOL_FEEDS, SOURCE_PREFIX as USD116_SCHOOLFEED_PREFIX, fetch_school_feed
@@ -462,6 +467,55 @@ def build(*, offline: bool = False) -> dict:
                     "error": f"{type(exc).__name__}: {exc}",
                 })
         snap_events.extend(source_events)
+
+    # Shared ArbiterLive athletics layer. Uni High, UHS, and UMS are present
+    # in the Arbiter opponent map but have fetch=False because their existing
+    # Snap! feeds remain the primary athletics sources.
+    arbiter_events: list[dict] = []
+    for cfg in ARBITER_SOURCES:
+        if not cfg.get("fetch", True):
+            continue
+
+        if offline:
+            source_events = previous_source_events(cfg["name"])
+            source_events, _, _ = filter_events_to_rolling_window(
+                source_events,
+                reference=today,
+            )
+            source_status.append({
+                "id": cfg["id"],
+                "status": "cached" if source_events else "failed",
+                "count": len(source_events),
+                "unit": "events",
+            })
+        else:
+            try:
+                source_events = fetch_arbiter_source(cfg, reference=today)
+                source_events, _, _ = filter_events_to_rolling_window(
+                    source_events,
+                    reference=today,
+                )
+                source_status.append({
+                    "id": cfg["id"],
+                    "status": "live",
+                    "count": len(source_events),
+                    "unit": "events",
+                })
+            except Exception as exc:
+                source_events = previous_source_events(cfg["name"])
+                source_events, _, _ = filter_events_to_rolling_window(
+                    source_events,
+                    reference=today,
+                )
+                source_status.append({
+                    "id": cfg["id"],
+                    "status": "cached" if source_events else "failed",
+                    "count": len(source_events),
+                    "unit": "events",
+                    "error": f"{type(exc).__name__}: {exc}",
+                })
+
+        arbiter_events.extend(source_events)
 
     # USD 116 district school-year calendar. This replaces the hand-entered
     # USD 116 schedule records while leaving school-specific events untouched.
@@ -992,6 +1046,22 @@ def build(*, offline: bool = False) -> dict:
                 "error": f"{type(exc).__name__}: {exc}",
             })
 
+    # Next Generation Early Education, Preschool, and Transitional
+    # Kindergarten operate year-round and publish a separate 2026 closure
+    # schedule. Do not apply the older 2025-26 Primary/Middle calendar to
+    # 2026-27 dates.
+    nextgen_early_events = fetch_nextgen_early_closures(reference=today)
+    nextgen_early_events, _, _ = filter_events_to_rolling_window(
+        nextgen_early_events,
+        reference=today,
+    )
+    source_status.append({
+        "id": "nextgen-early-closures",
+        "status": "live",
+        "count": len(nextgen_early_events),
+        "unit": "events",
+    })
+
     # Montessori School of Champaign-Urbana: public Google Calendar
     # discovered from the school's own Import Google Calendar control.
     if offline:
@@ -1172,6 +1242,7 @@ def build(*, offline: bool = False) -> dict:
     event_candidates = (
         static_events
         + snap_events
+        + arbiter_events
         + usd116_calendar_events
         + usd116_school_events
         + unit4_school_events
@@ -1185,6 +1256,7 @@ def build(*, offline: bool = False) -> dict:
         + uniprimary_events
         + holycross_calendar_events
         + holycross_homepage_events
+        + nextgen_early_events
         + montessori_events
         + countryside_events
         + library_events
