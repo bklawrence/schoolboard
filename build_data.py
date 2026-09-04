@@ -27,6 +27,12 @@ from collectors.academyhigh import (
     fetch_academy_newsletter,
 )
 from collectors.uniprimary import SOURCE_NAME as UNIPRIMARY_SOURCE, fetch_uniprimary_calendar
+from collectors.holycross import (
+    CALENDAR_SOURCE_NAME as HOLYCROSS_CALENDAR_SOURCE,
+    HOMEPAGE_SOURCE_NAME as HOLYCROSS_HOMEPAGE_SOURCE,
+    fetch_holycross_calendar,
+    fetch_holycross_homepage,
+)
 from collectors.montessori import SOURCE_NAME as MONTESSORI_SOURCE, fetch_montessori_calendar
 from collectors.usd116_calendar import SOURCE_NAME as USD116_CALENDAR_SOURCE, fetch_usd116_calendar
 from collectors.usd116_schoolfeeds import SCHOOL_FEEDS, SOURCE_PREFIX as USD116_SCHOOLFEED_PREFIX, fetch_school_feed
@@ -905,6 +911,87 @@ def build(*, offline: bool = False) -> dict:
                 "error": f"{type(exc).__name__}: {exc}",
             })
 
+    # Holy Cross Catholic School: public Google Calendar plus the school's
+    # homepage upcoming-dates block. These are kept as separate public sources
+    # so one can remain live if the other has a transient failure.
+    if offline:
+        holycross_calendar_events = previous_source_events(HOLYCROSS_CALENDAR_SOURCE)
+        holycross_calendar_events, _, _ = filter_events_to_rolling_window(
+            holycross_calendar_events,
+            reference=today,
+        )
+        source_status.append({
+            "id": "holycross-calendar",
+            "status": "cached" if holycross_calendar_events else "failed",
+            "count": len(holycross_calendar_events),
+            "unit": "events",
+        })
+    else:
+        try:
+            holycross_calendar_events = fetch_holycross_calendar()
+            holycross_calendar_events, _, _ = filter_events_to_rolling_window(
+                holycross_calendar_events,
+                reference=today,
+            )
+            source_status.append({
+                "id": "holycross-calendar",
+                "status": "live",
+                "count": len(holycross_calendar_events),
+                "unit": "events",
+            })
+        except Exception as exc:
+            holycross_calendar_events = previous_source_events(HOLYCROSS_CALENDAR_SOURCE)
+            holycross_calendar_events, _, _ = filter_events_to_rolling_window(
+                holycross_calendar_events,
+                reference=today,
+            )
+            source_status.append({
+                "id": "holycross-calendar",
+                "status": "cached" if holycross_calendar_events else "failed",
+                "count": len(holycross_calendar_events),
+                "unit": "events",
+                "error": f"{type(exc).__name__}: {exc}",
+            })
+
+    if offline:
+        holycross_homepage_events = previous_source_events(HOLYCROSS_HOMEPAGE_SOURCE)
+        holycross_homepage_events, _, _ = filter_events_to_rolling_window(
+            holycross_homepage_events,
+            reference=today,
+        )
+        source_status.append({
+            "id": "holycross-homepage",
+            "status": "cached" if holycross_homepage_events else "failed",
+            "count": len(holycross_homepage_events),
+            "unit": "events",
+        })
+    else:
+        try:
+            holycross_homepage_events = fetch_holycross_homepage(reference=today)
+            holycross_homepage_events, _, _ = filter_events_to_rolling_window(
+                holycross_homepage_events,
+                reference=today,
+            )
+            source_status.append({
+                "id": "holycross-homepage",
+                "status": "live",
+                "count": len(holycross_homepage_events),
+                "unit": "events",
+            })
+        except Exception as exc:
+            holycross_homepage_events = previous_source_events(HOLYCROSS_HOMEPAGE_SOURCE)
+            holycross_homepage_events, _, _ = filter_events_to_rolling_window(
+                holycross_homepage_events,
+                reference=today,
+            )
+            source_status.append({
+                "id": "holycross-homepage",
+                "status": "cached" if holycross_homepage_events else "failed",
+                "count": len(holycross_homepage_events),
+                "unit": "events",
+                "error": f"{type(exc).__name__}: {exc}",
+            })
+
     # Montessori School of Champaign-Urbana: public Google Calendar
     # discovered from the school's own Import Google Calendar control.
     if offline:
@@ -1096,6 +1183,8 @@ def build(*, offline: bool = False) -> dict:
         + academy_calendar_events
         + academy_newsletter_events
         + uniprimary_events
+        + holycross_calendar_events
+        + holycross_homepage_events
         + montessori_events
         + countryside_events
         + library_events
