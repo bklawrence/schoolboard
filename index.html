@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Chambana Schoolboard — your school day + week</title>
-  <!-- Chambana Schoolboard v39 event translations; selection storage intentionally remains v18-compatible. -->
+  <!-- Chambana Schoolboard v42 BPAC wording and venue cleanup; selection storage intentionally remains v18-compatible. -->
   <style>
     :root{
       --paper:#f3eedf;
@@ -2106,6 +2106,7 @@
       "school picture retake day": "Día de repetición de fotos escolares",
       "career day": "Día de las profesiones",
       "parent ed night": "Noche de educación para familias",
+      "spanish parents dual language — bpac": "Reunión de padres del programa de lenguaje dual en español — BPAC",
       "homecoming week": "Semana de Homecoming",
       "pta meeting": "Reunión de la PTA",
       "ptf meeting": "Reunión de la PTF",
@@ -2212,6 +2213,7 @@
       "school picture retake day": "Journée de reprise des photos scolaires",
       "career day": "Journée des carrières",
       "parent ed night": "Soirée d’information pour les familles",
+      "spanish parents dual language — bpac": "Réunion des parents du programme bilingue espagnol — BPAC",
       "homecoming week": "Semaine du Homecoming",
       "pta meeting": "Réunion de la PTA",
       "ptf meeting": "Réunion de la PTF",
@@ -2555,6 +2557,32 @@
     if (["sport","athletics"].includes(String(category || "").toLowerCase())) return true;
     const key = String(title || "").toLowerCase();
     return /\b(soccer|football|basketball|baseball|softball|volleyball|golf|tennis|wrestling|cross country|track|xc|swim|diving|cheerleading)\b/i.test(key);
+  }
+
+  const LOCATION_PHRASES = {
+    es: [
+      ["Gymnasium", "Gimnasio"],
+      ["Gym", "Gimnasio"],
+      ["Library", "Biblioteca"],
+      ["Cafeteria", "Cafetería"],
+      ["Auditorium", "Auditorio"]
+    ],
+    fr: [
+      ["Gymnasium", "Gymnase"],
+      ["Gym", "Gymnase"],
+      ["Library", "Bibliothèque"],
+      ["Cafeteria", "Cafétéria"],
+      ["Auditorium", "Auditorium"]
+    ]
+  };
+
+  function translateLocationText(value){
+    let out = String(value || "");
+    if (!out || language === "en") return out;
+    for (const [source, target] of (LOCATION_PHRASES[language] || [])){
+      out = replacePhraseCI(out, source, target);
+    }
+    return out;
   }
 
   function translateEventTitle(title, category=""){
