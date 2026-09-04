@@ -132,10 +132,27 @@ KNOWN_OPPONENTS = {
     "st. matthew catholic school": "stmatthew",
     "st matthew school": "stmatthew",
     "st. matthew school": "stmatthew",
+    "st matthews school champaign": "stmatthew",
+    "st. matthews school-champaign": "stmatthew",
     "st john lutheran school": "stjohn",
     "st. john lutheran school": "stjohn",
     "judah christian school": "judah",
     "judah christian": "judah",
+}
+
+SCHOOL_DISPLAY_NAMES = {
+    "central": "Champaign Central",
+    "edison": "Edison",
+    "franklin": "Franklin",
+    "holycross": "Holy Cross",
+    "jefferson": "Jefferson",
+    "nextgen": "Next Generation",
+    "uni": "Uni High",
+    "uhs": "Urbana High",
+    "ums": "Urbana Middle",
+    "stmatthew": "St. Matthew",
+    "stjohn": "St. John Lutheran",
+    "judah": "Judah Christian",
 }
 
 
@@ -437,6 +454,147 @@ def parse_team_schedule(
         if event:
             events.append(event)
     return events
+
+
+def _event_status(event: dict) -> str | None:
+    detail = _clean(event.get("detail", "")).casefold()
+    title = _clean(event.get("title", "")).casefold()
+
+    if "cancel" in detail or title.startswith("canceled") or title.startswith("cancelled"):
+        return "Canceled"
+    if "postpon" in detail or title.startswith("postponed"):
+        return "Postponed"
+    return None
+
+
+def _status_rank(event: dict) -> int:
+    status = _event_status(event)
+    if status == "Canceled":
+        return 3
+    if status == "Postponed":
+        return 2
+    return 1
+
+
+def _better_mirror_record(a: dict, b: dict) -> dict:
+    """
+    Pick the stronger of two mirrored Arbiter records for the same competition.
+
+    Status-bearing records win over normal records, then cross-tagged records
+    win over single-school records. Everything else is deterministic.
+    """
+    score_a = (
+        _status_rank(a),
+        len(a.get("schools", [])),
+        bool(a.get("location")),
+        _clean(a.get("source", "")),
+    )
+    score_b = (
+        _status_rank(b),
+        len(b.get("schools", [])),
+        bool(b.get("location")),
+        _clean(b.get("source", "")),
+    )
+    return a if score_a >= score_b else b
+
+
+def _canonical_mirror_title(event: dict) -> str:
+    schools = sorted(
+        set(event.get("schools", [])),
+        key=lambda school_id: SCHOOL_DISPLAY_NAMES.get(school_id, school_id),
+    )
+    if len(schools) != 2:
+        return event.get("title", "")
+
+    team = _clean(event.get("team", "")) or _clean(event.get("sport", "")) or "Athletics"
+    left = SCHOOL_DISPLAY_NAMES.get(schools[0], schools[0])
+    right = SCHOOL_DISPLAY_NAMES.get(schools[1], schools[1])
+    base = f"{team} — {left} vs {right}"
+
+    status = _event_status(event)
+    return f"{status} — {base}" if status else base
+
+
+def dedupe_arbiter_events(events: list[dict]) -> list[dict]:
+    """
+    Collapse mirrored records discovered from both schools' Arbiter pages.
+
+    A legitimate doubleheader is preserved because start time is part of the
+    key. We also require the same sport and normalized team label, so two
+    different squads playing at the same time are not silently merged.
+    """
+    unique: dict[tuple, dict] = {}
+    passthrough: list[dict] = []
+    removed = 0
+    samples: list[str] = []
+
+    for event in events:
+        schools = sorted(set(event.get("schools", [])))
+        if len(schools) != 2:
+            passthrough.append(event)
+            continue
+
+        key = (
+            event.get("date", ""),
+            event.get("start", ""),
+            _normalize_name(event.get("sport", "")),
+            _normalize_name(event.get("team", "")),
+            tuple(schools),
+        )
+
+        if key not in unique:
+            unique[key] = dict(event)
+            continue
+
+        existing = unique[key]
+        preferred = dict(_better_mirror_record(existing, event))
+
+        # Preserve the union of both school tags even if one originating page
+        # failed to recognize the opponent spelling.
+        preferred["schools"] = sorted(
+            set(existing.get("schools", [])) | set(event.get("schools", []))
+        )
+        preferred["title"] = _canonical_mirror_title(preferred)
+
+        # Prefer a concrete location over TBA-ish data.
+        locations = [
+            _clean(existing.get("location", "")),
+            _clean(event.get("location", "")),
+        ]
+        concrete = [
+            loc for loc in locations
+            if loc and _normalize_name(loc) not in {"tba", "tba tba", "n a", "none"}
+        ]
+        if concrete:
+            preferred["location"] = max(concrete, key=len)
+        elif "location" in preferred:
+            preferred.pop("location", None)
+
+        unique[key] = preferred
+        removed += 1
+        if len(samples) < 8:
+            samples.append(
+                f"{preferred.get('date', '')} {preferred.get('start', '')} "
+                f"{preferred.get('title', '')}"
+            )
+
+    result = passthrough + list(unique.values())
+    result.sort(
+        key=lambda event: (
+            event.get("date", ""),
+            event.get("start", ""),
+            event.get("title", ""),
+        )
+    )
+
+    print(
+        "arbiter-dedupe detail: removed "
+        f"{removed} mirrored school-vs-school record(s)"
+    )
+    if samples:
+        print("arbiter-dedupe detail: sample merged events: " + "; ".join(samples))
+
+    return result
 
 
 def fetch_arbiter_source(
