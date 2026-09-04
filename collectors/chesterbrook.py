@@ -532,6 +532,9 @@ def parse_website_calendar_html(
         "calendars & menu",
         "download",
         "export calendar",
+        "export entire calendar",
+        "export format",
+        "save event",
         "end date",
         "start date",
         "add to calendar",
@@ -579,8 +582,12 @@ def parse_website_calendar_html(
                 phrase in lower
                 for phrase in (
                     "export calendar",
+                    "export entire calendar",
+                    "export format",
                     "download calendar",
                     "calendar download",
+                    "save event",
+                    "add to calendar",
                 )
             ):
                 continue
@@ -911,92 +918,99 @@ def _clean_cell_text(
     ).strip()
 
 
-def _weekday_column_bounds(
-    words: list[tuple],
+def _date_header_column_bounds(
+    header_rows: list[list[tuple]],
     *,
     page_width: float,
 ) -> list[tuple[float, float]]:
     """
-    Return the five Monday-Friday menu column bounds.
+    Derive the five Monday-Friday cell boundaries from the repeated DATE
+    headers in the monthly menu.
 
-    Chesterbrook right-aligns the numeric date inside each day cell, so the
-    date-number positions are NOT the column centers. The weekday headings
-    are centered over the five true columns and therefore provide reliable
-    geometry.
+    Chesterbrook's Excel-to-PDF template right-aligns both the weekday labels
+    and the numeric dates near the right side of each day column. Therefore
+    neither text center is the column center.
+
+    The useful invariant is that the RIGHT edge of each numeric date repeats
+    at essentially the same x-position for that weekday every week. The
+    distance between those repeated right edges is the true column width.
     """
-    weekday_order = [
-        "MONDAY",
-        "TUESDAY",
-        "WEDNESDAY",
-        "THURSDAY",
-        "FRIDAY",
+    usable_rows = [
+        sorted(row, key=lambda word: word[0])[:5]
+        for row in header_rows
+        if len(row) >= 5
     ]
-
-    centers: list[float] = []
-
-    for weekday in weekday_order:
-        matches = []
-        for word in words:
-            x0, y0, x1, y1, value = word[:5]
-            if str(value).strip().upper() == weekday:
-                matches.append(((x0 + x1) / 2, (y0 + y1) / 2))
-
-        if not matches:
-            raise RuntimeError(
-                f"Chesterbrook menu PDF did not expose the {weekday} heading"
-            )
-
-        # Use the topmost occurrence if a PDF ever repeats weekday names.
-        center_x, _ = min(matches, key=lambda item: item[1])
-        centers.append(center_x)
-
-    if any(
-        centers[idx + 1] <= centers[idx]
-        for idx in range(len(centers) - 1)
-    ):
+    if len(usable_rows) < 4:
         raise RuntimeError(
-            "Chesterbrook weekday headings were not ordered left-to-right"
+            "Chesterbrook menu did not expose enough weekly date rows "
+            "to establish five day-column boundaries"
         )
 
+    rights: list[float] = []
+    for col_idx in range(5):
+        values = sorted(
+            float(row[col_idx][2])
+            for row in usable_rows
+        )
+        middle = len(values) // 2
+        if len(values) % 2:
+            median = values[middle]
+        else:
+            median = (values[middle - 1] + values[middle]) / 2
+        rights.append(median)
+
     spacings = [
-        centers[idx + 1] - centers[idx]
-        for idx in range(len(centers) - 1)
-    ]
-    sorted_spacings = sorted(spacings)
-    spacing = (
-        (sorted_spacings[1] + sorted_spacings[2]) / 2
-        if len(sorted_spacings) == 4
-        else sum(spacings) / len(spacings)
-    )
-
-    # True edges are halfway between weekday centers. Extrapolate the outer
-    # edges by half a representative column width, with a tiny safety clamp.
-    edges = [max(0.0, centers[0] - spacing / 2)]
-    edges.extend(
-        (centers[idx] + centers[idx + 1]) / 2
+        rights[idx + 1] - rights[idx]
         for idx in range(4)
-    )
-    edges.append(min(page_width, centers[-1] + spacing / 2))
+    ]
+    if any(spacing <= 0 for spacing in spacings):
+        raise RuntimeError(
+            "Chesterbrook date headers were not ordered left-to-right"
+        )
 
+    sorted_spacings = sorted(spacings)
+    column_width = (
+        sorted_spacings[1] + sorted_spacings[2]
+    ) / 2
+
+    # The date text is inset slightly from the true right border. In this
+    # template the inset is about 3% of a column width. Apply that same inset
+    # to every repeated right-edge coordinate. Because each day's left border
+    # is the previous day's right border, this keeps the boundaries aligned
+    # without borrowing text from a neighboring column.
+    inset = column_width * 0.03
+    right_boundaries = [
+        min(page_width, value + inset)
+        for value in rights
+    ]
+
+    leftmost = max(
+        0.0,
+        right_boundaries[0] - column_width,
+    )
+
+    edges = [leftmost] + right_boundaries
     bounds = [
         (edges[idx], edges[idx + 1])
         for idx in range(5)
     ]
 
-    # Basic sanity guard: each cell should be substantial and similar in size.
-    widths = [right - left for left, right in bounds]
+    widths = [
+        right - left
+        for left, right in bounds
+    ]
     average = sum(widths) / len(widths)
+
     if (
         average <= 0
-        or any(width < average * 0.75 for width in widths)
-        or any(width > average * 1.25 for width in widths)
+        or any(width < average * 0.80 for width in widths)
+        or any(width > average * 1.20 for width in widths)
     ):
         raise RuntimeError(
-            "Chesterbrook weekday headings produced implausible column widths"
+            "Chesterbrook date headers produced implausible day-column widths"
         )
 
     return bounds
-
 
 def parse_menu_words(
     words: list[tuple],
@@ -1023,6 +1037,11 @@ def parse_menu_words(
         year,
         month,
     )[1]
+
+    day_column_bounds = _date_header_column_bounds(
+        header_rows,
+        page_width=page_width,
+    )
 
     for row_idx, header_words in enumerate(
         header_rows
@@ -1095,11 +1114,6 @@ def parse_menu_words(
             ),
         }
 
-        weekday_bounds = _weekday_column_bounds(
-            words,
-            page_width=page_width,
-        )
-
         for col_idx, header_word in enumerate(
             header_words
         ):
@@ -1128,7 +1142,7 @@ def parse_menu_words(
             ):
                 continue
 
-            x_left, x_right = weekday_bounds[col_idx]
+            x_left, x_right = day_column_bounds[col_idx]
 
             meal_parts = []
             closed = False
