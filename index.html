@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Chambana Schoolboard — your school day + week</title>
-  <!-- Chambana Schoolboard v24; selection storage intentionally remains v18-compatible. -->
+  <!-- Chambana Schoolboard v25; selection storage intentionally remains v18-compatible. -->
   <style>
     :root{
       --paper:#f3eedf;
@@ -927,10 +927,41 @@
 <script>
 (() => {
   const DATA_URL = "schoolboard-data.json";
-  function localISODate(d = new Date()){
-    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  const SCHOOLBOARD_TZ = "America/Chicago";
+
+  function centralISODate(d = new Date()){
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone: SCHOOLBOARD_TZ,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit"
+    }).formatToParts(d);
+
+    const values = Object.fromEntries(
+      parts.map(part => [part.type, part.value])
+    );
+
+    return `${values.year}-${values.month}-${values.day}`;
   }
-  const TODAY = localISODate();
+
+  const TODAY = centralISODate();
+  const PAGE_DATE = TODAY;
+
+  function checkForNewSchoolboardDay(){
+    if (centralISODate() !== PAGE_DATE){
+      location.reload();
+    }
+  }
+
+  setInterval(checkForNewSchoolboardDay, 60 * 1000);
+
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden){
+      checkForNewSchoolboardDay();
+    }
+  });
+
+  window.addEventListener("focus", checkForNewSchoolboardDay);
 
   const SCHOOLS = [
   {
