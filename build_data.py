@@ -26,6 +26,7 @@ from collectors.academyhigh import (
     fetch_academy_calendar,
     fetch_academy_newsletter,
 )
+from collectors.uniprimary import SOURCE_NAME as UNIPRIMARY_SOURCE, fetch_uniprimary_calendar
 from collectors.montessori import SOURCE_NAME as MONTESSORI_SOURCE, fetch_montessori_calendar
 from collectors.usd116_calendar import SOURCE_NAME as USD116_CALENDAR_SOURCE, fetch_usd116_calendar
 from collectors.usd116_schoolfeeds import SCHOOL_FEEDS, SOURCE_PREFIX as USD116_SCHOOLFEED_PREFIX, fetch_school_feed
@@ -863,6 +864,47 @@ def build(*, offline: bool = False) -> dict:
         academy_newsletter_events,
     )
 
+    # University Primary School: public University of Illinois WebTools
+    # iCalendar feed.
+    if offline:
+        uniprimary_events = previous_source_events(UNIPRIMARY_SOURCE)
+        uniprimary_events, _, _ = filter_events_to_rolling_window(
+            uniprimary_events,
+            reference=today,
+        )
+        source_status.append({
+            "id": "uniprimary-calendar",
+            "status": "cached" if uniprimary_events else "failed",
+            "count": len(uniprimary_events),
+            "unit": "events",
+        })
+    else:
+        try:
+            uniprimary_events = fetch_uniprimary_calendar()
+            uniprimary_events, _, _ = filter_events_to_rolling_window(
+                uniprimary_events,
+                reference=today,
+            )
+            source_status.append({
+                "id": "uniprimary-calendar",
+                "status": "live",
+                "count": len(uniprimary_events),
+                "unit": "events",
+            })
+        except Exception as exc:
+            uniprimary_events = previous_source_events(UNIPRIMARY_SOURCE)
+            uniprimary_events, _, _ = filter_events_to_rolling_window(
+                uniprimary_events,
+                reference=today,
+            )
+            source_status.append({
+                "id": "uniprimary-calendar",
+                "status": "cached" if uniprimary_events else "failed",
+                "count": len(uniprimary_events),
+                "unit": "events",
+                "error": f"{type(exc).__name__}: {exc}",
+            })
+
     # Montessori School of Champaign-Urbana: public Google Calendar
     # discovered from the school's own Import Google Calendar control.
     if offline:
@@ -1053,6 +1095,7 @@ def build(*, offline: bool = False) -> dict:
         + judah_athletics_events
         + academy_calendar_events
         + academy_newsletter_events
+        + uniprimary_events
         + montessori_events
         + countryside_events
         + library_events
