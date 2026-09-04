@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Chambana Schoolboard — your school day + week</title>
-  <!-- Chambana Schoolboard v38 food dictionary additions; selection storage intentionally remains v18-compatible. -->
+  <!-- Chambana Schoolboard v39 event translations; selection storage intentionally remains v18-compatible. -->
   <style>
     :root{
       --paper:#f3eedf;
@@ -2081,6 +2081,498 @@
     }
 
     return cleaned;
+  }
+
+
+  const EVENT_EXACT = {
+    es: {
+      "school closed": "Escuela cerrada",
+      "labor day — no school": "Día del Trabajo — No hay clases",
+      "labor day--no school": "Día del Trabajo — No hay clases",
+      "no school - labor day": "No hay clases — Día del Trabajo",
+      "no school- labor day": "No hay clases — Día del Trabajo",
+      "labor day — school closed": "Día del Trabajo — Escuela cerrada",
+      "fall break — no school": "Receso de otoño — No hay clases",
+      "fall break (no school)": "Receso de otoño — No hay clases",
+      "first day of school": "Primer día de clases",
+      "first day of fall semester": "Primer día del semestre de otoño",
+      "early dismissal": "Salida temprana",
+      "early release": "Salida temprana",
+      "picture day": "Día de fotos escolares",
+      "school picture day": "Día de fotos escolares",
+      "fall picture day!": "Día de fotos escolares de otoño",
+      "picture retakes day": "Día de repetición de fotos escolares",
+      "picture retake day": "Día de repetición de fotos escolares",
+      "school picture retake day": "Día de repetición de fotos escolares",
+      "career day": "Día de las profesiones",
+      "parent ed night": "Noche de educación para familias",
+      "homecoming week": "Semana de Homecoming",
+      "pta meeting": "Reunión de la PTA",
+      "ptf meeting": "Reunión de la PTF",
+      "csa meeting": "Reunión de la CSA",
+      "band concert": "Concierto de banda",
+      "fall choir concert": "Concierto de coro de otoño",
+      "band/strings concert": "Concierto de banda y cuerdas",
+      "fall orchestra / band concert": "Concierto de otoño de orquesta y banda",
+      "fall music dept. concert": "Concierto de otoño del departamento de música",
+      "end of quarter 1": "Fin del primer trimestre",
+      "end of 1st qtr": "Fin del primer trimestre",
+      "parent teacher conferences": "Conferencias de familias y maestros",
+      "teacher institute days": "Días de capacitación docente",
+      "teacher institute week": "Semana de capacitación docente",
+      "map testing": "Evaluaciones MAP",
+      "open house": "Jornada de puertas abiertas",
+      "back to school night": "Noche de regreso a clases",
+      "curriculum night": "Noche del currículo",
+      "grandparent’s day": "Día de los abuelos",
+      "grandparents day": "Día de los abuelos",
+      "hot dog day": "Día de hot dogs",
+      "living rosary": "Rosario viviente",
+      "feast week": "Semana de la fiesta patronal",
+      "baby storytime": "Hora de cuentos para bebés",
+      "preschool storytime": "Hora de cuentos para preescolares",
+      "saturday storytime": "Hora de cuentos del sábado",
+      "teen lounge": "Sala para adolescentes",
+      "crafty tales": "Cuentos y manualidades",
+      "make and take for preschoolers": "Manualidades para hacer y llevar para preescolares",
+
+      "thanksgiving break": "Receso de Acción de Gracias",
+      "winter break": "Receso de invierno",
+      "christmas break": "Receso de Navidad",
+      "holiday break": "Receso de fiestas",
+      "christmas program": "Programa de Navidad",
+      "christmas concert": "Concierto de Navidad",
+      "christmas mass": "Misa de Navidad",
+      "advent": "Adviento",
+      "hanukkah": "Janucá",
+      "lunar new year": "Año Nuevo Lunar",
+      "martin luther king jr. day": "Día de Martin Luther King Jr.",
+      "mlk day": "Día de Martin Luther King Jr.",
+      "presidents day": "Día de los Presidentes",
+      "valentine’s day": "Día de San Valentín",
+      "valentine's day": "Día de San Valentín",
+      "ash wednesday": "Miércoles de Ceniza",
+      "lent": "Cuaresma",
+      "ramadan": "Ramadán",
+      "eid": "Eid",
+      "eid al-fitr": "Eid al-Fitr",
+      "palm sunday": "Domingo de Ramos",
+      "holy week": "Semana Santa",
+      "good friday": "Viernes Santo",
+      "easter": "Pascua",
+      "easter celebration": "Celebración de Pascua",
+      "easter break": "Receso de Pascua",
+      "passover": "Pésaj",
+      "spring break": "Receso de primavera",
+      "mother’s day": "Día de la Madre",
+      "mother's day": "Día de la Madre",
+      "father’s day": "Día del Padre",
+      "father's day": "Día del Padre",
+      "field day": "Día de campo",
+      "prom": "Baile de graduación",
+      "graduation": "Graduación",
+      "commencement": "Ceremonia de graduación",
+      "baccalaureate": "Bachillerato",
+      "last day of school": "Último día de clases",
+      "summer camp": "Campamento de verano",
+      "juneteenth": "Juneteenth",
+      "memorial day": "Día de los Caídos",
+      "kindergarten roundup": "Inscripción e información para kindergarten",
+      "registration": "Inscripción",
+      "orientation": "Orientación",
+      "report cards": "Boletas de calificaciones",
+      "progress reports": "Informes de progreso",
+      "final exams": "Exámenes finales",
+      "science fair": "Feria de ciencias",
+      "book fair": "Feria del libro",
+      "spelling bee": "Concurso de ortografía",
+      "talent show": "Show de talentos",
+      "awards ceremony": "Ceremonia de premios",
+      "school board meeting": "Reunión de la junta escolar",
+      "pto meeting": "Reunión de la PTO"
+    },
+    fr: {
+      "school closed": "École fermée",
+      "labor day — no school": "Fête du Travail — Pas d’école",
+      "labor day--no school": "Fête du Travail — Pas d’école",
+      "no school - labor day": "Pas d’école — Fête du Travail",
+      "no school- labor day": "Pas d’école — Fête du Travail",
+      "labor day — school closed": "Fête du Travail — École fermée",
+      "fall break — no school": "Congé d’automne — Pas d’école",
+      "fall break (no school)": "Congé d’automne — Pas d’école",
+      "first day of school": "Premier jour d’école",
+      "first day of fall semester": "Premier jour du semestre d’automne",
+      "early dismissal": "Sortie anticipée",
+      "early release": "Sortie anticipée",
+      "picture day": "Journée des photos scolaires",
+      "school picture day": "Journée des photos scolaires",
+      "fall picture day!": "Journée des photos scolaires d’automne",
+      "picture retakes day": "Journée de reprise des photos scolaires",
+      "picture retake day": "Journée de reprise des photos scolaires",
+      "school picture retake day": "Journée de reprise des photos scolaires",
+      "career day": "Journée des carrières",
+      "parent ed night": "Soirée d’information pour les familles",
+      "homecoming week": "Semaine du Homecoming",
+      "pta meeting": "Réunion de la PTA",
+      "ptf meeting": "Réunion de la PTF",
+      "csa meeting": "Réunion de la CSA",
+      "band concert": "Concert d’harmonie",
+      "fall choir concert": "Concert d’automne de la chorale",
+      "band/strings concert": "Concert d’harmonie et de cordes",
+      "fall orchestra / band concert": "Concert d’automne de l’orchestre et de l’harmonie",
+      "fall music dept. concert": "Concert d’automne du département de musique",
+      "end of quarter 1": "Fin du premier trimestre",
+      "end of 1st qtr": "Fin du premier trimestre",
+      "parent teacher conferences": "Rencontres familles-enseignants",
+      "teacher institute days": "Journées de formation du personnel enseignant",
+      "teacher institute week": "Semaine de formation du personnel enseignant",
+      "map testing": "Évaluations MAP",
+      "open house": "Portes ouvertes",
+      "back to school night": "Soirée de rentrée",
+      "curriculum night": "Soirée sur le programme scolaire",
+      "grandparent’s day": "Journée des grands-parents",
+      "grandparents day": "Journée des grands-parents",
+      "hot dog day": "Journée hot-dog",
+      "living rosary": "Rosaire vivant",
+      "feast week": "Semaine de la fête patronale",
+      "baby storytime": "Heure du conte pour bébés",
+      "preschool storytime": "Heure du conte pour les enfants d’âge préscolaire",
+      "saturday storytime": "Heure du conte du samedi",
+      "teen lounge": "Espace ados",
+      "crafty tales": "Contes et bricolages",
+      "make and take for preschoolers": "Bricolage à fabriquer et emporter pour les enfants d’âge préscolaire",
+
+      "thanksgiving break": "Congé de l’Action de grâce",
+      "winter break": "Congé d’hiver",
+      "christmas break": "Congé de Noël",
+      "holiday break": "Congé des Fêtes",
+      "christmas program": "Programme de Noël",
+      "christmas concert": "Concert de Noël",
+      "christmas mass": "Messe de Noël",
+      "advent": "Avent",
+      "hanukkah": "Hanoucca",
+      "lunar new year": "Nouvel An lunaire",
+      "martin luther king jr. day": "Journée Martin Luther King Jr.",
+      "mlk day": "Journée Martin Luther King Jr.",
+      "presidents day": "Jour des Présidents",
+      "valentine’s day": "Saint-Valentin",
+      "valentine's day": "Saint-Valentin",
+      "ash wednesday": "Mercredi des Cendres",
+      "lent": "Carême",
+      "ramadan": "Ramadan",
+      "eid": "Aïd",
+      "eid al-fitr": "Aïd al-Fitr",
+      "palm sunday": "Dimanche des Rameaux",
+      "holy week": "Semaine sainte",
+      "good friday": "Vendredi saint",
+      "easter": "Pâques",
+      "easter celebration": "Célébration de Pâques",
+      "easter break": "Congé de Pâques",
+      "passover": "Pessa'h",
+      "spring break": "Congé de printemps",
+      "mother’s day": "Fête des Mères",
+      "mother's day": "Fête des Mères",
+      "father’s day": "Fête des Pères",
+      "father's day": "Fête des Pères",
+      "field day": "Journée sportive",
+      "prom": "Bal de fin d’année",
+      "graduation": "Remise des diplômes",
+      "commencement": "Cérémonie de remise des diplômes",
+      "baccalaureate": "Baccalauréat",
+      "last day of school": "Dernier jour d’école",
+      "summer camp": "Camp d’été",
+      "juneteenth": "Juneteenth",
+      "memorial day": "Memorial Day",
+      "kindergarten roundup": "Inscription et information pour la maternelle",
+      "registration": "Inscription",
+      "orientation": "Orientation",
+      "report cards": "Bulletins scolaires",
+      "progress reports": "Rapports de progrès",
+      "final exams": "Examens finaux",
+      "science fair": "Expo-sciences",
+      "book fair": "Salon du livre",
+      "spelling bee": "Concours d’orthographe",
+      "talent show": "Spectacle de talents",
+      "awards ceremony": "Cérémonie de remise des prix",
+      "school board meeting": "Réunion du conseil scolaire",
+      "pto meeting": "Réunion de la PTO"
+    }
+  };
+
+  const EVENT_PHRASES = {
+    es: [
+      ["Assessment & Portfolio Writing", "Evaluación y preparación de portafolios"],
+      ["Parent Teacher Conferences", "Conferencias de familias y maestros"],
+      ["Parent-Teacher Conferences", "Conferencias de familias y maestros"],
+      ["Faculty Development Day", "Día de desarrollo profesional docente"],
+      ["Faculty In-Service", "Capacitación del personal docente"],
+      ["Teacher In-Service", "Capacitación docente"],
+      ["Teacher Institute Days", "Días de capacitación docente"],
+      ["Teacher Institute Day", "Día de capacitación docente"],
+      ["School Picture Retake Day", "Día de repetición de fotos escolares"],
+      ["Picture Retakes Day", "Día de repetición de fotos escolares"],
+      ["School Picture Day", "Día de fotos escolares"],
+      ["Picture Day", "Día de fotos escolares"],
+      ["Back to School Night", "Noche de regreso a clases"],
+      ["First Day of School", "Primer día de clases"],
+      ["Last Day of School", "Último día de clases"],
+      ["Early Dismissal", "Salida temprana"],
+      ["Early Release", "Salida temprana"],
+      ["School Closed", "Escuela cerrada"],
+      ["Building Closed", "Edificio cerrado"],
+      ["No School", "No hay clases"],
+      ["Fall Break", "Receso de otoño"],
+      ["Winter Break", "Receso de invierno"],
+      ["Spring Break", "Receso de primavera"],
+      ["Christmas Break", "Receso de Navidad"],
+      ["Thanksgiving Break", "Receso de Acción de Gracias"],
+      ["Labor Day", "Día del Trabajo"],
+      ["Curriculum Night", "Noche del currículo"],
+      ["Open House", "Jornada de puertas abiertas"],
+      ["Career Day", "Día de las profesiones"],
+      ["Homecoming Dance", "Baile de Homecoming"],
+      ["Homecoming Week", "Semana de Homecoming"],
+      ["Parent Ed Night", "Noche de educación para familias"],
+      ["Band Concert", "Concierto de banda"],
+      ["Choir Concert", "Concierto de coro"],
+      ["Orchestra Concert", "Concierto de orquesta"],
+      ["Music Dept. Concert", "Concierto del departamento de música"],
+      ["Music Department Concert", "Concierto del departamento de música"],
+      ["End of Quarter", "Fin del trimestre"],
+      ["End of 1st Qtr", "Fin del primer trimestre"],
+      ["MAP Testing", "Evaluaciones MAP"],
+      ["School Pictures", "Fotos escolares"],
+      ["Grandparent’s Day", "Día de los abuelos"],
+      ["Grandparents Day", "Día de los abuelos"],
+      ["Living Rosary", "Rosario viviente"],
+      ["Living Stations", "Vía Crucis viviente"],
+      ["Organ Concert", "Concierto de órgano"],
+      ["Pancake Breakfast", "Desayuno de panqueques"],
+      ["Game Night", "Noche de juegos"],
+      ["Ice Cream Social", "Convivencia con helado"],
+      ["Book Fair", "Feria del libro"],
+      ["Science Fair", "Feria de ciencias"],
+      ["Field Day", "Día de campo"],
+      ["Awards Ceremony", "Ceremonia de premios"],
+      ["Graduation", "Graduación"],
+      ["Final Exams", "Exámenes finales"],
+      ["Report Cards", "Boletas de calificaciones"],
+      ["Progress Reports", "Informes de progreso"],
+      ["PTA Meeting", "Reunión de la PTA"],
+      ["PTO Meeting", "Reunión de la PTO"],
+      ["PTF Meeting", "Reunión de la PTF"],
+      ["Info Meeting", "Reunión informativa"],
+      ["Meeting", "Reunión"],
+      ["Practice", "Práctica"],
+      ["Canceled", "Cancelado"],
+      ["Cancelled", "Cancelado"],
+      ["Postponed", "Pospuesto"]
+    ],
+    fr: [
+      ["Assessment & Portfolio Writing", "Évaluation et préparation des portfolios"],
+      ["Parent Teacher Conferences", "Rencontres familles-enseignants"],
+      ["Parent-Teacher Conferences", "Rencontres familles-enseignants"],
+      ["Faculty Development Day", "Journée de perfectionnement professionnel"],
+      ["Faculty In-Service", "Formation du personnel enseignant"],
+      ["Teacher In-Service", "Formation du personnel enseignant"],
+      ["Teacher Institute Days", "Journées de formation du personnel enseignant"],
+      ["Teacher Institute Day", "Journée de formation du personnel enseignant"],
+      ["School Picture Retake Day", "Journée de reprise des photos scolaires"],
+      ["Picture Retakes Day", "Journée de reprise des photos scolaires"],
+      ["School Picture Day", "Journée des photos scolaires"],
+      ["Picture Day", "Journée des photos scolaires"],
+      ["Back to School Night", "Soirée de rentrée"],
+      ["First Day of School", "Premier jour d’école"],
+      ["Last Day of School", "Dernier jour d’école"],
+      ["Early Dismissal", "Sortie anticipée"],
+      ["Early Release", "Sortie anticipée"],
+      ["School Closed", "École fermée"],
+      ["Building Closed", "Bâtiment fermé"],
+      ["No School", "Pas d’école"],
+      ["Fall Break", "Congé d’automne"],
+      ["Winter Break", "Congé d’hiver"],
+      ["Spring Break", "Congé de printemps"],
+      ["Christmas Break", "Congé de Noël"],
+      ["Thanksgiving Break", "Congé de l’Action de grâce"],
+      ["Labor Day", "Fête du Travail"],
+      ["Curriculum Night", "Soirée sur le programme scolaire"],
+      ["Open House", "Portes ouvertes"],
+      ["Career Day", "Journée des carrières"],
+      ["Homecoming Dance", "Bal du Homecoming"],
+      ["Homecoming Week", "Semaine du Homecoming"],
+      ["Parent Ed Night", "Soirée d’information pour les familles"],
+      ["Band Concert", "Concert d’harmonie"],
+      ["Choir Concert", "Concert de chorale"],
+      ["Orchestra Concert", "Concert d’orchestre"],
+      ["Music Dept. Concert", "Concert du département de musique"],
+      ["Music Department Concert", "Concert du département de musique"],
+      ["End of Quarter", "Fin du trimestre"],
+      ["End of 1st Qtr", "Fin du premier trimestre"],
+      ["MAP Testing", "Évaluations MAP"],
+      ["School Pictures", "Photos scolaires"],
+      ["Grandparent’s Day", "Journée des grands-parents"],
+      ["Grandparents Day", "Journée des grands-parents"],
+      ["Living Rosary", "Rosaire vivant"],
+      ["Living Stations", "Chemin de croix vivant"],
+      ["Organ Concert", "Concert d’orgue"],
+      ["Pancake Breakfast", "Déjeuner aux crêpes"],
+      ["Game Night", "Soirée de jeux"],
+      ["Ice Cream Social", "Rencontre crème glacée"],
+      ["Book Fair", "Salon du livre"],
+      ["Science Fair", "Expo-sciences"],
+      ["Field Day", "Journée sportive"],
+      ["Awards Ceremony", "Cérémonie de remise des prix"],
+      ["Graduation", "Remise des diplômes"],
+      ["Final Exams", "Examens finaux"],
+      ["Report Cards", "Bulletins scolaires"],
+      ["Progress Reports", "Rapports de progrès"],
+      ["PTA Meeting", "Réunion de la PTA"],
+      ["PTO Meeting", "Réunion de la PTO"],
+      ["PTF Meeting", "Réunion de la PTF"],
+      ["Info Meeting", "Réunion d’information"],
+      ["Meeting", "Réunion"],
+      ["Practice", "Entraînement"],
+      ["Canceled", "Annulé"],
+      ["Cancelled", "Annulé"],
+      ["Postponed", "Reporté"]
+    ]
+  };
+
+  const SPORT_NAMES = {
+    es: {
+      "track & field - outdoor": "atletismo al aire libre",
+      "track and field": "atletismo",
+      "track & field": "atletismo",
+      "cross country": "campo traviesa",
+      "flag football": "fútbol americano de bandera",
+      "swim and dive": "natación y clavados",
+      "swimming & diving": "natación y clavados",
+      "swimming and diving": "natación y clavados",
+      "soccer": "fútbol",
+      "football": "fútbol americano",
+      "basketball": "baloncesto",
+      "baseball": "béisbol",
+      "softball": "softbol",
+      "volleyball": "voleibol",
+      "golf": "golf",
+      "tennis": "tenis",
+      "wrestling": "lucha",
+      "track": "atletismo",
+      "xc": "campo traviesa",
+      "cheerleading": "porristas"
+    },
+    fr: {
+      "track & field - outdoor": "athlétisme extérieur",
+      "track and field": "athlétisme",
+      "track & field": "athlétisme",
+      "cross country": "cross-country",
+      "flag football": "football américain sans contact",
+      "swim and dive": "natation et plongeon",
+      "swimming & diving": "natation et plongeon",
+      "swimming and diving": "natation et plongeon",
+      "soccer": "soccer",
+      "football": "football américain",
+      "basketball": "basketball",
+      "baseball": "baseball",
+      "softball": "softball",
+      "volleyball": "volleyball",
+      "golf": "golf",
+      "tennis": "tennis",
+      "wrestling": "lutte",
+      "track": "athlétisme",
+      "xc": "cross-country",
+      "cheerleading": "cheerleading"
+    }
+  };
+
+  function eventKey(value){
+    return String(value || "")
+      .trim()
+      .replace(/[–—]/g, "—")
+      .replace(/\s+/g, " ")
+      .toLowerCase();
+  }
+
+  function replacePhraseCI(textValue, source, target){
+    const escaped = source.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return textValue.replace(new RegExp(escaped, "gi"), target);
+  }
+
+  function translateSportTitle(title){
+    if (language === "en") return title;
+    let out = String(title || "");
+
+    // Status words can precede the team description.
+    const statusMap = language === "es"
+      ? {"Canceled":"Cancelado","Cancelled":"Cancelado","Postponed":"Pospuesto"}
+      : {"Canceled":"Annulé","Cancelled":"Annulé","Postponed":"Reporté"};
+    Object.entries(statusMap).forEach(([a,b]) => {
+      out = replacePhraseCI(out, a, b);
+    });
+
+    // Longest sport names first prevents "football" from corrupting
+    // "flag football". This is also where soccer/football are deliberately
+    // distinguished in Spanish and French.
+    const sportEntries = Object.entries(SPORT_NAMES[language] || {})
+      .sort((a,b) => b[0].length - a[0].length);
+    sportEntries.forEach(([a,b]) => {
+      out = replacePhraseCI(out, a, b);
+    });
+
+    if (language === "es"){
+      out = replacePhraseCI(out, "Boys and Girls", "Masculino y femenino");
+      out = replacePhraseCI(out, "Boys", "Masculino");
+      out = replacePhraseCI(out, "Girls", "Femenino");
+      out = replacePhraseCI(out, "Coed", "Mixto");
+      out = replacePhraseCI(out, "Middle School", "Escuela intermedia");
+      out = replacePhraseCI(out, "Elementary", "Primaria");
+      out = replacePhraseCI(out, "Practice", "Práctica");
+      out = replacePhraseCI(out, "State", "Estatal");
+      out = replacePhraseCI(out, "Tournament", "Torneo");
+      out = replacePhraseCI(out, "Invitational", "Invitacional");
+      out = replacePhraseCI(out, "Invite", "Invitacional");
+      out = replacePhraseCI(out, "Regional", "Regional");
+      out = replacePhraseCI(out, "Sectional", "Seccional");
+    } else {
+      out = replacePhraseCI(out, "Boys and Girls", "Garçons et filles");
+      out = replacePhraseCI(out, "Boys", "Masculin");
+      out = replacePhraseCI(out, "Girls", "Féminin");
+      out = replacePhraseCI(out, "Coed", "Mixte");
+      out = replacePhraseCI(out, "Middle School", "Collège");
+      out = replacePhraseCI(out, "Elementary", "Primaire");
+      out = replacePhraseCI(out, "Practice", "Entraînement");
+      out = replacePhraseCI(out, "State", "Championnat d’État");
+      out = replacePhraseCI(out, "Tournament", "Tournoi");
+      out = replacePhraseCI(out, "Invitational", "Invitation");
+      out = replacePhraseCI(out, "Invite", "Invitation");
+      out = replacePhraseCI(out, "Regional", "Régional");
+      out = replacePhraseCI(out, "Sectional", "Sectionnel");
+    }
+    return out;
+  }
+
+  function looksLikeSportTitle(title, category){
+    if (["sport","athletics"].includes(String(category || "").toLowerCase())) return true;
+    const key = String(title || "").toLowerCase();
+    return /\b(soccer|football|basketball|baseball|softball|volleyball|golf|tennis|wrestling|cross country|track|xc|swim|diving|cheerleading)\b/i.test(key);
+  }
+
+  function translateEventTitle(title, category=""){
+    const raw = String(title || "").trim();
+    if (!raw || language === "en") return raw;
+
+    const exact = EVENT_EXACT[language]?.[eventKey(raw)];
+    if (exact) return exact;
+
+    if (looksLikeSportTitle(raw, category)){
+      return translateSportTitle(raw);
+    }
+
+    let out = raw;
+    for (const [source, target] of (EVENT_PHRASES[language] || [])){
+      out = replacePhraseCI(out, source, target);
+    }
+    return out;
   }
 
   function applyStaticTranslations(){
@@ -17446,7 +17938,7 @@
       <article class="event">
         <div class="event-time">${escapeHtml(eventTimeLabel(e))}</div>
         <div>
-          <div class="event-title"><span class="event-marks">${eventMarks(e)}</span><span>${escapeHtml(e.title)}</span>${type ? `<span class="event-type-label">${type}</span>` : ""}</div>
+          <div class="event-title"><span class="event-marks">${eventMarks(e)}</span><span>${escapeHtml(translateEventTitle(e.title, e.category))}</span>${type ? `<span class="event-type-label">${type}</span>` : ""}</div>
           <div class="event-meta">${escapeHtml(schoolLabel(e.schools))}${e.location ? " · " + escapeHtml(e.location) : ((e.schools?.length > 1 && (e.category || "general") !== "schedule") ? " · " + escapeHtml(t("venueMissing")) : "")}${e.end ? " · " + escapeHtml(t("until")) + " " + timeLabel(e.end) : ""}</div>
           ${detail}
         </div>
@@ -17755,7 +18247,7 @@
             return `
             <div class="week-event">
               <div class="t">${escapeHtml(eventTimeLabel(e))}</div>
-              <div class="n"><span class="event-marks">${eventMarks(e,true)}</span> ${escapeHtml(e.title)}${type ? ` <span class="type-mini">${type}</span>` : ""}</div>
+              <div class="n"><span class="event-marks">${eventMarks(e,true)}</span> ${escapeHtml(translateEventTitle(e.title, e.category))}${type ? ` <span class="type-mini">${type}</span>` : ""}</div>
               <div class="s">${escapeHtml(schoolLabel(e.schools))}${e.location ? " · " + escapeHtml(e.location) : ((e.schools?.length > 1 && (e.category || "general") !== "schedule") ? " · " + escapeHtml(t("venueMissing")) : "")}</div>
             </div>`;
           }).join("") : `<div class="week-event"><div class="s">${escapeHtml(t("noEvents"))}</div></div>`}
