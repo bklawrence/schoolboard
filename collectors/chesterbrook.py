@@ -10,7 +10,7 @@ from html.parser import HTMLParser
 from urllib.parse import urljoin
 from urllib.request import Request, urlopen
 
-import fitz
+import pymupdf
 from pypdf import PdfReader
 
 
@@ -530,6 +530,15 @@ def parse_website_calendar_html(
         "friday",
         "saturday",
         "calendars & menu",
+        "download",
+        "export calendar",
+        "end date",
+        "start date",
+        "add to calendar",
+        "print",
+        "today",
+        "previous",
+        "next",
     }
 
     events: list[dict] = []
@@ -565,6 +574,15 @@ def parse_website_calendar_html(
             if clean.isdigit():
                 continue
             if lower in ignore:
+                continue
+            if any(
+                phrase in lower
+                for phrase in (
+                    "export calendar",
+                    "download calendar",
+                    "calendar download",
+                )
+            ):
                 continue
             if lower.startswith("chesterbrook academy"):
                 break
@@ -893,6 +911,93 @@ def _clean_cell_text(
     ).strip()
 
 
+def _weekday_column_bounds(
+    words: list[tuple],
+    *,
+    page_width: float,
+) -> list[tuple[float, float]]:
+    """
+    Return the five Monday-Friday menu column bounds.
+
+    Chesterbrook right-aligns the numeric date inside each day cell, so the
+    date-number positions are NOT the column centers. The weekday headings
+    are centered over the five true columns and therefore provide reliable
+    geometry.
+    """
+    weekday_order = [
+        "MONDAY",
+        "TUESDAY",
+        "WEDNESDAY",
+        "THURSDAY",
+        "FRIDAY",
+    ]
+
+    centers: list[float] = []
+
+    for weekday in weekday_order:
+        matches = []
+        for word in words:
+            x0, y0, x1, y1, value = word[:5]
+            if str(value).strip().upper() == weekday:
+                matches.append(((x0 + x1) / 2, (y0 + y1) / 2))
+
+        if not matches:
+            raise RuntimeError(
+                f"Chesterbrook menu PDF did not expose the {weekday} heading"
+            )
+
+        # Use the topmost occurrence if a PDF ever repeats weekday names.
+        center_x, _ = min(matches, key=lambda item: item[1])
+        centers.append(center_x)
+
+    if any(
+        centers[idx + 1] <= centers[idx]
+        for idx in range(len(centers) - 1)
+    ):
+        raise RuntimeError(
+            "Chesterbrook weekday headings were not ordered left-to-right"
+        )
+
+    spacings = [
+        centers[idx + 1] - centers[idx]
+        for idx in range(len(centers) - 1)
+    ]
+    sorted_spacings = sorted(spacings)
+    spacing = (
+        (sorted_spacings[1] + sorted_spacings[2]) / 2
+        if len(sorted_spacings) == 4
+        else sum(spacings) / len(spacings)
+    )
+
+    # True edges are halfway between weekday centers. Extrapolate the outer
+    # edges by half a representative column width, with a tiny safety clamp.
+    edges = [max(0.0, centers[0] - spacing / 2)]
+    edges.extend(
+        (centers[idx] + centers[idx + 1]) / 2
+        for idx in range(4)
+    )
+    edges.append(min(page_width, centers[-1] + spacing / 2))
+
+    bounds = [
+        (edges[idx], edges[idx + 1])
+        for idx in range(5)
+    ]
+
+    # Basic sanity guard: each cell should be substantial and similar in size.
+    widths = [right - left for left, right in bounds]
+    average = sum(widths) / len(widths)
+    if (
+        average <= 0
+        or any(width < average * 0.75 for width in widths)
+        or any(width > average * 1.25 for width in widths)
+    ):
+        raise RuntimeError(
+            "Chesterbrook weekday headings produced implausible column widths"
+        )
+
+    return bounds
+
+
 def parse_menu_words(
     words: list[tuple],
     *,
@@ -990,18 +1095,9 @@ def parse_menu_words(
             ),
         }
 
-        col_bounds = [
-            page_width * 0.08
-        ]
-        col_bounds.extend(
-            (
-                centers[idx]
-                + centers[idx + 1]
-            ) / 2
-            for idx in range(4)
-        )
-        col_bounds.append(
-            page_width * 0.995
+        weekday_bounds = _weekday_column_bounds(
+            words,
+            page_width=page_width,
         )
 
         for col_idx, header_word in enumerate(
@@ -1032,8 +1128,7 @@ def parse_menu_words(
             ):
                 continue
 
-            x_left = col_bounds[col_idx]
-            x_right = col_bounds[col_idx + 1]
+            x_left, x_right = weekday_bounds[col_idx]
 
             meal_parts = []
             closed = False
@@ -1135,7 +1230,7 @@ def parse_menu_pdf_bytes(
     *,
     source_url: str,
 ) -> list[dict]:
-    document = fitz.open(
+    document = pymupdf.open(
         stream=pdf_bytes,
         filetype="pdf",
     )
