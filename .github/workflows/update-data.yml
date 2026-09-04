@@ -4,6 +4,8 @@ on:
   workflow_dispatch:
   push:
     branches: ["main"]
+    paths-ignore:
+      - "schoolboard-data.json"
   schedule:
     - cron: "17 */4 * * *"
 
@@ -15,7 +17,7 @@ permissions:
 
 concurrency:
   group: "schoolboard-pages"
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   update-and-deploy:
@@ -23,7 +25,6 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
