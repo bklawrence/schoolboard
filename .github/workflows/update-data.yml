@@ -41,7 +41,21 @@ jobs:
       - name: Build current data
         run: python build_data.py
 
+      - name: Check whether this run is still current
+        id: freshness
+        run: |
+          git fetch origin main
+          if [ "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)" ]; then
+            echo "current=true" >> "$GITHUB_OUTPUT"
+            echo "This run is still based on the current main branch."
+          else
+            echo "current=false" >> "$GITHUB_OUTPUT"
+            echo "main advanced while this build was running."
+            echo "Skipping data push and Pages deployment; the newer run will publish instead."
+          fi
+
       - name: Commit changed data
+        if: steps.freshness.outputs.current == 'true'
         run: |
           if git diff --quiet -- schoolboard-data.json; then
             echo "No data changes."
@@ -54,18 +68,22 @@ jobs:
           fi
 
       - name: Prepare public site
+        if: steps.freshness.outputs.current == 'true'
         run: |
           mkdir -p site
           cp index.html schoolboard-data.json site/
 
       - name: Configure GitHub Pages
+        if: steps.freshness.outputs.current == 'true'
         uses: actions/configure-pages@v6
 
       - name: Upload Pages artifact
+        if: steps.freshness.outputs.current == 'true'
         uses: actions/upload-pages-artifact@v5
         with:
           path: site
 
       - name: Deploy to GitHub Pages
+        if: steps.freshness.outputs.current == 'true'
         id: deployment
         uses: actions/deploy-pages@v5
