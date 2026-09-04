@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Chambana Schoolboard — your school day + week</title>
-  <!-- Chambana Schoolboard v22; selection storage intentionally remains v18-compatible. -->
+  <!-- Chambana Schoolboard v23; selection storage intentionally remains v18-compatible. -->
   <style>
     :root{
       --paper:#f3eedf;
@@ -1062,6 +1062,14 @@
     "color": "#4D8B57"
   },
   {
+    "id": "chesterbrook",
+    "short": "Chesterbrook",
+    "full": "Chesterbrook Academy Preschool at UIUC",
+    "system": "Private",
+    "level": "Infant–Pre-K",
+    "color": "#4D8B57"
+  },
+  {
     "id": "holycross",
     "short": "Holy Cross",
     "full": "Holy Cross Catholic School",
@@ -1550,6 +1558,27 @@
     "url": "https://static1.squarespace.com/static/693edc3939d5b136adbb1a2b/t/6944534618065465ccf37221/1766085446399/Closed+Days+2026.jpg"
   },
   {
+    "id": "chesterbrook-calendar",
+    "kind": "School calendar",
+    "name": "Chesterbrook Academy School-Year Calendar",
+    "schools": ["chesterbrook"],
+    "url": "https://www.chesterbrookacademy.com/preschools/il/champaign/uiuc/parents/calendars-menu/"
+  },
+  {
+    "id": "chesterbrook-events",
+    "kind": "School events",
+    "name": "Chesterbrook Academy Website Calendar",
+    "schools": ["chesterbrook"],
+    "url": "https://www.chesterbrookacademy.com/preschools/il/champaign/uiuc/parents/calendars-menu/"
+  },
+  {
+    "id": "chesterbrook-menu",
+    "kind": "Meals & snacks",
+    "name": "Chesterbrook Academy Monthly Menu",
+    "schools": ["chesterbrook"],
+    "url": "https://www.chesterbrookacademy.com/preschools/il/champaign/uiuc/parents/calendars-menu/"
+  },
+  {
     "id": "uni-events",
     "kind": "Events calendar",
     "name": "Uni High Events",
@@ -1753,6 +1782,14 @@
     ],
     "source": "Quest 9–12 Lunch",
     "engine": "urbana"
+  },
+  "chesterbrook": {
+    "label": "Chesterbrook meals & snacks",
+    "schools": [
+      "chesterbrook"
+    ],
+    "source": "Chesterbrook Academy monthly menu",
+    "engine": "published-only"
   },
   "u4elem": {
     "label": "Unit 4 K–5",
@@ -16036,6 +16073,7 @@
     grid.innerHTML = "";
 
     const levelRank = {
+      "Infant–Pre-K": 0,
       "Infant–TK": 0,
       "Preschool": 0,
       "Elementary": 1,
@@ -16142,7 +16180,7 @@
       .forEach(s => privateColumn.appendChild(makePickerLabel(s)));
 
     const privateSchools = SCHOOLS
-      .filter(s => ["uniprimary", "countryside", "holycross", "nextgen", "nextgen-early", "stm", "stmatthew", "stjohn", "judah", "academyhigh", "montessoricu"].includes(s.id))
+      .filter(s => ["uniprimary", "countryside", "chesterbrook", "holycross", "nextgen", "nextgen-early", "stm", "stmatthew", "stjohn", "judah", "academyhigh", "montessoricu"].includes(s.id))
       .sort(byAgeThenName);
 
     if (privateSchools.length){
@@ -16302,6 +16340,13 @@
     if (weekday > 4) return {items:[], status:"weekend", label:"No school lunch"};
 
     const group = MENU_GROUPS[groupId] || {};
+    if (group.engine === "published-only") {
+      return {
+        items: [],
+        status: "unknown",
+        label: "No published menu for this date"
+      };
+    }
     if (group.engine === "unit4") {
       if (dateString < U4_LUNCH_START || dateString > U4_LUNCH_END) return {items:[],status:"offseason",label:"Outside the school-year menu window"};
       if (NO_LUNCH_UNIT4.has(dateString)) return {items:[],status:"none",label:"No school"};
