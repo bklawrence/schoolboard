@@ -33,7 +33,7 @@ from collectors.holycross import (
     fetch_holycross_calendar,
     fetch_holycross_homepage,
 )
-from collectors.arbiter import ARBITER_SOURCES, fetch_arbiter_source
+from collectors.arbiter import ARBITER_SOURCES, dedupe_arbiter_events, fetch_arbiter_source
 from collectors.nextgen import (
     EARLY_SOURCE_NAME as NEXTGEN_EARLY_SOURCE,
     fetch_nextgen_early_closures,
@@ -516,6 +516,12 @@ def build(*, offline: bool = False) -> dict:
                 })
 
         arbiter_events.extend(source_events)
+
+    # The same competition can appear on both schools' Arbiter pages. Collapse
+    # those mirror records after every source has been collected, while
+    # preserving separate games in a true doubleheader because start time is
+    # part of the dedupe key.
+    arbiter_events = dedupe_arbiter_events(arbiter_events)
 
     # USD 116 district school-year calendar. This replaces the hand-entered
     # USD 116 schedule records while leaving school-specific events untouched.
