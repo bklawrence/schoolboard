@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Chambana Schoolboard — your school day + week</title>
-  <!-- Chambana Schoolboard v25; selection storage intentionally remains v18-compatible. -->
+  <!-- Chambana Schoolboard v29 trilingual; selection storage intentionally remains v18-compatible. -->
   <style>
     :root{
       --paper:#f3eedf;
@@ -93,6 +93,41 @@
       margin-top:4px;
       font:12px ui-monospace, SFMono-Regular, Menlo, monospace;
       color:var(--muted);
+    }
+
+    .masthead-side{
+      display:flex;
+      flex-direction:column;
+      align-items:flex-end;
+      gap:10px;
+    }
+
+    .language-toggle{
+      display:inline-flex;
+      border:2px solid var(--ink);
+      background:var(--paper);
+      box-shadow:2px 2px 0 var(--ink);
+    }
+
+    .language-toggle button{
+      border:0;
+      border-right:1px solid var(--ink);
+      background:transparent;
+      padding:5px 8px 4px;
+      cursor:pointer;
+      font:900 10px ui-monospace, SFMono-Regular, Menlo, monospace;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
+
+    .language-toggle button:last-child{border-right:0}
+
+    .language-toggle button.active{
+      background:var(--sunflower);
+    }
+
+    @media (max-width:640px){
+      .masthead-side{align-items:flex-start}
     }
 
     .statusline{
@@ -840,21 +875,28 @@
     <header class="masthead">
       <div>
         <div class="brand">Chambana<br>Schoolboard</div>
-        <div class="tagline">Champaign-Urbana school day + week, in one place.</div>
+        <div class="tagline" data-i18n="tagline">Champaign-Urbana school day + week, in one place.</div>
       </div>
-      <div class="datebox" id="dateBox"></div>
+      <div class="masthead-side">
+        <div class="language-toggle" aria-label="Language">
+          <button type="button" id="langEn" data-lang="en">EN</button>
+          <button type="button" id="langEs" data-lang="es">ES</button>
+          <button type="button" id="langFr" data-lang="fr">FR</button>
+        </div>
+        <div class="datebox" id="dateBox"></div>
+      </div>
     </header>
 
     <section class="schools-wrap">
-      <div class="eyebrow">My schools</div>
+      <div class="eyebrow" data-i18n="mySchools">My schools</div>
       <div class="schools" id="schoolChips"></div>
       <div class="school-picker" id="schoolPicker">
         <div class="picker-head">
-          <div class="eyebrow" style="margin:0">Choose the schools your household follows</div>
+          <div class="eyebrow" style="margin:0" data-i18n="chooseSchools">Choose the schools your household follows</div>
           <div class="picker-actions">
-            <button type="button" id="doneChoosingSchools">Done</button>
-            <button type="button" id="selectAllSchools">All</button>
-            <button type="button" id="clearAllSchools">None</button>
+            <button type="button" id="doneChoosingSchools" data-i18n="done">Done</button>
+            <button type="button" id="selectAllSchools" data-i18n="all">All</button>
+            <button type="button" id="clearAllSchools" data-i18n="none">None</button>
           </div>
         </div>
         <div class="picker-grid" id="pickerGrid"></div>
@@ -862,20 +904,20 @@
     </section>
 
     <nav class="viewbar" aria-label="Calendar view">
-      <button class="tab active" data-view="todayView">Today</button>
-      <button class="tab" data-view="weekView">This week</button>
-      <button class="tab" data-view="nextWeekView">Next week</button>
+      <button class="tab active" data-view="todayView" data-i18n="today">Today</button>
+      <button class="tab" data-view="weekView" data-i18n="thisWeek">This week</button>
+      <button class="tab" data-view="nextWeekView" data-i18n="nextWeek">Next week</button>
     </nav>
     <div class="event-legend" aria-label="Event type key">
-      <span><b>●</b> Day event</span>
-      <span><b>☾</b> Evening event</span>
-      <span><b>◆</b> Test</span>
-      <span><b>▲</b> Sport</span>
-      <span><b>■</b> Schedule</span>
+      <span><b>●</b> <span data-i18n="legendDay">Day event</span></span>
+      <span><b>☾</b> <span data-i18n="legendEvening">Evening event</span></span>
+      <span><b>◆</b> <span data-i18n="legendTest">Test</span></span>
+      <span><b>▲</b> <span data-i18n="legendSport">Sport</span></span>
+      <span><b>■</b> <span data-i18n="legendSchedule">Schedule</span></span>
     </div>
 
     <details class="source-drawer">
-      <summary>Calendars & source feeds</summary>
+      <summary data-i18n="sourcesDrawer">Calendars & source feeds</summary>
       <div class="source-grid" id="sourceGrid"></div>
     </details>
 
@@ -883,7 +925,7 @@
       <div class="hero-grid">
         <div>
           <div class="section-title">
-            <h2>Today</h2>
+            <h2 data-i18n="today">Today</h2>
             <div class="sub" id="todaySub"></div>
           </div>
           <div class="events" id="todayEvents"></div><div class="today-note" id="todayNote"></div>
@@ -891,8 +933,8 @@
 
         <aside class="meals">
           <div class="section-title">
-            <h2 style="font-size:34px">Meals</h2>
-            <div class="sub">Today</div>
+            <h2 style="font-size:34px" data-i18n="meals">Meals</h2>
+            <div class="sub" data-i18n="today">Today</div>
           </div>
           <div id="todayMeals"></div>
         </aside>
@@ -901,7 +943,7 @@
 
     <section class="view" id="weekView">
       <div class="section-title">
-        <h2>This week</h2>
+        <h2 data-i18n="thisWeek">This week</h2>
         <div class="sub" id="weekSub"></div>
       </div>
       <div class="week-grid" id="weekGrid"></div>
@@ -909,7 +951,7 @@
 
     <section class="view" id="nextWeekView">
       <div class="section-title">
-        <h2>Next week</h2>
+        <h2 data-i18n="nextWeek">Next week</h2>
         <div class="sub" id="nextWeekSub"></div>
       </div>
       <div class="week-grid" id="nextWeekGrid"></div>
@@ -917,9 +959,9 @@
 
     <footer class="footer">
       <div>
-        Sources: preschool school-year calendars · USD 116 calendars/ParentSquare · Quest · UIUC school calendars · UniWeek · Outlook Tests · Snap! athletics · private school calendars · Champaign Unit 4 district/school calendars · public library youth calendars · Unit 4 School Nutrition
-        <div class="menu-disclaimer"><strong>Lunch menu note:</strong> Published district menus are used when available. When future menus have not yet been published, Chambana Schoolboard may fill dates using repeating patterns inferred from recent published menus. Predicted meals may change; check the district menu for the latest information.</div>
-        <div class="support-row"><a class="coffee-button" href="https://www.paypal.com/ncp/payment/J78AM77UMPFBC" target="_blank" rel="noopener noreferrer">☕ Buy me a coffee</a></div>
+        <span data-i18n="footerSources">Sources: preschool school-year calendars · USD 116 calendars/ParentSquare · Quest · UIUC school calendars · UniWeek · Outlook Tests · Snap! athletics · private school calendars · Champaign Unit 4 district/school calendars · public library youth calendars · Unit 4 School Nutrition</span>
+        <div class="menu-disclaimer"><strong data-i18n="lunchNoteTitle">Lunch menu note:</strong> <span data-i18n="lunchNoteBody">Published district menus are used when available. When future menus have not yet been published, Chambana Schoolboard may fill dates using repeating patterns inferred from recent published menus. Predicted meals may change; check the district menu for the latest information.</span></div>
+        <div class="support-row"><a class="coffee-button" href="https://www.paypal.com/ncp/payment/J78AM77UMPFBC" target="_blank" rel="noopener noreferrer" data-i18n="coffee">☕ Buy me a coffee</a></div>
       </div>
     </footer>
   </main>
@@ -962,6 +1004,416 @@
   });
 
   window.addEventListener("focus", checkForNewSchoolboardDay);
+
+  const I18N = {
+    en: {
+      title: "Chambana Schoolboard — your school day + week",
+      tagline: "Champaign-Urbana school day + week, in one place.",
+      mySchools: "My schools",
+      chooseSchools: "Choose the schools your household follows",
+      done: "Done",
+      all: "All",
+      none: "None",
+      today: "Today",
+      thisWeek: "This week",
+      nextWeek: "Next week",
+      legendDay: "Day event",
+      legendEvening: "Evening event",
+      legendTest: "Test",
+      legendSport: "Sport",
+      legendSchedule: "Schedule",
+      sourcesDrawer: "Calendars & source feeds",
+      meals: "Meals",
+      footerSources: "Sources: preschool school-year calendars · USD 116 calendars/ParentSquare · Quest · UIUC school calendars · UniWeek · Outlook Tests · Snap! athletics · private school calendars · Champaign Unit 4 district/school calendars · public library youth calendars · Unit 4 School Nutrition",
+      lunchNoteTitle: "Lunch menu note:",
+      lunchNoteBody: "Published district menus are used when available. When future menus have not yet been published, Chambana Schoolboard may fill dates using repeating patterns inferred from recent published menus. Predicted meals may change; check the district menu for the latest information.",
+      coffee: "☕ Buy me a coffee",
+      calendarView: "Calendar view",
+      eventKey: "Event type key",
+      language: "Language",
+      allDay: "All day",
+      allSchools: "All schools",
+      removeSchool: "Click to remove from My Schools",
+      addRemove: "+ Add / remove",
+      unit4Schools: "Champaign Unit 4 Schools",
+      urbanaSchools: "Urbana SD 116 Schools",
+      otherPublic: "Other public",
+      preschools: "Preschools",
+      privateSchools: "Private schools",
+      chooseSource: "Choose a school to see its public calendar sources.",
+      sourceNote: "Athletics, Uni tests, preschool calendars, and the current Unit 4 school calendars are embedded in this prototype. Public district/school feeds remain the authoritative sources for future refreshes.",
+      nothingToday: "Nothing found for your selected schools today.",
+      eventNote: "Color identifies the school; shape identifies the kind of item.",
+      venueMissing: "Venue not specified",
+      until: "until",
+      source: "source",
+      noEvents: "No events found",
+      lunch: "Lunch",
+      selectedSchools: "{count} selected schools",
+      liveMenu: "Live published menu",
+      liveMenuSource: "Live menu source",
+      noSchoolLunch: "No school lunch",
+      noPublishedMenu: "No published menu for this date",
+      outsideMenuWindow: "Outside the school-year menu window",
+      noSchool: "No school",
+      publishedUnavailable: "Published menu unavailable",
+      patternUncertain: "Pattern uncertain — check district menu",
+      publishedAugSep: "Published Aug–Sep menu",
+      patternPrediction: "Pattern prediction · 4-week cycle",
+      noSchoolK5: "No school — K–5",
+      verifiedMonthly: "Verified monthly menu",
+      rotationPrediction: "Rotation prediction · Week {week}",
+      menuUnavailable: "Menu unavailable",
+      moreChoices: "+ {count} more choices",
+      showFewer: "Show fewer",
+      more: "+{count} more",
+      predicted: "predicted",
+      unit4HighLunch: "Unit 4 High School Lunch",
+      unit4High: "Unit 4 High School",
+      liveMenuNote: "Live collected menus when available · published fallback/predictions remain in place if a source cannot be reached",
+      categoryTest: "TEST",
+      categoryTestSchedule: "TEST + SCHEDULE",
+      categorySport: "SPORT",
+      categorySchedule: "SCHEDULE"
+    },
+    es: {
+      title: "Chambana Schoolboard — tu día y semana escolar",
+      tagline: "El día y la semana escolar de Champaign-Urbana, en un solo lugar.",
+      mySchools: "Mis escuelas",
+      chooseSchools: "Elige las escuelas que sigue tu familia",
+      done: "Listo",
+      all: "Todas",
+      none: "Ninguna",
+      today: "Hoy",
+      thisWeek: "Esta semana",
+      nextWeek: "La próxima semana",
+      legendDay: "Evento diurno",
+      legendEvening: "Evento nocturno",
+      legendTest: "Examen",
+      legendSport: "Deporte",
+      legendSchedule: "Horario",
+      sourcesDrawer: "Calendarios y fuentes",
+      meals: "Comidas",
+      footerSources: "Fuentes: calendarios anuales de preescolares · calendarios/ParentSquare de USD 116 · Quest · calendarios escolares de UIUC · UniWeek · exámenes de Outlook · deportes de Snap! · calendarios de escuelas privadas · calendarios del distrito y las escuelas de Champaign Unit 4 · calendarios juveniles de bibliotecas públicas · Nutrición Escolar de Unit 4",
+      lunchNoteTitle: "Nota sobre el menú de almuerzo:",
+      lunchNoteBody: "Se usan los menús publicados por los distritos cuando están disponibles. Cuando todavía no se han publicado menús futuros, Chambana Schoolboard puede completar fechas usando patrones repetidos inferidos de menús publicados recientemente. Las comidas previstas pueden cambiar; consulta el menú del distrito para obtener la información más reciente.",
+      coffee: "☕ Invítame un café",
+      calendarView: "Vista del calendario",
+      eventKey: "Clave de tipos de eventos",
+      language: "Idioma",
+      allDay: "Todo el día",
+      allSchools: "Todas las escuelas",
+      removeSchool: "Haz clic para quitarla de Mis escuelas",
+      addRemove: "+ Agregar / quitar",
+      unit4Schools: "Escuelas de Champaign Unit 4",
+      urbanaSchools: "Escuelas de Urbana SD 116",
+      otherPublic: "Otras escuelas públicas",
+      preschools: "Preescolares",
+      privateSchools: "Escuelas privadas",
+      chooseSource: "Elige una escuela para ver sus fuentes públicas de calendario.",
+      sourceNote: "Los calendarios deportivos, los exámenes de Uni, los calendarios de preescolar y los calendarios actuales de Unit 4 están integrados en este prototipo. Las fuentes públicas de los distritos y las escuelas siguen siendo las fuentes oficiales para futuras actualizaciones.",
+      nothingToday: "No se encontró nada para las escuelas seleccionadas hoy.",
+      eventNote: "El color identifica la escuela; la forma identifica el tipo de elemento.",
+      venueMissing: "Lugar no especificado",
+      until: "hasta",
+      source: "fuente",
+      noEvents: "No se encontraron eventos",
+      lunch: "Almuerzo",
+      selectedSchools: "{count} escuelas seleccionadas",
+      liveMenu: "Menú publicado actual",
+      liveMenuSource: "Fuente del menú actual",
+      noSchoolLunch: "No hay almuerzo escolar",
+      noPublishedMenu: "No hay menú publicado para esta fecha",
+      outsideMenuWindow: "Fuera del período del menú del año escolar",
+      noSchool: "No hay clases",
+      publishedUnavailable: "Menú publicado no disponible",
+      patternUncertain: "Patrón incierto — consulta el menú del distrito",
+      publishedAugSep: "Menú publicado de ago.–sept.",
+      patternPrediction: "Predicción por patrón · ciclo de 4 semanas",
+      noSchoolK5: "No hay clases — K–5",
+      verifiedMonthly: "Menú mensual verificado",
+      rotationPrediction: "Predicción de rotación · Semana {week}",
+      menuUnavailable: "Menú no disponible",
+      moreChoices: "+ {count} opciones más",
+      showFewer: "Mostrar menos",
+      more: "+{count} más",
+      predicted: "predicción",
+      unit4HighLunch: "Almuerzo de preparatoria de Unit 4",
+      unit4High: "Preparatoria de Unit 4",
+      liveMenuNote: "Menús recopilados en vivo cuando están disponibles · se mantienen los menús publicados de respaldo y las predicciones si no se puede acceder a una fuente",
+      categoryTest: "EXAMEN",
+      categoryTestSchedule: "EXAMEN + HORARIO",
+      categorySport: "DEPORTE",
+      categorySchedule: "HORARIO"
+    },
+    fr: {
+      title: "Chambana Schoolboard — votre journée et semaine scolaires",
+      tagline: "La journée et la semaine scolaires de Champaign-Urbana, réunies au même endroit.",
+      mySchools: "Mes écoles",
+      chooseSchools: "Choisissez les écoles que suit votre famille",
+      done: "Terminé",
+      all: "Toutes",
+      none: "Aucune",
+      today: "Aujourd’hui",
+      thisWeek: "Cette semaine",
+      nextWeek: "La semaine prochaine",
+      legendDay: "Événement de jour",
+      legendEvening: "Événement en soirée",
+      legendTest: "Évaluation",
+      legendSport: "Sport",
+      legendSchedule: "Horaire",
+      sourcesDrawer: "Calendriers et sources",
+      meals: "Repas",
+      footerSources: "Sources : calendriers annuels des écoles maternelles · calendriers/ParentSquare d’USD 116 · Quest · calendriers scolaires de l’UIUC · UniWeek · évaluations Outlook · sports Snap! · calendriers des écoles privées · calendriers du district et des écoles de Champaign Unit 4 · calendriers jeunesse des bibliothèques publiques · Nutrition scolaire de Unit 4",
+      lunchNoteTitle: "Remarque sur les menus du déjeuner :",
+      lunchNoteBody: "Les menus publiés par les districts sont utilisés lorsqu’ils sont disponibles. Lorsque les menus futurs ne sont pas encore publiés, Chambana Schoolboard peut compléter certaines dates à l’aide de cycles répétitifs déduits de menus récemment publiés. Les repas prévus peuvent changer; consultez le menu du district pour obtenir les renseignements les plus récents.",
+      coffee: "☕ Offrez-moi un café",
+      calendarView: "Vue du calendrier",
+      eventKey: "Légende des types d’événements",
+      language: "Langue",
+      allDay: "Toute la journée",
+      allSchools: "Toutes les écoles",
+      removeSchool: "Cliquez pour retirer cette école de Mes écoles",
+      addRemove: "+ Ajouter / retirer",
+      unit4Schools: "Écoles de Champaign Unit 4",
+      urbanaSchools: "Écoles d’Urbana SD 116",
+      otherPublic: "Autres écoles publiques",
+      preschools: "Écoles maternelles",
+      privateSchools: "Écoles privées",
+      chooseSource: "Choisissez une école pour voir ses sources publiques de calendrier.",
+      sourceNote: "Les calendriers sportifs, les évaluations de Uni, les calendriers des écoles maternelles et les calendriers actuels de Unit 4 sont intégrés à ce prototype. Les sources publiques des districts et des écoles demeurent les sources officielles pour les mises à jour futures.",
+      nothingToday: "Aucun élément trouvé aujourd’hui pour les écoles sélectionnées.",
+      eventNote: "La couleur indique l’école; la forme indique le type d’élément.",
+      venueMissing: "Lieu non précisé",
+      until: "jusqu’à",
+      source: "source",
+      noEvents: "Aucun événement trouvé",
+      lunch: "Déjeuner",
+      selectedSchools: "{count} écoles sélectionnées",
+      liveMenu: "Menu publié actuel",
+      liveMenuSource: "Source du menu actuel",
+      noSchoolLunch: "Pas de déjeuner scolaire",
+      noPublishedMenu: "Aucun menu publié pour cette date",
+      outsideMenuWindow: "En dehors de la période des menus de l’année scolaire",
+      noSchool: "Pas de cours",
+      publishedUnavailable: "Menu publié non disponible",
+      patternUncertain: "Cycle incertain — consultez le menu du district",
+      publishedAugSep: "Menu publié d’août–sept.",
+      patternPrediction: "Prévision par cycle · cycle de 4 semaines",
+      noSchoolK5: "Pas de cours — K–5",
+      verifiedMonthly: "Menu mensuel vérifié",
+      rotationPrediction: "Prévision de rotation · Semaine {week}",
+      menuUnavailable: "Menu non disponible",
+      moreChoices: "+ {count} choix supplémentaires",
+      showFewer: "Afficher moins",
+      more: "+{count} de plus",
+      predicted: "prévision",
+      unit4HighLunch: "Déjeuner des lycées de Unit 4",
+      unit4High: "Lycée de Unit 4",
+      liveMenuNote: "Menus récupérés en direct lorsqu’ils sont disponibles · les menus publiés de secours et les prévisions restent en place si une source est inaccessible",
+      categoryTest: "ÉVALUATION",
+      categoryTestSchedule: "ÉVALUATION + HORAIRE",
+      categorySport: "SPORT",
+      categorySchedule: "HORAIRE"
+    }
+  };
+
+  function loadLanguage(){
+    try{
+      const saved = localStorage.getItem("schoolboard-language");
+      if (saved === "en" || saved === "es" || saved === "fr") return saved;
+    }catch(e){}
+    const browserLanguage = String(navigator.language || "").toLowerCase();
+    if (browserLanguage.startsWith("es")) return "es";
+    if (browserLanguage.startsWith("fr")) return "fr";
+    return "en";
+  }
+
+  let language = loadLanguage();
+
+  function saveLanguage(){
+    try{ localStorage.setItem("schoolboard-language", language); }catch(e){}
+  }
+
+  function uiLocale(){
+    if (language === "es") return "es-US";
+    if (language === "fr") return "fr-US";
+    return "en-US";
+  }
+
+  function t(key, vars={}){
+    let value = I18N[language]?.[key] ?? I18N.en[key] ?? key;
+    Object.entries(vars).forEach(([name, replacement]) => {
+      value = value.replaceAll(`{${name}}`, String(replacement));
+    });
+    return value;
+  }
+
+  function translateLevel(level){
+    if (language === "es"){
+      return ({
+        "Infant–TK": "Bebés–TK",
+        "Preschool": "Preescolar",
+        "Elementary": "Primaria",
+        "Preschool–5": "Preescolar–5",
+        "Sixth Grade": "6.º grado",
+        "Middle School": "Escuela intermedia",
+        "High School": "Escuela secundaria",
+        "Library age group": "Grupo de edad de biblioteca",
+        "Babies & Preschoolers": "Bebés y preescolares"
+      })[level] || level;
+    }
+    if (language === "fr"){
+      return ({
+        "Infant–TK": "Nourrissons–TK",
+        "Preschool": "Maternelle",
+        "Elementary": "Primaire",
+        "Preschool–5": "Maternelle–5",
+        "Sixth Grade": "6e année",
+        "Middle School": "Collège",
+        "High School": "Lycée",
+        "Library age group": "Groupe d’âge de la bibliothèque",
+        "Babies & Preschoolers": "Bébés et enfants d’âge préscolaire"
+      })[level] || level;
+    }
+    return level;
+  }
+
+  function translateSystem(system){
+    if (language === "es"){
+      return ({
+        "Private": "Privada",
+        "Independent": "Independiente",
+        "Preschool": "Preescolar"
+      })[system] || system;
+    }
+    if (language === "fr"){
+      return ({
+        "Private": "Privée",
+        "Independent": "Indépendante",
+        "Preschool": "Maternelle"
+      })[system] || system;
+    }
+    return system;
+  }
+
+  function translateSchoolDisplay(value){
+    if (language === "es"){
+      return ({
+        "Champaign Library · Early": "Biblioteca de Champaign · Primera infancia",
+        "Champaign Library · Elementary": "Biblioteca de Champaign · Primaria",
+        "Champaign Library · Teens": "Biblioteca de Champaign · Adolescentes",
+        "Urbana Library · Early": "Biblioteca de Urbana · Primera infancia",
+        "Urbana Library · Elementary": "Biblioteca de Urbana · Primaria",
+        "Urbana Library · Teens": "Biblioteca de Urbana · Adolescentes"
+      })[value] || value;
+    }
+    if (language === "fr"){
+      return ({
+        "Champaign Library · Early": "Bibliothèque de Champaign · Petite enfance",
+        "Champaign Library · Elementary": "Bibliothèque de Champaign · Primaire",
+        "Champaign Library · Teens": "Bibliothèque de Champaign · Ados",
+        "Urbana Library · Early": "Bibliothèque d’Urbana · Petite enfance",
+        "Urbana Library · Elementary": "Bibliothèque d’Urbana · Primaire",
+        "Urbana Library · Teens": "Bibliothèque d’Urbana · Ados"
+      })[value] || value;
+    }
+    return value;
+  }
+
+  function translateSourceKind(kind){
+    if (language === "es"){
+      return ({
+        "School-year calendar": "Calendario del año escolar",
+        "District calendar": "Calendario del distrito",
+        "School news / event feed": "Noticias y eventos escolares",
+        "School calendar": "Calendario escolar",
+        "Academic calendar": "Calendario académico",
+        "Newsletter important dates": "Fechas importantes del boletín",
+        "Athletics calendar": "Calendario deportivo",
+        "Youth events calendar": "Calendario de eventos juveniles",
+        "School + athletics calendar": "Calendario escolar y deportivo",
+        "School calendars": "Calendarios escolares",
+        "School calendars + athletics": "Calendarios escolares y deportes",
+        "Lunch menus": "Menús de almuerzo",
+        "Events calendar": "Calendario de eventos",
+        "Homepage upcoming dates": "Próximas fechas de la página principal",
+        "Year-round program closure schedule": "Calendario de cierres del programa anual",
+        "School events": "Eventos escolares",
+        "Meals & snacks": "Comidas y meriendas",
+        "Basketball clinic": "Clínica de baloncesto",
+        "Athletics": "Deportes"
+      })[kind] || kind;
+    }
+    if (language === "fr"){
+      return ({
+        "School-year calendar": "Calendrier de l’année scolaire",
+        "District calendar": "Calendrier du district",
+        "School news / event feed": "Actualités et événements scolaires",
+        "School calendar": "Calendrier scolaire",
+        "Academic calendar": "Calendrier académique",
+        "Newsletter important dates": "Dates importantes du bulletin",
+        "Athletics calendar": "Calendrier sportif",
+        "Youth events calendar": "Calendrier des événements jeunesse",
+        "School + athletics calendar": "Calendrier scolaire et sportif",
+        "School calendars": "Calendriers scolaires",
+        "School calendars + athletics": "Calendriers scolaires et sports",
+        "Lunch menus": "Menus du déjeuner",
+        "Events calendar": "Calendrier des événements",
+        "Homepage upcoming dates": "Dates à venir de la page d’accueil",
+        "Year-round program closure schedule": "Calendrier des fermetures du programme annuel",
+        "School events": "Événements scolaires",
+        "Meals & snacks": "Repas et collations",
+        "Basketball clinic": "Clinique de basketball",
+        "Athletics": "Sports"
+      })[kind] || kind;
+    }
+    return kind;
+  }
+
+  function translateMenuGroupLabel(label){
+    if (language === "es"){
+      return ({
+        "Quest K–5 Lunch": "Almuerzo Quest K–5",
+        "Quest 6–8 Lunch": "Almuerzo Quest 6–8",
+        "Quest 9–12 Lunch": "Almuerzo Quest 9–12",
+        "Chesterbrook meals & snacks": "Comidas y meriendas de Chesterbrook"
+      })[label] || label;
+    }
+    if (language === "fr"){
+      return ({
+        "Quest K–5 Lunch": "Déjeuner Quest K–5",
+        "Quest 6–8 Lunch": "Déjeuner Quest 6–8",
+        "Quest 9–12 Lunch": "Déjeuner Quest 9–12",
+        "Chesterbrook meals & snacks": "Repas et collations de Chesterbrook"
+      })[label] || label;
+    }
+    return label;
+  }
+
+  function applyStaticTranslations(){
+    document.documentElement.lang = language;
+    document.title = t("title");
+
+    document.querySelectorAll("[data-i18n]").forEach(element => {
+      element.textContent = t(element.dataset.i18n);
+    });
+
+    const viewbar = document.querySelector(".viewbar");
+    if (viewbar) viewbar.setAttribute("aria-label", t("calendarView"));
+
+    const legend = document.querySelector(".event-legend");
+    if (legend) legend.setAttribute("aria-label", t("eventKey"));
+
+    const languageToggle = document.querySelector(".language-toggle");
+    if (languageToggle) languageToggle.setAttribute("aria-label", t("language"));
+
+    document.querySelectorAll(".language-toggle button").forEach(button => {
+      const active = button.dataset.lang === language;
+      button.classList.toggle("active", active);
+      button.setAttribute("aria-pressed", active ? "true" : "false");
+    });
+  }
 
   const SCHOOLS = [
   {
@@ -1099,6 +1551,14 @@
     "system": "Private",
     "level": "Preschool",
     "color": "#67B346"
+  },
+  {
+    "id": "hidaya",
+    "short": "Hidaya",
+    "full": "Hidaya Academy of Champaign-Urbana",
+    "system": "Private",
+    "level": "PK–7",
+    "color": "#4D8B57"
   },
   {
     "id": "holycross",
@@ -1506,6 +1966,20 @@
       "uniprimary"
     ],
     "url": "https://calendars.illinois.edu/list/7187"
+  },
+  {
+    "id": "hidaya-calendar",
+    "kind": "School calendar",
+    "name": "Hidaya Academy 2026–27 School Calendar",
+    "schools": ["hidaya"],
+    "url": "https://img1.wsimg.com/blobby/go/b4d8649e-57f1-45c0-8624-6e7936af069a/HACU-%202026-2027-%20Formatted%20Calendar%20V_FINAL_4-.pdf"
+  },
+  {
+    "id": "hidaya-basketball",
+    "kind": "Basketball clinic",
+    "name": "Hidaya Basketball Clinic",
+    "schools": ["hidaya"],
+    "url": "https://hidayaacademycu.com/hidaya-basketball"
   },
   {
     "id": "holycross-calendar",
@@ -15965,23 +16439,23 @@
   }
 
   function prettyDate(s){
-    return new Intl.DateTimeFormat("en-US",{weekday:"long",month:"long",day:"numeric"}).format(parseDateOnly(s));
+    return new Intl.DateTimeFormat(uiLocale(),{weekday:"long",month:"long",day:"numeric"}).format(parseDateOnly(s));
   }
 
   function shortDate(s){
-    return new Intl.DateTimeFormat("en-US",{month:"short",day:"numeric"}).format(parseDateOnly(s));
+    return new Intl.DateTimeFormat(uiLocale(),{month:"short",day:"numeric"}).format(parseDateOnly(s));
   }
 
   function timeLabel(t){
-    if (!t) return "All day";
+    if (!t) return t("allDay");
     const [h,m] = t.split(":").map(Number);
     const d = new Date(2026,0,1,h,m);
-    return new Intl.DateTimeFormat("en-US",{hour:"numeric",minute:m ? "2-digit" : undefined}).format(d);
+    return new Intl.DateTimeFormat(uiLocale(),{hour:"numeric",minute:m ? "2-digit" : undefined}).format(d);
   }
 
   function schoolLabel(ids){
-    if (!ids || ids.includes("all")) return "All schools";
-    if (ids.length === SCHOOLS.length) return "All schools";
+    if (!ids || ids.includes("all")) return t("allSchools");
+    if (ids.length === SCHOOLS.length) return t("allSchools");
     if (ids.length && ids.every(id => id.startsWith("urbana-lib-"))) return "Urbana Free Library";
     if (ids.length && ids.every(id => id.startsWith("champaign-lib-"))) return "Champaign Public Library";
     return ids.map(id => SCHOOLS.find(s => s.id === id)?.short || id).join(" + ");
@@ -16013,7 +16487,12 @@
   }
 
   function categoryLabel(category){
-    return ({test:"TEST",testschedule:"TEST + SCHEDULE",sport:"SPORT",schedule:"SCHEDULE"})[category || "general"] || "";
+    return ({
+      test:t("categoryTest"),
+      testschedule:t("categoryTestSchedule"),
+      sport:t("categorySport"),
+      schedule:t("categorySchedule")
+    })[category || "general"] || "";
   }
 
   function eventMarks(event, compact=false){
@@ -16029,7 +16508,7 @@
   }
 
   function eventTimeLabel(event){
-    if (event.allDay) return "All day";
+    if (event.allDay) return t("allDay");
     if (event.timeText) return event.timeText;
     return timeLabel(event.start);
   }
@@ -16066,8 +16545,8 @@
 
   function renderHeader(){
     const d = parseDateOnly(TODAY);
-    const dow = new Intl.DateTimeFormat("en-US",{weekday:"long"}).format(d);
-    const md = new Intl.DateTimeFormat("en-US",{month:"short",day:"2-digit"}).format(d);
+    const dow = new Intl.DateTimeFormat(uiLocale(),{weekday:"long"}).format(d);
+    const md = new Intl.DateTimeFormat(uiLocale(),{month:"short",day:"2-digit"}).format(d);
     document.getElementById("dateBox").innerHTML =
       `<div class="dow">${dow}</div><div class="date">${md}</div>`;
     document.getElementById("todaySub").textContent = prettyDate(TODAY);
@@ -16083,7 +16562,7 @@
       b.className = "school-chip selected";
       b.style.setProperty("--school-color", s.color);
       b.innerHTML = `<span class="school-dot" aria-hidden="true"></span><span>${escapeHtml(s.short)}</span>`;
-      b.title = "Click to remove from My Schools";
+      b.title = t("removeSchool");
       b.addEventListener("click", () => {
         selected = selected.filter(x => x !== id);
         saveSelected();
@@ -16094,7 +16573,7 @@
 
     const add = document.createElement("button");
     add.className = "add-school";
-    add.textContent = "+ Add / remove";
+    add.textContent = t("addRemove");
     add.addEventListener("click", () => {
       document.getElementById("schoolPicker").classList.toggle("open");
     });
@@ -16109,6 +16588,7 @@
       "Elementary": 1,
       "Preschool–5": 2,
       "PK–6": 2,
+      "PK–7": 2,
       "PK–8": 2,
       "K–8": 2,
       "P–12": 2,
@@ -16142,7 +16622,7 @@
       swatch.className = "picker-swatch";
 
       const text = document.createElement("span");
-      text.innerHTML = `<span class="picker-school-name">${escapeHtml(s.full)}</span><span class="picker-school-meta">${escapeHtml(s.system)} · ${escapeHtml(s.level)}</span>`;
+      text.innerHTML = `<span class="picker-school-name">${escapeHtml(translateSchoolDisplay(s.full))}</span><span class="picker-school-meta">${escapeHtml(translateSystem(s.system))} · ${escapeHtml(translateLevel(s.level))}</span>`;
 
       label.append(input, swatch, text);
       return label;
@@ -16167,7 +16647,7 @@
     }
 
     // Column 1: Champaign Unit 4, youngest-serving schools first.
-    const unit4Column = makeColumn("Champaign Unit 4 Schools");
+    const unit4Column = makeColumn(t("unit4Schools"));
     SCHOOLS
       .filter(s => s.system === "Champaign Unit 4")
       .sort(byAgeThenName)
@@ -16183,7 +16663,7 @@
 
     // Column 2: Urbana SD 116, youngest to oldest; Uni High stays at
     // the bottom as a separate public school outside either district.
-    const urbanaColumn = makeColumn("Urbana SD 116 Schools");
+    const urbanaColumn = makeColumn(t("urbanaSchools"));
     SCHOOLS
       .filter(s => s.system === "USD 116")
       .sort(byAgeThenName)
@@ -16197,24 +16677,24 @@
 
     const uni = SCHOOLS.find(s => s.id === "uni");
     if (uni){
-      addSubtitle(urbanaColumn, "Other public");
+      addSubtitle(urbanaColumn, t("otherPublic"));
       urbanaColumn.appendChild(makePickerLabel(uni));
     }
     grid.appendChild(urbanaColumn);
 
     // Column 3: preschools first, then the regular private schools.
-    const privateColumn = makeColumn("Preschools");
+    const privateColumn = makeColumn(t("preschools"));
     SCHOOLS
       .filter(s => s.level === "Preschool" && !["Champaign Unit 4", "USD 116"].includes(s.system))
       .sort((a, b) => a.full.localeCompare(b.full))
       .forEach(s => privateColumn.appendChild(makePickerLabel(s)));
 
     const privateSchools = SCHOOLS
-      .filter(s => ["uniprimary", "countryside", "holycross", "nextgen", "nextgen-early", "stm", "stmatthew", "stjohn", "judah", "academyhigh", "montessoricu"].includes(s.id))
+      .filter(s => ["uniprimary", "countryside", "hidaya", "holycross", "nextgen", "nextgen-early", "stm", "stmatthew", "stjohn", "judah", "academyhigh", "montessoricu"].includes(s.id))
       .sort(byAgeThenName);
 
     if (privateSchools.length){
-      addSubtitle(privateColumn, "Private schools");
+      addSubtitle(privateColumn, t("privateSchools"));
       privateSchools.forEach(s => privateColumn.appendChild(makePickerLabel(s)));
     }
     grid.appendChild(privateColumn);
@@ -16236,7 +16716,7 @@
     const host = document.getElementById("sourceGrid");
     const feeds = SOURCE_FEEDS.filter(sourceFeedApplies);
     if (!feeds.length){
-      host.innerHTML = `<div class="source-note">Choose a school to see its public calendar sources.</div>`;
+      host.innerHTML = `<div class="source-note">${escapeHtml(t("chooseSource"))}</div>`;
       return;
     }
 
@@ -16249,13 +16729,13 @@
       return `
         <a class="source-card" style="--source-color:${escapeAttr(sourceFeedColor(feed))}"
            href="${escapeAttr(feed.url)}" target="_blank" rel="noopener">
-          <div class="source-kind">${escapeHtml(feed.kind)}</div>
+          <div class="source-kind">${escapeHtml(translateSourceKind(feed.kind))}</div>
           <div class="source-name">${escapeHtml(feed.name)}</div>
           <div class="source-school">${escapeHtml(visibleSchools)}</div>
         </a>`;
     }).join("") + `
       <div class="source-note">
-        Athletics, Uni tests, preschool calendars, and the current Unit 4 school calendars are embedded in this prototype. Public district/school feeds remain the authoritative sources for future refreshes.
+        ${escapeHtml(t("sourceNote"))}
       </div>`;
   }
 
@@ -16267,12 +16747,12 @@
 
     const note = document.getElementById("todayNote");
     if (!events.length){
-      host.innerHTML = `<div class="empty">Nothing found for your selected schools today.</div>`;
+      host.innerHTML = `<div class="empty">${escapeHtml(t("nothingToday"))}</div>`;
       note.textContent = "";
       return;
     }
 
-    note.textContent = "Color identifies the school; shape identifies the kind of item.";
+    note.textContent = t("eventNote");
 
     host.innerHTML = events.map(e => {
       const type = categoryLabel(e.category);
@@ -16282,10 +16762,10 @@
         <div class="event-time">${escapeHtml(eventTimeLabel(e))}</div>
         <div>
           <div class="event-title"><span class="event-marks">${eventMarks(e)}</span><span>${escapeHtml(e.title)}</span>${type ? `<span class="event-type-label">${type}</span>` : ""}</div>
-          <div class="event-meta">${escapeHtml(schoolLabel(e.schools))}${e.location ? " · " + escapeHtml(e.location) : ((e.schools?.length > 1 && (e.category || "general") !== "schedule") ? " · Venue not specified" : "")}${e.end ? " · until " + timeLabel(e.end) : ""}</div>
+          <div class="event-meta">${escapeHtml(schoolLabel(e.schools))}${e.location ? " · " + escapeHtml(e.location) : ((e.schools?.length > 1 && (e.category || "general") !== "schedule") ? " · " + escapeHtml(t("venueMissing")) : "")}${e.end ? " · " + escapeHtml(t("until")) + " " + timeLabel(e.end) : ""}</div>
           ${detail}
         </div>
-        <div class="source">${e.sourceUrl ? `<a href="${escapeAttr(e.sourceUrl)}" target="_blank" rel="noopener">${escapeHtml(e.source || "source")}</a>` : escapeHtml(e.source || "")}</div>
+        <div class="source">${e.sourceUrl ? `<a href="${escapeAttr(e.sourceUrl)}" target="_blank" rel="noopener">${escapeHtml(e.source || t("source"))}</a>` : escapeHtml(e.source || "")}</div>
       </article>`;
     }).join("");
   }
@@ -16355,8 +16835,8 @@
     return {
       items: live.items,
       status: live.status || "live",
-      label: live.label || "Live published menu",
-      source: live.source || "Live menu source",
+      label: live.label || t("liveMenu"),
+      source: live.source || t("liveMenuSource"),
       sourceUrl: live.sourceUrl || ""
     };
   }
@@ -16367,40 +16847,40 @@
 
     const d = parseDateOnly(dateString);
     const weekday = (d.getDay() + 6) % 7; // Mon=0
-    if (weekday > 4) return {items:[], status:"weekend", label:"No school lunch"};
+    if (weekday > 4) return {items:[], status:"weekend", label:t("noSchoolLunch")};
 
     const group = MENU_GROUPS[groupId] || {};
     if (group.engine === "published-only") {
       return {
         items: [],
         status: "unknown",
-        label: "No published menu for this date"
+        label: t("noPublishedMenu")
       };
     }
     if (group.engine === "unit4") {
-      if (dateString < U4_LUNCH_START || dateString > U4_LUNCH_END) return {items:[],status:"offseason",label:"Outside the school-year menu window"};
-      if (NO_LUNCH_UNIT4.has(dateString)) return {items:[],status:"none",label:"No school"};
+      if (dateString < U4_LUNCH_START || dateString > U4_LUNCH_END) return {items:[],status:"offseason",label:t("outsideMenuWindow")};
+      if (NO_LUNCH_UNIT4.has(dateString)) return {items:[],status:"none",label:t("noSchool")};
       const week = unit4RotationWeekFor(dateString);
       const items = U4_ROTATION_LUNCH[groupId]?.[week]?.[String(weekday)] || [];
       const observed = dateString >= U4_OBSERVED_START && dateString <= U4_OBSERVED_END;
-      if (!items.length) return {items:[],status:"unknown",label:observed ? "Published menu unavailable" : "Pattern uncertain — check district menu"};
+      if (!items.length) return {items:[],status:"unknown",label:observed ? t("publishedUnavailable") : t("patternUncertain")};
       return {
         items,
         status: observed ? "verified" : "predicted",
-        label: observed ? "Published Aug–Sep menu" : `Pattern prediction · 4-week cycle`
+        label: observed ? t("publishedAugSep") : t("patternPrediction")
       };
     }
 
-    if (dateString < URBANA_LUNCH_START || dateString > URBANA_LUNCH_END) return {items:[],status:"offseason",label:"Outside the school-year menu window"};
-    if (NO_LUNCH_ALL.has(dateString)) return {items:[], status:"none", label:"No school"};
-    if (groupId === "k5" && NO_LUNCH_K5.has(dateString)) return {items:[], status:"none", label:"No school — K–5"};
+    if (dateString < URBANA_LUNCH_START || dateString > URBANA_LUNCH_END) return {items:[],status:"offseason",label:t("outsideMenuWindow")};
+    if (NO_LUNCH_ALL.has(dateString)) return {items:[], status:"none", label:t("noSchool")};
+    if (groupId === "k5" && NO_LUNCH_K5.has(dateString)) return {items:[], status:"none", label:t("noSchoolK5")};
 
     const exact = VERIFIED_LUNCH[groupId]?.[dateString];
-    if (exact && exact.length) return {items:exact, status:"verified", label:"Verified monthly menu"};
+    if (exact && exact.length) return {items:exact, status:"verified", label:t("verifiedMonthly")};
 
     const week = rotationWeekFor(dateString);
     const predicted = ROTATION_LUNCH[groupId]?.[week]?.[String(weekday)] || [];
-    return {items:predicted,status:predicted.length ? "predicted" : "unknown",label:predicted.length ? `Rotation prediction · Week ${week}` : "Menu unavailable"};
+    return {items:predicted,status:predicted.length ? "predicted" : "unknown",label:predicted.length ? t("rotationPrediction",{week}) : t("menuUnavailable")};
   }
 
   function renderChoiceList(items, idPrefix){
@@ -16413,7 +16893,7 @@
         <div class="menu-extra" id="${idPrefix}-extra" hidden>
           ${extra.map(c => `<div class="menu-choice">${escapeHtml(c)}</div>`).join("")}
         </div>
-        <button type="button" class="menu-more" data-target="${idPrefix}-extra">+ ${extra.length} more choices</button>
+        <button type="button" class="menu-more" data-target="${idPrefix}-extra">${escapeHtml(t("moreChoices",{count:extra.length}))}</button>
       ` : ""}
     `;
   }
@@ -16439,14 +16919,14 @@
     const regularBlocks = regularGroups.map(g => {
       const selectedGroupSchools = g.schools.filter(id => selected.includes(id));
       const nameList = selectedGroupSchools.map(id => SCHOOLS.find(s => s.id === id)?.short).filter(Boolean);
-      const names = nameList.length > 4 ? `${nameList.length} selected schools` : nameList.join(" + ");
+      const names = nameList.length > 4 ? t("selectedSchools",{count:nameList.length}) : nameList.join(" + ");
 
       const lunch = lunchFor(g.id, TODAY);
       const idPrefix = `today-${g.id}`;
 
       return `
         <div class="menu-group">
-          <div class="menu-group-label">${schoolPips(selectedGroupSchools)}${escapeHtml(g.label)} Lunch</div>
+          <div class="menu-group-label">${schoolPips(selectedGroupSchools)}${escapeHtml(translateMenuGroupLabel(g.label))} ${escapeHtml(t("lunch"))}</div>
           <div class="menu-group-schools">${escapeHtml(names)}</div>
           ${lunch.items.length
             ? renderChoiceList(lunch.items, idPrefix)
@@ -16460,7 +16940,7 @@
         highSchoolStations.flatMap(g => g.schools.filter(id => selected.includes(id)))
       )];
       const schoolNames = schoolIds.map(id => schoolById(id)?.short).filter(Boolean);
-      const names = schoolNames.length > 4 ? `${schoolNames.length} selected schools` : schoolNames.join(" + ");
+      const names = schoolNames.length > 4 ? t("selectedSchools",{count:schoolNames.length}) : schoolNames.join(" + ");
 
       const stations = highSchoolStations.map(g => {
         const lunch = lunchFor(g.id, TODAY);
@@ -16477,7 +16957,7 @@
 
       return `
         <div class="menu-group">
-          <div class="menu-group-label">${schoolPips(schoolIds)}Unit 4 High School Lunch</div>
+          <div class="menu-group-label">${schoolPips(schoolIds)}${escapeHtml(t("unit4HighLunch"))}</div>
           <div class="menu-group-schools">${escapeHtml(names)}</div>
           <div class="menu-stations">${stations}</div>
         </div>`;
@@ -16487,7 +16967,7 @@
 
     host.innerHTML = `
       <div class="menu-source-note">
-        Live collected menus when available · published fallback/predictions remain in place if a source cannot be reached
+        ${escapeHtml(t("liveMenuNote"))}
       </div>
       ${blocks}
     `;
@@ -16498,7 +16978,7 @@
         if (!extra) return;
         const opening = extra.hidden;
         extra.hidden = !opening;
-        button.textContent = opening ? "Show fewer" : `+ ${extra.children.length} more choices`;
+        button.textContent = opening ? t("showFewer") : t("moreChoices",{count:extra.children.length});
       });
     });
   }
@@ -16510,17 +16990,17 @@
     const regularHtml = regular.map(x => {
       const mealSchoolIds = x.group.schools.filter(id => selected.includes(id));
       const _mealList = mealSchoolIds.map(id => schoolById(id)?.short).filter(Boolean);
-      const mealNames = _mealList.length > 3 ? `${_mealList.length} selected schools` : (_mealList.join(" + ") || x.group.label);
+      const mealNames = _mealList.length > 3 ? t("selectedSchools",{count:_mealList.length}) : (_mealList.join(" + ") || translateMenuGroupLabel(x.group.label));
 
       if (x.lunch.status === "none"){
-        return `<span style="display:block;margin-top:5px">${schoolPips(mealSchoolIds)}<strong>${escapeHtml(mealNames)} · ${escapeHtml(x.group.label)}:</strong> ${escapeHtml(x.lunch.label)}</span>`;
+        return `<span style="display:block;margin-top:5px">${schoolPips(mealSchoolIds)}<strong>${escapeHtml(mealNames)} · ${escapeHtml(translateMenuGroupLabel(x.group.label))}:</strong> ${escapeHtml(x.lunch.label)}</span>`;
       }
 
       const preview = x.lunch.items.slice(0,3).map(escapeHtml).join(" · ");
       const more = Math.max(0, x.lunch.items.length - 3);
       return `<span style="display:block;margin-top:5px">
-        ${schoolPips(mealSchoolIds)}<strong>${escapeHtml(mealNames)} · ${escapeHtml(x.group.label)}:</strong> ${preview}${more ? ` · +${more} more` : ""}
-        ${x.lunch.status === "predicted" ? `<span class="prediction-mark"> · predicted</span>` : ""}
+        ${schoolPips(mealSchoolIds)}<strong>${escapeHtml(mealNames)} · ${escapeHtml(translateMenuGroupLabel(x.group.label))}:</strong> ${preview}${more ? ` · ${escapeHtml(t("more",{count:more}))}` : ""}
+        ${x.lunch.status === "predicted" ? `<span class="prediction-mark"> · ${escapeHtml(t("predicted"))}</span>` : ""}
       </span>`;
     }).join("");
 
@@ -16530,7 +17010,7 @@
         highSchool.flatMap(x => x.group.schools.filter(id => selected.includes(id)))
       )];
       const schoolList = schoolIds.map(id => schoolById(id)?.short).filter(Boolean);
-      const mealNames = schoolList.length > 3 ? `${schoolList.length} selected schools` : (schoolList.join(" + ") || "Unit 4 High School");
+      const mealNames = schoolList.length > 3 ? t("selectedSchools",{count:schoolList.length}) : (schoolList.join(" + ") || t("unit4High"));
 
       const stations = highSchool.map(x => {
         const label = x.group.stationLabel || x.group.label;
@@ -16540,13 +17020,13 @@
         const preview = x.lunch.items.slice(0,3).map(escapeHtml).join(" · ");
         const more = Math.max(0, x.lunch.items.length - 3);
         return `<span class="week-meal-station">
-          <strong>${escapeHtml(label)}:</strong> ${preview}${more ? ` · +${more} more` : ""}
-          ${x.lunch.status === "predicted" ? `<span class="prediction-mark"> · predicted</span>` : ""}
+          <strong>${escapeHtml(label)}:</strong> ${preview}${more ? ` · ${escapeHtml(t("more",{count:more}))}` : ""}
+          ${x.lunch.status === "predicted" ? `<span class="prediction-mark"> · ${escapeHtml(t("predicted"))}</span>` : ""}
         </span>`;
       }).join("");
 
       highSchoolHtml = `<span class="week-meal-parent">
-        ${schoolPips(schoolIds)}<strong>${escapeHtml(mealNames)} · Unit 4 High School:</strong>
+        ${schoolPips(schoolIds)}<strong>${escapeHtml(mealNames)} · ${escapeHtml(t("unit4High"))}:</strong>
         ${stations}
       </span>`;
     }
@@ -16573,7 +17053,7 @@
       return `
         <article class="day ${date===TODAY ? "today":""}">
           <div class="day-head">
-            <div class="day-dow">${new Intl.DateTimeFormat("en-US",{weekday:"short"}).format(d)}</div>
+            <div class="day-dow">${new Intl.DateTimeFormat(uiLocale(),{weekday:"short"}).format(d)}</div>
             <div class="day-num">${String(d.getDate()).padStart(2,"0")}</div>
           </div>
 
@@ -16583,11 +17063,11 @@
             <div class="week-event">
               <div class="t">${escapeHtml(eventTimeLabel(e))}</div>
               <div class="n"><span class="event-marks">${eventMarks(e,true)}</span> ${escapeHtml(e.title)}${type ? ` <span class="type-mini">${type}</span>` : ""}</div>
-              <div class="s">${escapeHtml(schoolLabel(e.schools))}${e.location ? " · " + escapeHtml(e.location) : ((e.schools?.length > 1 && (e.category || "general") !== "schedule") ? " · Venue not specified" : "")}</div>
+              <div class="s">${escapeHtml(schoolLabel(e.schools))}${e.location ? " · " + escapeHtml(e.location) : ((e.schools?.length > 1 && (e.category || "general") !== "schedule") ? " · " + escapeHtml(t("venueMissing")) : "")}</div>
             </div>`;
-          }).join("") : `<div class="week-event"><div class="s">No events found</div></div>`}
+          }).join("") : `<div class="week-event"><div class="s">${escapeHtml(t("noEvents"))}</div></div>`}
 
-          ${lunches.length ? `<div class="week-meal"><b>Lunch</b><br>${renderWeekLunches(lunches)}</div>` : ""}
+          ${lunches.length ? `<div class="week-meal"><b>${escapeHtml(t("lunch"))}</b><br>${renderWeekLunches(lunches)}</div>` : ""}
         </article>
       `;
     }).join("");
@@ -16601,6 +17081,7 @@
   function renderStatus(){}
 
   function renderAll(){
+    applyStaticTranslations();
     renderHeader();
     renderSchools();
     renderSourceFeeds();
@@ -16619,6 +17100,16 @@
   function escapeAttr(value){
     return escapeHtml(value).replace(/`/g, "&#096;");
   }
+
+  document.querySelectorAll(".language-toggle button").forEach(button => {
+    button.addEventListener("click", () => {
+      const nextLanguage = button.dataset.lang;
+      if (!["en", "es", "fr"].includes(nextLanguage)) return;
+      language = nextLanguage;
+      saveLanguage();
+      renderAll();
+    });
+  });
 
   document.getElementById("doneChoosingSchools").addEventListener("click", () => {
     document.getElementById("schoolPicker").classList.remove("open");
