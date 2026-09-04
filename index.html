@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Chambana Schoolboard — your school day + week</title>
-  <!-- Chambana Schoolboard v42 BPAC wording and venue cleanup; selection storage intentionally remains v18-compatible. -->
+  <!-- Chambana Schoolboard v43 source-drawer footer placement; selection storage intentionally remains v18-compatible. -->
   <style>
     :root{
       --paper:#f3eedf;
@@ -916,11 +916,6 @@
       <span><b>■</b> <span data-i18n="legendSchedule">Schedule</span></span>
     </div>
 
-    <details class="source-drawer">
-      <summary data-i18n="sourcesDrawer">Calendars & source feeds</summary>
-      <div class="source-grid" id="sourceGrid"></div>
-    </details>
-
     <section class="view active" id="todayView">
       <div class="hero-grid">
         <div>
@@ -959,6 +954,10 @@
 
     <footer class="footer">
       <div>
+        <details class="source-drawer">
+          <summary data-i18n="sourcesDrawer">Calendars & source feeds</summary>
+          <div class="source-grid" id="sourceGrid"></div>
+        </details>
         <span data-i18n="footerSources">Sources: preschool school-year calendars · USD 116 calendars/ParentSquare · Quest · UIUC school calendars · UniWeek · Outlook Tests · Snap! athletics · private school calendars · Champaign Unit 4 district/school calendars · public library youth calendars · Unit 4 School Nutrition</span>
         <div class="menu-disclaimer"><strong data-i18n="lunchNoteTitle">Lunch menu note:</strong> <span data-i18n="lunchNoteBody">Published district menus are used when available. When future menus have not yet been published, Chambana Schoolboard may fill dates using repeating patterns inferred from recent published menus. Predicted meals may change; check the district menu for the latest information.</span></div>
         <div class="support-row"><a class="coffee-button" href="https://www.paypal.com/ncp/payment/J78AM77UMPFBC" target="_blank" rel="noopener noreferrer" data-i18n="coffee">☕ Buy me a coffee</a></div>
