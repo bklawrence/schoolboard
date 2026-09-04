@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Chambana Schoolboard — your school day + week</title>
-  <!-- Chambana Schoolboard v34 Unit 4 heading cleanup; selection storage intentionally remains v18-compatible. -->
+  <!-- Chambana Schoolboard v38 food dictionary additions; selection storage intentionally remains v18-compatible. -->
   <style>
     :root{
       --paper:#f3eedf;
@@ -1400,6 +1400,11 @@
     return `${group} · ${source}`;
   }
 
+  function stationFoodItems(items, stationLabel){
+    const stationKey = canonicalMenuHeading(stationLabel);
+    return (items || []).filter(item => canonicalMenuHeading(item) !== stationKey);
+  }
+
   function translateMenuGroupLabel(label){
     if (language === "es"){
       return ({
@@ -1428,6 +1433,12 @@
       "diced pears": "peras en cubitos",
       "diced carrots": "zanahorias en cubitos",
       "fruit mix": "mezcla de frutas",
+      "fruit of the day": "Fruta del día",
+      "mango applesauce": "puré de manzana con mango",
+      "strawberry applesauce": "puré de manzana con fresa",
+      "tropical fruit salad": "ensalada de frutas tropicales",
+      "raisins": "pasas",
+      "ham and swiss hawaiian rolls": "jamón y queso suizo en panecillo",
       "1% milk": "leche al 1 %",
       "whole milk": "leche entera",
       "that's it apple/banana fruit bar": "That's It (barra de fruta de manzana y banana)",
@@ -1525,6 +1536,7 @@
       "beef gyros": "gyro de res",
       "chicken shawarma": "shawarma de pollo",
       "bbq pork sliders": "mini sándwiches de cerdo a la barbacoa",
+      "bbq pork": "cerdo a la barbacoa",
 
       // Pasta, grains, breakfast.
       "macaroni & cheese": "macarrones con queso",
@@ -1696,6 +1708,12 @@
       "diced pears": "poires en dés",
       "diced carrots": "carottes en dés",
       "fruit mix": "mélange de fruits",
+      "fruit of the day": "Fruit du jour",
+      "mango applesauce": "compote de pommes à la mangue",
+      "strawberry applesauce": "compote de pommes à la fraise",
+      "tropical fruit salad": "salade de fruits tropicaux",
+      "raisins": "raisins secs",
+      "ham and swiss hawaiian rolls": "jambon et fromage suisse sur petit pain",
       "1% milk": "lait 1 %",
       "whole milk": "lait entier",
       "that's it apple/banana fruit bar": "That's It (barre aux fruits pomme-banane)",
@@ -1791,6 +1809,7 @@
       "beef gyros": "gyro au bœuf",
       "chicken shawarma": "shawarma au poulet",
       "bbq pork sliders": "mini-sandwichs au porc barbecue",
+      "bbq pork": "porc barbecue",
 
       // Pasta, grains, breakfast.
       "macaroni & cheese": "macaroni au fromage",
@@ -17611,13 +17630,15 @@
       const stations = highSchoolStations.map(g => {
         const lunch = lunchFor(g.id, TODAY);
         const idPrefix = `today-${g.id}`;
+        const stationLabel = g.stationLabel || g.label;
+        const foodItems = stationFoodItems(lunch.items, stationLabel);
         return `
           <div class="menu-station">
-            <div class="menu-station-label">${escapeHtml(g.stationLabel || g.label)}</div>
-            ${lunch.items.length
-              ? renderChoiceList(lunch.items, idPrefix)
+            <div class="menu-station-label">${escapeHtml(stationLabel)}</div>
+            ${foodItems.length
+              ? renderChoiceList(foodItems, idPrefix)
               : `<div class="meal-empty">${escapeHtml(lunch.label)}</div>`}
-            ${lunch.items.length ? `<div class="menu-confidence ${lunch.status === "predicted" ? "predicted" : ""}">${escapeHtml(lunch.label)}</div>` : ""}
+            ${foodItems.length ? `<div class="menu-confidence ${lunch.status === "predicted" ? "predicted" : ""}">${escapeHtml(lunch.label)}</div>` : ""}
           </div>`;
       }).join("");
 
@@ -17688,10 +17709,11 @@
         if (x.lunch.status === "none"){
           return `<span class="week-meal-station"><strong>${escapeHtml(label)}:</strong> ${escapeHtml(x.lunch.label)}</span>`;
         }
-        const preview = x.lunch.items.slice(0,3).map(item => escapeHtml(translateFoodItem(item))).join(" · ");
-        const more = Math.max(0, x.lunch.items.length - 3);
+        const foodItems = stationFoodItems(x.lunch.items, label);
+        const preview = foodItems.slice(0,3).map(item => escapeHtml(translateFoodItem(item))).join(" · ");
+        const more = Math.max(0, foodItems.length - 3);
         return `<span class="week-meal-station">
-          <strong>${escapeHtml(dedupeMenuHeading(label, x.group?.label))}:</strong> ${preview}${more ? ` · ${escapeHtml(t("more",{count:more}))}` : ""}
+          <strong>${escapeHtml(label)}:</strong> ${preview}${more ? ` · ${escapeHtml(t("more",{count:more}))}` : ""}
           ${x.lunch.status === "predicted" ? `<span class="prediction-mark"> · ${escapeHtml(t("predicted"))}</span>` : ""}
         </span>`;
       }).join("");
