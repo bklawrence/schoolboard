@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Chambana Schoolboard — your school day + week</title>
-  <!-- Chambana Schoolboard v33 Unit 4 title dedupe; selection storage intentionally remains v18-compatible. -->
+  <!-- Chambana Schoolboard v34 Unit 4 heading cleanup; selection storage intentionally remains v18-compatible. -->
   <style>
     :root{
       --paper:#f3eedf;
@@ -1379,6 +1379,13 @@
       .toLowerCase();
   }
 
+  function canonicalMenuHeading(value){
+    return normalizeMenuHeading(value)
+      .replace(/\b(high school|hs|menu|lunch)\b/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
   function dedupeMenuHeading(groupLabel, sourceLabel){
     const group = String(groupLabel || "").trim();
     const source = String(sourceLabel || "").trim();
@@ -1386,19 +1393,9 @@
     if (!group) return source;
     if (!source) return group;
 
-    const ng = normalizeMenuHeading(group);
-    const ns = normalizeMenuHeading(source);
-
-    if (ng === ns) return group;
-
-    // Also catch a source label that merely repeats the group label with
-    // generic high-school/menu words attached.
-    const stripGeneric = s => s
-      .replace(/\b(high school|hs|menu|lunch)\b/g, " ")
-      .replace(/\s+/g, " ")
-      .trim();
-
-    if (stripGeneric(ng) === stripGeneric(ns)) return group;
+    if (canonicalMenuHeading(group) === canonicalMenuHeading(source)){
+      return group;
+    }
 
     return `${group} · ${source}`;
   }
@@ -17668,7 +17665,7 @@
       const stationHeading = String(x.group?.label || "").trim();
       const visibleLunchItems = x.lunch.items.filter((item, idx) => {
         if (idx !== 0) return true;
-        return normalizeMenuHeading(item) !== normalizeMenuHeading(stationHeading);
+        return canonicalMenuHeading(item) !== canonicalMenuHeading(stationHeading);
       });
       const preview = visibleLunchItems.slice(0,3).map(item => escapeHtml(translateFoodItem(item))).join(" · ");
       const more = Math.max(0, visibleLunchItems.length - 3);
