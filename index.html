@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Chambana Schoolboard — your school day + week</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-  <!-- Chambana Schoolboard v44 rocket favicon; selection storage intentionally remains v18-compatible. -->
+  <!-- Chambana Schoolboard v45 French school-sports labels; selection storage intentionally remains v18-compatible. -->
   <style>
     :root{
       --paper:#f3eedf;
@@ -2536,10 +2536,49 @@
       out = replacePhraseCI(out, "Regional", "Regional");
       out = replacePhraseCI(out, "Sectional", "Seccional");
     } else {
-      out = replacePhraseCI(out, "Boys and Girls", "Garçons et filles");
-      out = replacePhraseCI(out, "Boys", "Masculin");
-      out = replacePhraseCI(out, "Girls", "Féminin");
-      out = replacePhraseCI(out, "Coed", "Mixte");
+      // In a K–12 context, French school sports are more naturally labeled
+      // with garçons / filles than masculin / féminin. Move that label after
+      // the sport name: "Boys Baseball" -> "baseball garçons".
+      const frenchGenderRules = [
+        [/\bBoys and Girls\b/i, "garçons et filles"],
+        [/\bBoys\b/i, "garçons"],
+        [/\bGirls\b/i, "filles"],
+        [/\bCoed\b/i, "mixte"]
+      ];
+      let frenchGender = null;
+      let frenchGenderPattern = null;
+      for (const [pattern, label] of frenchGenderRules){
+        if (pattern.test(out)){
+          frenchGender = label;
+          frenchGenderPattern = pattern;
+          break;
+        }
+      }
+      if (frenchGender){
+        const withoutGender = out
+          .replace(frenchGenderPattern, "")
+          .replace(/\s{2,}/g, " ")
+          .trim();
+        const frenchSports = [...new Set(Object.values(SPORT_NAMES.fr || {}))]
+          .sort((a,b) => b.length - a.length);
+        const lowerWithoutGender = withoutGender.toLocaleLowerCase("fr");
+        let sportMatch = null;
+        for (const sport of frenchSports){
+          const index = lowerWithoutGender.indexOf(sport.toLocaleLowerCase("fr"));
+          if (index >= 0 && (!sportMatch || index < sportMatch.index)){
+            sportMatch = {
+              index,
+              text: withoutGender.slice(index, index + sport.length)
+            };
+          }
+        }
+        if (sportMatch){
+          const insertAt = sportMatch.index + sportMatch.text.length;
+          out = `${withoutGender.slice(0, insertAt)} ${frenchGender}${withoutGender.slice(insertAt)}`;
+        } else {
+          out = out.replace(frenchGenderPattern, frenchGender);
+        }
+      }
       out = replacePhraseCI(out, "Middle School", "Collège");
       out = replacePhraseCI(out, "Elementary", "Primaire");
       out = replacePhraseCI(out, "Practice", "Entraînement");
