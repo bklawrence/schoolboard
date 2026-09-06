@@ -476,17 +476,39 @@ def _section_text(text: str, heading: str, stop_headings: tuple[str, ...]) -> st
 
 
 def _registration_metadata(text: str, event_url: str) -> dict[str, Any]:
-    """Return registration metadata only for visible Communico controls.
+    """Return registration metadata only for the *current* Communico event.
 
-    Descriptions sometimes mention registering for some *other* program, so a
-    loose search for the word "register" would create false positives.  The
-    Communico registration controls appear as their own visible lines: Register,
-    Register N Seats Remaining, Join the wait list, or Registration opens ... .
-    Linking to the event page is deliberate: it is the stable public page where
-    Communico exposes the current registration/wait-list control.
+    Communico event pages often append a list of other upcoming events below
+    the current event.  Those related-event cards can contain their own
+    Register buttons.  Scanning the whole page therefore makes unrelated
+    events look as if they require registration.
+
+    The current event's registration control appears in the main event block,
+    before Communico's AGE GROUP / EVENT TYPE / TAGS metadata.  Restrict the
+    search to that block and fail closed if the boundary cannot be identified.
+    This intentionally favors an occasional missed link over a false Register
+    link sprayed across unrelated events.
     """
     lines = [re.sub(r"\s+", " ", line).strip() for line in text.splitlines()]
-    lower_lines = [line.lower() for line in lines if line]
+    lines = [line for line in lines if line]
+
+    boundary = None
+    for i, line in enumerate(lines):
+        normalized = line.upper()
+        if (
+            normalized.startswith("AGE GROUP:")
+            or normalized.startswith("EVENT TYPE:")
+            or normalized.startswith("TAGS:")
+        ):
+            boundary = i
+            break
+
+    # Without a reliable end to the current-event block, do not risk reading
+    # Register controls from Communico's related/upcoming-event cards.
+    if boundary is None:
+        return {}
+
+    lower_lines = [line.lower() for line in lines[:boundary]]
 
     if any(
         line in {"registration now closed", "registration closed"}
