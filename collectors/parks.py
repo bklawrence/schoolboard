@@ -551,6 +551,101 @@ def _registration_status(text: str) -> str:
     return "none"
 
 
+def _explicit_no_registration(text: str) -> bool:
+    lowered = text.casefold()
+    return any(re.search(pattern, lowered) for pattern in _NO_REG)
+
+
+def _event_specific_registration_url(
+    parser: _PageParser,
+    base_url: str,
+    event_day: str | None,
+    title: str,
+) -> str | None:
+    """Return only a strongly event-specific registration link.
+
+    This is intentionally stricter than _registration_url.  It is used only
+    when the event prose does not explicitly discuss registration, so a
+    generic sitewide Register/Registration link must never create a false
+    positive.  Strong evidence is a link label that says register/sign up and
+    names this event, or names the month/date of this particular occurrence.
+    """
+    month_name = ""
+    month_number = ""
+    day_number = ""
+    if event_day:
+        try:
+            event_date = date.fromisoformat(event_day)
+            month_name = event_date.strftime("%B").casefold()
+            month_number = str(event_date.month)
+            day_number = str(event_date.day)
+        except ValueError:
+            pass
+
+    title_key = _strip_free_prefix(title).casefold()
+    title_words = [
+        word
+        for word in re.findall(r"[a-z0-9]+", title_key)
+        if len(word) >= 4 and word not in {"event", "night", "family", "free"}
+    ]
+
+    for href, label in parser.links:
+        label_key = _clean(label).casefold()
+        if not re.search(r"\b(register|registration|sign\s*up|signup)\b", label_key):
+            continue
+
+        absolute = _absolute(base_url, href)
+        parsed = urlparse(absolute)
+        path = parsed.path.rstrip("/").casefold()
+
+        # Never accept the park district's generic registration navigation.
+        if path in {"/register", "/registration", "/programs", "/activities"}:
+            continue
+        if label_key in {"registration", "register", "sign up", "signup"}:
+            continue
+
+        date_specific = bool(
+            (month_name and month_name in label_key)
+            or (
+                month_number
+                and day_number
+                and re.search(rf"\b{month_number}[/-]{day_number}\b", label_key)
+            )
+        )
+        title_specific = bool(
+            title_words
+            and sum(1 for word in title_words if word in label_key) >= min(2, len(title_words))
+        )
+
+        if date_specific or title_specific:
+            return absolute
+    return None
+
+
+def _registration_details(
+    parser: _PageParser,
+    base_url: str,
+    event_day: str | None,
+    title: str,
+    event_text: str,
+) -> tuple[str, str | None]:
+    """Resolve registration state without mistaking site navigation for signup."""
+    status = _registration_status(event_text)
+    if _explicit_no_registration(event_text):
+        return "none", None
+
+    if status != "none":
+        return status, _registration_url(parser, base_url, event_day, status)
+
+    # Some event pages present occurrence-specific Register links without prose
+    # saying registration is required. Treat those as optional/requested so the
+    # week view can surface the useful link without overstating the requirement.
+    url = _event_specific_registration_url(parser, base_url, event_day, title)
+    if url:
+        return "requested", url
+    return "none", None
+
+
 def _looks_like_registration_link(href: str, label: str) -> bool:
     haystack = f"{href} {label}".casefold()
     return bool(
@@ -694,8 +789,13 @@ def _champaign_event(url: str, district: ParkDistrict) -> dict | None:
     if not buckets:
         return None
 
-    reg_status = _registration_status(local_text)
-    reg_url = _registration_url(parser, url, event_day, reg_status)
+    reg_status, reg_url = _registration_details(
+        parser,
+        url,
+        event_day,
+        title,
+        local_text,
+    )
 
     title = _strip_free_prefix(title)
     event = {
@@ -754,8 +854,13 @@ def _urbana_event(url: str, hint: dict, district: ParkDistrict) -> dict | None:
     if not buckets:
         return None
 
-    reg_status = _registration_status(local_text)
-    reg_url = _registration_url(parser, url, event_day, reg_status)
+    reg_status, reg_url = _registration_details(
+        parser,
+        url,
+        event_day,
+        title,
+        local_text,
+    )
 
     title = _strip_free_prefix(title)
     event = {
