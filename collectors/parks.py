@@ -369,7 +369,33 @@ _AGE_RANGE_PATTERNS = (
     re.compile(r"\bages?\s*:?\s*(\d{1,2})\s*(?:-|–|to)\s*(\d{1,2})\b", re.I),
     re.compile(r"\bage\s*:?\s*(\d{1,2})\s*(?:-|–|to)\s*(\d{1,2})\b", re.I),
 )
+_AGE_MINIMUM = re.compile(
+    r"\b(?:ages?|age)\s*:?\s*(\d{1,2})\s*(?:\+|and\s+(?:up|older|better)|or\s+older)\b",
+    re.I,
+)
 _GRADE_RANGE = re.compile(r"\bgrades?\s*(\d{1,2})\s*(?:-|–|to)\s*(\d{1,2})\b", re.I)
+
+
+def _event_local_text(text: str, district_key: str) -> str:
+    """Trim obvious site footer/navigation text before audience parsing.
+
+    The event pages append sitewide material that can contain unrelated age and
+    registration language.  Keeping only the event-local portion prevents, for
+    example, an early-childhood event from inheriting an 18+ program card lower
+    on the page.
+    """
+    markers = (
+        ("505 W Stoughton St", "505 W. Stoughton St")
+        if district_key == "urbana"
+        else ("706 Kenwood Rd", "706 Kenwood Road")
+    )
+    cut = len(text)
+    lowered = text.casefold()
+    for marker in markers:
+        pos = lowered.find(marker.casefold())
+        if pos >= 0:
+            cut = min(cut, pos)
+    return text[:cut].strip()
 
 
 def _add_range_buckets(buckets: set[str], low: int, high: int) -> None:
@@ -379,50 +405,87 @@ def _add_range_buckets(buckets: set[str], low: int, high: int) -> None:
     # teens roughly 12-18. Boundary ages may intentionally land in two groups.
     if low <= 5 and high >= 0:
         buckets.add("early")
-    if low <= 12 and high >= 5:
+    if low <= 12 and high >= 6:
         buckets.add("elementary")
     if low <= 18 and high >= 12:
         buckets.add("teens")
 
 
 def _audience_buckets(title: str, text: str) -> set[str]:
+    """Return only age bands supported by positive event-specific evidence."""
     combined = f"{title}\n{text}"
     lowered = combined.casefold()
 
-    # Explicit adult-only/senior programming is not part of this feed unless
-    # the same event also clearly says family/all ages.
-    family_signal = bool(re.search(r"\b(all ages|family|families|family-friendly|kids and adults)\b", lowered))
-    adult_only = bool(
-        re.search(r"\b(18\s*\+|21\s*\+|18 and older|21 and over|adults? only|senior club|for seniors)\b", lowered)
-    )
-    if adult_only and not family_signal:
+    # Strong adult/senior signals win over vague phrases such as "open to all"
+    # or organization names containing the word Family (e.g. Family Service).
+    if re.search(
+        r"\b(?:ages?|age)\s*:?\s*(?:18|19|20|21|[2-9]\d)\s*(?:\+|and\s+(?:up|older|better)|or\s+older)\b",
+        lowered,
+    ):
+        return set()
+    if re.search(
+        r"\b(?:adults? only|for adults?|older adults?|for seniors?|senior (?:club|luncheon|connections)|seniors? aged|50 and better)\b",
+        lowered,
+    ):
         return set()
 
     buckets: set[str] = set()
+    explicit_age = False
+
     for pattern in _AGE_RANGE_PATTERNS:
         for match in pattern.finditer(combined):
+            explicit_age = True
             _add_range_buckets(buckets, int(match.group(1)), int(match.group(2)))
 
+    for match in _AGE_MINIMUM.finditer(combined):
+        explicit_age = True
+        minimum = int(match.group(1))
+        if minimum >= 18:
+            return set()
+        if minimum <= 5:
+            buckets.update({"early", "elementary", "teens"})
+        elif minimum <= 12:
+            buckets.update({"elementary", "teens"})
+        else:
+            buckets.add("teens")
+
     for match in _GRADE_RANGE.finditer(combined):
+        explicit_age = True
         low_grade, high_grade = int(match.group(1)), int(match.group(2))
         if low_grade <= 5:
             buckets.add("elementary")
         if high_grade >= 6:
             buckets.add("teens")
 
-    if re.search(r"\b(baby|babies|toddler|toddlers|preschool|preschooler|pre-k|early childhood)\b", lowered):
+    # Specific school-age language is useful when no numeric age is supplied.
+    if re.search(r"\b(baby|babies|toddler|toddlers|preschool|preschooler|pre-k|early childhood|early learners?)\b", lowered):
         buckets.add("early")
-    if re.search(r"\b(elementary|school-aged|school age|children|child|kids|youth)\b", lowered):
+    if re.search(r"\b(elementary|school-aged|school age|grade school|kids?\b|children\b|child\b)\b", lowered):
         buckets.add("elementary")
-    if re.search(r"\b(teens?|teenager|grades? 6-12|middle school|high school)\b", lowered):
+    if re.search(r"\b(teens?|teenager|middle school|high school)\b", lowered):
         buckets.add("teens")
+    if re.search(r"\byouth\b", lowered) and not explicit_age:
+        buckets.update({"elementary", "teens"})
+
+    # Family/all-ages is its own bucket.  Crucially, "all ages" does not imply
+    # that the event should also be tagged Early + Elementary + Teens.
+    family_signal = bool(
+        re.search(
+            r"\b(?:all ages(?:(?: and| &) abilities)?(?: are)? welcome|free for all ages|for all ages|"
+            r"families? (?:are )?(?:invited|welcome)|for families|family-friendly|family fun|"
+            r"family night|family event|whole family|bring (?:the|your) family|kids? and adults|"
+            r"children and (?:caregivers?|adults?|parents?)|(?:caregivers?|parents?) and children)\b",
+            lowered,
+        )
+    )
     if family_signal:
         buckets.add("family")
+    elif buckets & {"early", "elementary"} and re.search(
+        r"\b(?:caregivers?|parents?) (?:are )?(?:welcome|invited|attend|participate)|with (?:a )?(?:caregiver|parent)\b",
+        lowered,
+    ):
+        buckets.add("family")
 
-    # Avoid classifying generic adult/community events merely because their
-    # boilerplate mentions children elsewhere on the page.
-    if not buckets:
-        return set()
     return buckets
 
 
@@ -430,17 +493,21 @@ _REG_REQUIRED = (
     r"\bregistration (?:is )?required\b",
     r"\bpre-?registration (?:is )?required\b",
     r"\bmust (?:pre-?)?register\b",
-    r"\bplease register\b",
-    r"\bplease sign up\b",
+    r"\badvance registration (?:is )?required\b",
 )
 _REG_REQUESTED = (
+    r"\bplease register\b",
+    r"\bplease sign up\b",
+    r"\bwhile free, please (?:register|sign up)\b",
     r"\bregistration (?:is )?requested\b",
     r"\bregistration (?:is )?recommended\b",
     r"\bpre-?registration preferred\b",
-    r"\bsign up so we know\b",
+    r"\bsign up so we (?:can|know|expect)\b",
 )
 _NO_REG = (
     r"\bno registration (?:is )?required\b",
+    r"\bregistration is not required\b",
+    r"\bregistering is not required\b",
     r"\bno advance registration\b",
     r"\byou don['’]?t need to register\b",
     r"\bwalk-?ins? welcome\b",
@@ -450,11 +517,9 @@ _NO_REG = (
 
 def _registration_status(text: str) -> str:
     lowered = text.casefold()
+    # Explicit "not required" wins even if the page also offers optional event
+    # reminders through a registration form.
     if any(re.search(pattern, lowered) for pattern in _NO_REG):
-        # A page can say "registration preferred; walk-ins welcome." That is
-        # optional rather than required.
-        if any(re.search(pattern, lowered) for pattern in _REG_REQUESTED):
-            return "requested"
         return "none"
     if any(re.search(pattern, lowered) for pattern in _REG_REQUIRED):
         return "required"
@@ -468,21 +533,37 @@ def _looks_like_registration_link(href: str, label: str) -> bool:
     return bool(
         re.search(r"\b(register|registration|sign\s*up|signup)\b", haystack)
         or "activecommunities" in haystack
+        or "webtrac" in haystack
         or "myactivecenter" in haystack
     )
 
 
-def _registration_url(parser: _PageParser, base_url: str, event_day: str | None) -> str | None:
+def _registration_url(
+    parser: _PageParser,
+    base_url: str,
+    event_day: str | None,
+    status: str,
+) -> str | None:
+    # Never infer registration from the existence of a sitewide Register link.
+    if status == "none":
+        return None
+
     candidates: list[tuple[str, str]] = []
     for href, label in parser.links:
         if not _looks_like_registration_link(href, label):
             continue
         absolute = _absolute(base_url, href)
         parsed = urlparse(absolute)
-        # Ignore generic site-navigation links such as a top-level
-        # "Registration" menu item; we want a link for this event.
-        if label.strip().casefold() == "registration" and parsed.path.rstrip("/").endswith("/registration"):
+        path = parsed.path.rstrip("/").casefold()
+        label_key = label.strip().casefold()
+
+        # Generic navigation destinations are not event registration links.
+        if path in {"/register", "/registration", "/programs", "/activities"}:
             continue
+        if label_key in {"registration", "register", "sign up", "signup"} and not parsed.query:
+            # A bare nav label without an event/activity identifier is too weak.
+            if not any(token in absolute.casefold() for token in ("activecommunities", "webtrac", "myactivecenter")):
+                continue
         candidates.append((absolute, label))
     if not candidates:
         return None
@@ -493,20 +574,23 @@ def _registration_url(parser: _PageParser, base_url: str, event_day: str | None)
         try:
             event_date = date.fromisoformat(event_day)
             month_name = event_date.strftime("%B").casefold()
+            month_number = str(event_date.month)
+            day_number = str(event_date.day)
             for href, label in candidates:
-                if month_name in label.casefold():
+                label_key = label.casefold()
+                if month_name in label_key or re.search(
+                    rf"\b{month_number}[/-]{day_number}\b", label_key
+                ):
                     return href
         except ValueError:
             pass
 
-    # Prefer off-site or purpose-built registration endpoints over links back to
-    # the generic event calendar.
+    # Prefer purpose-built external registration endpoints.
     for href, _label in candidates:
         parsed = urlparse(href)
         if parsed.netloc and "champaignparks.org" not in parsed.netloc and "urbanaparks.org" not in parsed.netloc:
             return href
     return candidates[0][0]
-
 
 def _strip_free_prefix(title: str) -> str:
     title = _clean(title)
@@ -521,6 +605,7 @@ def _event_id(prefix: str, url: str, day: str, title: str) -> str:
 def _champaign_event(url: str, district: ParkDistrict) -> dict | None:
     parser = _parse_page(_fetch(url))
     text = parser.text
+    local_text = _event_local_text(text, district.key)
     node = _first_jsonld_event(parser)
 
     title = ""
@@ -573,16 +658,14 @@ def _champaign_event(url: str, district: ParkDistrict) -> dict | None:
     if not event_day:
         return None
 
-    if not _page_is_free(title, text, parser, node):
+    if not _page_is_free(title, local_text, parser, node):
         return None
-    buckets = _audience_buckets(title, text)
+    buckets = _audience_buckets(title, local_text)
     if not buckets:
         return None
 
-    reg_status = _registration_status(text)
-    reg_url = _registration_url(parser, url, event_day)
-    if reg_url and reg_status == "none":
-        reg_status = "requested"
+    reg_status = _registration_status(local_text)
+    reg_url = _registration_url(parser, url, event_day, reg_status)
 
     title = _strip_free_prefix(title)
     event = {
@@ -611,6 +694,7 @@ def _champaign_event(url: str, district: ParkDistrict) -> dict | None:
 def _urbana_event(url: str, hint: dict, district: ParkDistrict) -> dict | None:
     parser = _parse_page(_fetch(url))
     text = parser.text
+    local_text = _event_local_text(text, district.key)
 
     title = hint.get("title", "")
     if not title:
@@ -634,16 +718,14 @@ def _urbana_event(url: str, hint: dict, district: ParkDistrict) -> dict | None:
     location_match = re.search(r"(?:^|\n)Location:\s*([^\n]+)", text, re.I)
     location = _clean(location_match.group(1)) if location_match else None
 
-    if not _page_is_free(title, text, parser, None):
+    if not _page_is_free(title, local_text, parser, None):
         return None
-    buckets = _audience_buckets(title, text)
+    buckets = _audience_buckets(title, local_text)
     if not buckets:
         return None
 
-    reg_status = _registration_status(text)
-    reg_url = _registration_url(parser, url, event_day)
-    if reg_url and reg_status == "none":
-        reg_status = "requested"
+    reg_status = _registration_status(local_text)
+    reg_url = _registration_url(parser, url, event_day, reg_status)
 
     title = _strip_free_prefix(title)
     event = {
@@ -723,10 +805,13 @@ def fetch_park_calendar(key: str, *, reference: date | None = None) -> list[dict
     result = sorted(unique.values(), key=lambda e: (e.get("date", ""), e.get("start", ""), e.get("title", "")))
 
     registration_count = sum(bool(event.get("registrationUrl")) for event in result)
+    registration_required = sum(event.get("registrationStatus") == "required" for event in result)
+    registration_requested = sum(event.get("registrationStatus") == "requested" for event in result)
     print(
         f"{district.log_id} detail: discovered {len(discovered)} event page(s); "
         f"kept {len(result)} free youth/family event(s); "
-        f"{registration_count} with registration link"
+        f"registration required={registration_required}, requested={registration_requested}, "
+        f"usable registration links={registration_count}"
     )
     if result:
         sample = "; ".join(
