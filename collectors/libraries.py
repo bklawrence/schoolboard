@@ -291,6 +291,7 @@ def _discover_event_links(
     )
     return discovered
 
+
 def _jsonld_event(page_html: str) -> dict[str, Any] | None:
     def walk(value: Any):
         if isinstance(value, dict):
@@ -474,6 +475,48 @@ def _section_text(text: str, heading: str, stop_headings: tuple[str, ...]) -> st
     return text[start:end].strip()
 
 
+def _registration_metadata(text: str, event_url: str) -> dict[str, Any]:
+    """Return registration metadata only for visible Communico controls.
+
+    Descriptions sometimes mention registering for some *other* program, so a
+    loose search for the word "register" would create false positives.  The
+    Communico registration controls appear as their own visible lines: Register,
+    Register N Seats Remaining, Join the wait list, or Registration opens ... .
+    Linking to the event page is deliberate: it is the stable public page where
+    Communico exposes the current registration/wait-list control.
+    """
+    lines = [re.sub(r"\s+", " ", line).strip() for line in text.splitlines()]
+    lower_lines = [line.lower() for line in lines if line]
+
+    if any(
+        line in {"registration now closed", "registration closed"}
+        for line in lower_lines
+    ):
+        return {}
+
+    for line in lower_lines:
+        if re.fullmatch(r"register(?:\s+\d+\s+seats?\s+remaining)?", line):
+            return {
+                "registrationRequired": True,
+                "registrationStatus": "open",
+                "registrationUrl": event_url,
+            }
+        if line in {"join the wait list", "join wait list", "join the waitlist"}:
+            return {
+                "registrationRequired": True,
+                "registrationStatus": "waitlist",
+                "registrationUrl": event_url,
+            }
+        if line.startswith("registration opens "):
+            return {
+                "registrationRequired": True,
+                "registrationStatus": "requested",
+                "registrationUrl": event_url,
+            }
+
+    return {}
+
+
 def _audience_ids(
     library: LibraryConfig,
     title: str,
@@ -561,6 +604,7 @@ def _audience_ids(
         ids.append(library.teens_id)
     return ids
 
+
 def _parse_event_page(
     library: LibraryConfig,
     event_url: str,
@@ -610,6 +654,8 @@ def _parse_event_page(
         event["end"] = end_time
     if location:
         event["location"] = location
+
+    event.update(_registration_metadata(text, event_url))
 
     return event
 
@@ -684,12 +730,17 @@ def fetch_library_calendar(
         library.teens_id in event.get("schools", [])
         for event in events
     )
+    registration_count = sum(
+        bool(event.get("registrationUrl"))
+        for event in events
+    )
 
     print(
         f"{library.log_id} detail: event-page audience classification "
         f"early={early_count}, elementary={elementary_count}, "
         f"teens={teens_count}; kept {len(events)} unique youth/family "
-        f"event(s); excluded {non_youth} non-youth page(s); "
+        f"event(s); registration links={registration_count}; "
+        f"excluded {non_youth} non-youth page(s); "
         f"{fetch_failures} detail fetch failure(s)"
     )
 
