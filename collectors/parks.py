@@ -376,26 +376,43 @@ _AGE_MINIMUM = re.compile(
 _GRADE_RANGE = re.compile(r"\bgrades?\s*(\d{1,2})\s*(?:-|–|to)\s*(\d{1,2})\b", re.I)
 
 
-def _event_local_text(text: str, district_key: str) -> str:
-    """Trim obvious site footer/navigation text before audience parsing.
+def _strip_html_text(value: str) -> str:
+    if not value:
+        return ""
+    # JSON-LD descriptions may contain small bits of HTML.
+    value = re.sub(r"<br\s*/?>", "\n", value, flags=re.I)
+    value = re.sub(r"</p\s*>", "\n", value, flags=re.I)
+    value = re.sub(r"<[^>]+>", " ", value)
+    return _clean(value)
 
-    The event pages append sitewide material that can contain unrelated age and
-    registration language.  Keeping only the event-local portion prevents, for
-    example, an early-childhood event from inheriting an 18+ program card lower
-    on the page.
+
+def _event_local_text(text: str, title: str, district_key: str) -> str:
+    """Return text belonging to this event, excluding nav/related-event copy.
+
+    Both park sites put unrelated program names and audience labels elsewhere on
+    the page.  Those words were contaminating age classification (for example,
+    every Urbana event inheriting the site's ``Teens`` category label).  Start
+    at the event's own title and stop before the site footer / related content.
     """
-    markers = (
+    lowered = text.casefold()
+    title_key = _clean(title).casefold()
+    start = lowered.rfind(title_key) if title_key else -1
+    if start < 0:
+        start = 0
+    local = text[start:]
+
+    end_markers = (
         ("505 W Stoughton St", "505 W. Stoughton St")
         if district_key == "urbana"
-        else ("706 Kenwood Rd", "706 Kenwood Road")
+        else ("706 Kenwood Rd", "706 Kenwood Road", "Related Events", "Events Search and Views Navigation")
     )
-    cut = len(text)
-    lowered = text.casefold()
-    for marker in markers:
-        pos = lowered.find(marker.casefold())
+    lowered_local = local.casefold()
+    cut = len(local)
+    for marker in end_markers:
+        pos = lowered_local.find(marker.casefold())
         if pos >= 0:
             cut = min(cut, pos)
-    return text[:cut].strip()
+    return local[:cut].strip()
 
 
 def _add_range_buckets(buckets: set[str], low: int, high: int) -> None:
@@ -419,7 +436,7 @@ def _audience_buckets(title: str, text: str) -> set[str]:
     # Strong adult/senior signals win over vague phrases such as "open to all"
     # or organization names containing the word Family (e.g. Family Service).
     if re.search(
-        r"\b(?:ages?|age)\s*:?\s*(?:18|19|20|21|[2-9]\d)\s*(?:\+|and\s+(?:up|older|better)|or\s+older)\b",
+        r"(?<!\d)(?:18|19|20|21|[2-9]\d)\s*(?:\+|and\s+(?:up|older|better)|or\s+older)\b",
         lowered,
     ):
         return set()
@@ -428,6 +445,12 @@ def _audience_buckets(title: str, text: str) -> set[str]:
         lowered,
     ):
         return set()
+
+    # Strong title labels should not be diluted by incidental words in the
+    # description.  These are common on both park calendars.
+    title_lower = title.casefold()
+    if re.search(r"\bteens? only\b", title_lower):
+        return {"teens"}
 
     buckets: set[str] = set()
     explicit_age = False
@@ -605,8 +628,12 @@ def _event_id(prefix: str, url: str, day: str, title: str) -> str:
 def _champaign_event(url: str, district: ParkDistrict) -> dict | None:
     parser = _parse_page(_fetch(url))
     text = parser.text
-    local_text = _event_local_text(text, district.key)
     node = _first_jsonld_event(parser)
+
+    # Prefer the event-specific JSON-LD description on Champaign pages; the
+    # visible page includes nearby/related event cards before the actual event.
+    node_description = _strip_html_text(str(node.get("description", ""))) if node else ""
+    local_text = _event_local_text(text, title="", district_key=district.key)
 
     title = ""
     event_day = None
@@ -627,6 +654,9 @@ def _champaign_event(url: str, district: ParkDistrict) -> dict | None:
                 break
     if not title:
         return None
+
+    local_text = _event_local_text(text, title, district.key)
+    audience_text = node_description or local_text
 
     if not event_day:
         # Fallback for pages where JSON-LD is absent.
@@ -660,7 +690,7 @@ def _champaign_event(url: str, district: ParkDistrict) -> dict | None:
 
     if not _page_is_free(title, local_text, parser, node):
         return None
-    buckets = _audience_buckets(title, local_text)
+    buckets = _audience_buckets(title, audience_text)
     if not buckets:
         return None
 
@@ -694,8 +724,6 @@ def _champaign_event(url: str, district: ParkDistrict) -> dict | None:
 def _urbana_event(url: str, hint: dict, district: ParkDistrict) -> dict | None:
     parser = _parse_page(_fetch(url))
     text = parser.text
-    local_text = _event_local_text(text, district.key)
-
     title = hint.get("title", "")
     if not title:
         for level, heading in parser.headings:
@@ -705,6 +733,8 @@ def _urbana_event(url: str, hint: dict, district: ParkDistrict) -> dict | None:
     title = _clean(title)
     if not title:
         return None
+
+    local_text = _event_local_text(text, title, district.key)
 
     date_match = re.search(r"(?:^|\n)Date:\s*([^\n]+)", text, re.I)
     event_day = _iso_date(date_match.group(1)) if date_match else None
