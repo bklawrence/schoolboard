@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Chambana Schoolboard — your school day + week</title>
   <link rel="icon" href="favicon.png" type="image/png" />
-  <!-- Chambana Schoolboard v47 community translation, athletics mirror merge, location cleanup, and park-color pass; selection storage intentionally remains v19-compatible. -->
+  <!-- Chambana Schoolboard v49 week-lunch plate markers by school color; community translations, athletics mirror merge, location cleanup, and park colors retained; selection storage intentionally remains v19-compatible. -->
   <style>
     :root{
       --paper:#f3eedf;
@@ -777,6 +777,17 @@
       display:inline-block;
       margin-right:4px;
       color:var(--ink);
+      font:900 13px Arial, sans-serif;
+      line-height:1;
+    }
+    .meal-school-symbols{
+      display:inline-flex;
+      gap:2px;
+      margin-right:4px;
+      vertical-align:baseline;
+    }
+    .meal-school-symbol{
+      color:var(--meal-color,var(--ink));
       font:900 13px Arial, sans-serif;
       line-height:1;
     }
@@ -2547,6 +2558,11 @@
       "friendshop bookstore open": "Librería FriendShop abierta",
       "studio @ main | drop-in": "Studio @ Main | Sin cita previa",
       "family fun night": "Noche de diversión en familia",
+      "mid-autumn festival family night": "Noche familiar del Festival del Medio Otoño",
+      "latin american story time": "Hora de cuentos de América Latina",
+      "latin american storytime": "Hora de cuentos de América Latina",
+      "writer's workshop": "Taller de escritura",
+      "writers' workshop": "Taller de escritura",
       "mid-autumn festival family fun": "Diversión en familia por el Festival del Medio Otoño",
       "mid-autumn festival": "Festival del Medio Otoño",
       "family fun": "Diversión en familia",
@@ -2602,6 +2618,11 @@
       "friendshop bookstore open": "Librairie FriendShop ouverte",
       "studio @ main | drop-in": "Studio @ Main | Sans rendez-vous",
       "family fun night": "Soirée de plaisir en famille",
+      "mid-autumn festival family night": "Soirée familiale de la Fête de la mi-automne",
+      "latin american story time": "Heure du conte d’Amérique latine",
+      "latin american storytime": "Heure du conte d’Amérique latine",
+      "writer's workshop": "Atelier d’écriture",
+      "writers' workshop": "Atelier d’écriture",
       "mid-autumn festival family fun": "Activités familiales pour la Fête de la mi-automne",
       "mid-autumn festival": "Fête de la mi-automne",
       "family fun": "Activités en famille",
@@ -18096,6 +18117,12 @@
     return `<span class="school-pips">${colors.map(color => `<span class="school-pip" style="--school-color:${escapeAttr(color)}"></span>`).join("")}</span>`;
   }
 
+  function mealSchoolSymbols(ids){
+    const colors = uniqueSchoolColors(ids);
+    const resolved = colors.length ? colors : ["#435060"];
+    return `<span class="meal-school-symbols" aria-hidden="true">${resolved.map(color => `<span class="meal-school-symbol" style="--meal-color:${escapeAttr(color)}">⊙</span>`).join("")}</span>`;
+  }
+
   function comparableText(value){
     return String(value || "")
       .normalize("NFKD")
@@ -18836,7 +18863,7 @@
       const mealNames = _mealList.length > 3 ? t("selectedSchools",{count:_mealList.length}) : (_mealList.join(" + ") || translateMenuGroupLabel(x.group.label));
 
       if (x.lunch.status === "none"){
-        return `<span style="display:block;margin-top:5px">${schoolPips(mealSchoolIds)}<strong>${escapeHtml(mealNames)} · ${escapeHtml(translateMenuGroupLabel(x.group.label))}:</strong> ${escapeHtml(x.lunch.label)}</span>`;
+        return `<span style="display:block;margin-top:5px">${mealSchoolSymbols(mealSchoolIds)}<strong>${escapeHtml(mealNames)} · ${escapeHtml(translateMenuGroupLabel(x.group.label))}:</strong> ${escapeHtml(x.lunch.label)}</span>`;
       }
 
       const stationHeading = String(x.group?.label || "").trim();
@@ -18847,7 +18874,7 @@
       const preview = visibleLunchItems.slice(0,3).map(item => escapeHtml(translateFoodItem(item))).join(" · ");
       const more = Math.max(0, visibleLunchItems.length - 3);
       return `<span style="display:block;margin-top:5px">
-        ${schoolPips(mealSchoolIds)}<strong>${escapeHtml(mealNames)} · ${escapeHtml(translateMenuGroupLabel(x.group.label))}:</strong> ${preview}${more ? ` · ${escapeHtml(t("more",{count:more}))}` : ""}
+        ${mealSchoolSymbols(mealSchoolIds)}<strong>${escapeHtml(mealNames)} · ${escapeHtml(translateMenuGroupLabel(x.group.label))}:</strong> ${preview}${more ? ` · ${escapeHtml(t("more",{count:more}))}` : ""}
         ${x.lunch.status === "predicted" ? `<span class="prediction-mark"> · ${escapeHtml(t("predicted"))}</span>` : ""}
       </span>`;
     }).join("");
@@ -18875,7 +18902,7 @@
       }).join("");
 
       highSchoolHtml = `<span class="week-meal-parent">
-        ${schoolPips(schoolIds)}<strong>${escapeHtml(mealNames)} · ${escapeHtml(t("unit4High"))}:</strong>
+        ${mealSchoolSymbols(schoolIds)}<strong>${escapeHtml(mealNames)} · ${escapeHtml(t("unit4High"))}:</strong>
         ${stations}
       </span>`;
     }
@@ -18914,7 +18941,7 @@
             </div>`;
           }).join("") : `<div class="week-event"><div class="s">${escapeHtml(t("noEvents"))}</div></div>`}
 
-          ${lunches.length ? `<div class="week-meal"><span class="meal-symbol" aria-hidden="true">⊙</span><b>${escapeHtml(t("lunch"))}</b><br>${renderWeekLunches(lunches)}</div>` : ""}
+          ${lunches.length ? `<div class="week-meal"><b>${escapeHtml(t("lunch"))}</b><br>${renderWeekLunches(lunches)}</div>` : ""}
         </article>
       `;
     }).join("");
