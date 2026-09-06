@@ -1,537 +1,624 @@
 from __future__ import annotations
 
+import concurrent.futures
+import html
 import json
 import re
-import time
 from dataclasses import dataclass
-from datetime import date, datetime, timedelta
-from html import unescape
+from datetime import date, timedelta
 from html.parser import HTMLParser
 from typing import Any
-from urllib.parse import urlencode, urljoin, urlparse
+from urllib.parse import quote, urljoin, urlparse
 from urllib.request import Request, urlopen
-
-HISTORY_DAYS = 30
-HORIZON_DAYS = 60
 
 
 @dataclass(frozen=True)
-class LibraryCalendar:
-    id: str
+class LibraryConfig:
+    key: str
     name: str
-    base_url: str
     source: str
-    band_school_ids: dict[str, str]
-    age_filters: dict[str, tuple[str, ...]]
+    log_id: str
+    base_url: str
+    early_id: str
+    elementary_id: str
+    teens_id: str
+    discovery_ages: tuple[str, ...]
 
-    @property
-    def log_id(self) -> str:
-        return f"{self.id}-library"
 
-
-URBANA_LIBRARY = LibraryCalendar(
-    id="urbana",
-    name="Urbana Free Library",
-    base_url="https://urbanafreelibrary.libnet.info",
-    source="Urbana Free Library Youth Events",
-    band_school_ids={
-        "early": "urbana-lib-early",
-        "elementary": "urbana-lib-elementary",
-        "teens": "urbana-lib-teens",
-    },
-    age_filters={
-        "early": ("Babies", "Toddlers", "Pre-Schoolers"),
-        "elementary": ("Elementary Students",),
-        "teens": ("Middle School Students", "High School Students"),
-    },
+LIBRARIES: tuple[LibraryConfig, ...] = (
+    LibraryConfig(
+        key="urbana",
+        name="Urbana Free Library",
+        source="Urbana Free Library",
+        log_id="urbana-library",
+        base_url="https://urbanafreelibrary.libnet.info",
+        early_id="urbana-lib-early",
+        elementary_id="urbana-lib-elementary",
+        teens_id="urbana-lib-teens",
+        discovery_ages=(
+            "Babies",
+            "Toddlers",
+            "Pre-Schoolers",
+            "Preschoolers",
+            "Elementary Students",
+            "Middle School Students",
+            "High School Students",
+            "Families",
+        ),
+    ),
+    LibraryConfig(
+        key="champaign",
+        name="Champaign Public Library",
+        source="Champaign Public Library",
+        log_id="champaign-library",
+        base_url="https://champaign.libnet.info",
+        early_id="champaign-lib-early",
+        elementary_id="champaign-lib-elementary",
+        teens_id="champaign-lib-teens",
+        discovery_ages=(
+            "Baby",
+            "Babies",
+            "Preschool",
+            "School age",
+            "School-age",
+            "Teen",
+            "Teens",
+            "All ages",
+            "Families",
+        ),
+    ),
 )
 
-CHAMPAIGN_LIBRARY = LibraryCalendar(
-    id="champaign",
-    name="Champaign Public Library",
-    base_url="https://champaign.libnet.info",
-    source="Champaign Public Library Youth Events",
-    band_school_ids={
-        "early": "champaign-lib-early",
-        "elementary": "champaign-lib-elementary",
-        "teens": "champaign-lib-teens",
-    },
-    age_filters={
-        "early": ("Preschool",),
-        "elementary": ("School age",),
-        "teens": ("Teens",),
-    },
+
+USER_AGENT = (
+    "Mozilla/5.0 (compatible; ChambanaSchoolBoard/1.0; "
+    "+https://www.chambanaschoolboard.com/)"
+)
+TIMEOUT_SECONDS = 18
+MAX_WORKERS = 8
+
+_EVENT_LINK_RE = re.compile(
+    r'''href=["']([^"']*/event/\d+(?:\?[^"']*)?)["']''',
+    re.IGNORECASE,
+)
+_EVENT_ID_RE = re.compile(r"/event/(\d+)", re.IGNORECASE)
+_ISO_DT_RE = re.compile(
+    r"(?<!\d)(20\d{2}-\d{2}-\d{2})[T ](\d{2}:\d{2})(?::\d{2})?"
+)
+_LDJSON_RE = re.compile(
+    r'''<script\b[^>]*type=["']application/ld\+json["'][^>]*>(.*?)</script>''',
+    re.IGNORECASE | re.DOTALL,
 )
 
-LIBRARIES = (URBANA_LIBRARY, CHAMPAIGN_LIBRARY)
-BAND_ORDER = ("early", "elementary", "teens")
 
+class _VisibleTextParser(HTMLParser):
+    BLOCK_TAGS = {
+        "p", "div", "section", "article", "header", "footer",
+        "h1", "h2", "h3", "h4", "h5", "h6", "li", "br",
+        "dt", "dd", "tr", "td", "th",
+    }
 
-class _EventPageParser(HTMLParser):
     def __init__(self) -> None:
         super().__init__(convert_charrefs=True)
-        self._in_h1 = False
-        self.h1_parts: list[str] = []
-        self.text_parts: list[str] = []
-        self.meta: dict[str, str] = {}
+        self.parts: list[str] = []
+        self._skip_depth = 0
 
-    def handle_starttag(self, tag: str, attrs) -> None:
-        tag = tag.casefold()
-        attr = {str(k).casefold(): str(v) for k, v in attrs if k and v is not None}
-        if tag == "h1":
-            self._in_h1 = True
-        if tag == "meta":
-            key = attr.get("property") or attr.get("name")
-            content = attr.get("content")
-            if key and content:
-                self.meta[key.casefold()] = content.strip()
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        tag = tag.lower()
+        if tag in {"script", "style", "noscript"}:
+            self._skip_depth += 1
+            return
+        if not self._skip_depth and tag in self.BLOCK_TAGS:
+            self.parts.append("\n")
 
     def handle_endtag(self, tag: str) -> None:
-        if tag.casefold() == "h1":
-            self._in_h1 = False
+        tag = tag.lower()
+        if tag in {"script", "style", "noscript"}:
+            self._skip_depth = max(0, self._skip_depth - 1)
+            return
+        if not self._skip_depth and tag in self.BLOCK_TAGS:
+            self.parts.append("\n")
 
     def handle_data(self, data: str) -> None:
-        clean = re.sub(r"\s+", " ", data).strip()
-        if not clean:
-            return
-        self.text_parts.append(clean)
-        if self._in_h1:
-            self.h1_parts.append(clean)
+        if not self._skip_depth:
+            self.parts.append(data)
+
+    def text(self) -> str:
+        raw = html.unescape("".join(self.parts))
+        lines = [re.sub(r"\s+", " ", line).strip() for line in raw.splitlines()]
+        return "\n".join(line for line in lines if line)
 
 
-def _request_text(
-    url: str,
-    *,
-    timeout: int = 30,
-    opener=urlopen,
-) -> str:
-    request = Request(
+def _fetch_text(url: str) -> str:
+    req = Request(
         url,
         headers={
-            "User-Agent": "ChambanaSchoolboard/1.0 (+public community calendar aggregator)",
+            "User-Agent": USER_AGENT,
             "Accept": "text/html,application/xhtml+xml",
+            "Cache-Control": "no-cache",
         },
     )
-    with opener(request, timeout=timeout) as response:
-        body = response.read()
+    with urlopen(req, timeout=TIMEOUT_SECONDS) as response:
         charset = response.headers.get_content_charset() or "utf-8"
-    return body.decode(charset, errors="replace")
+        return response.read().decode(charset, errors="replace")
 
 
-def _new_driver():
-    try:
-        from selenium import webdriver
-        from selenium.webdriver.chrome.options import Options
-    except ImportError as exc:
-        raise RuntimeError("Selenium is required for Communico event-list discovery") from exc
-
-    options = Options()
-    options.add_argument("--headless=new")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--disable-gpu")
-    options.add_argument("--window-size=1440,1200")
-    options.add_argument("--lang=en-US")
-
-    driver = webdriver.Chrome(options=options)
-    driver.set_page_load_timeout(45)
-    return driver
+def _visible_text(page_html: str) -> str:
+    parser = _VisibleTextParser()
+    parser.feed(page_html)
+    return parser.text()
 
 
-def _event_id_from_url(url: str) -> str | None:
-    match = re.search(r"/event/(?:[^/?#]*-)?(\d+)(?:[/?#]|$)", url)
-    if not match:
-        # Communico hosted pages normally use /event/12345.
-        match = re.search(r"/event/(\d+)(?:[/?#]|$)", url)
-    return match.group(1) if match else None
+def _event_links_from_listing(page_html: str, base_url: str) -> set[str]:
+    links: set[str] = set()
+    for href in _EVENT_LINK_RE.findall(page_html):
+        full = urljoin(base_url.rstrip("/") + "/", html.unescape(href))
+        parsed = urlparse(full)
+        canonical = f"{parsed.scheme}://{parsed.netloc}{parsed.path}"
+        if _EVENT_ID_RE.search(canonical):
+            links.add(canonical)
+    return links
 
 
-def _filtered_url(
-    calendar: LibraryCalendar,
+def _listing_url(
+    library: LibraryConfig,
+    start_date: date,
+    end_date: date,
     *,
-    age: str,
-    start_day: date,
-    end_day: date,
+    age: str | None = None,
 ) -> str:
-    params = urlencode({
-        "a": age,
-        "start": start_day.isoformat(),
-        "end": end_day.isoformat(),
-        "v": "list",
-    })
-    return f"{calendar.base_url}/events?{params}"
+    url = (
+        f"{library.base_url.rstrip('/')}/events"
+        f"?start={start_date.isoformat()}&end={end_date.isoformat()}&v=list"
+    )
+    if age:
+        url += f"&a={quote(age)}"
+    return url
 
 
-def discover_youth_event_links(
-    calendar: LibraryCalendar,
-    *,
-    reference: date,
-    wait_seconds: float = 2.0,
-) -> dict[str, dict[str, Any]]:
-    """
-    Use Communico's documented age/date filters, then merge membership by
-    event id. An event tagged for multiple selected ages therefore becomes
-    one SchoolBoard record with multiple audience IDs.
-    """
-    try:
-        from selenium.webdriver.common.by import By
-    except ImportError as exc:
-        raise RuntimeError("Selenium is required for Communico event-list discovery") from exc
+def _discover_event_links(
+    library: LibraryConfig,
+    start_date: date,
+    end_date: date,
+) -> set[str]:
+    links: set[str] = set()
+    successful_filters = 0
 
-    start_day = reference - timedelta(days=HISTORY_DAYS)
-    end_day = reference + timedelta(days=HORIZON_DAYS)
-    found: dict[str, dict[str, Any]] = {}
-    driver = _new_driver()
-
-    try:
-        for band in BAND_ORDER:
-            band_links: set[str] = set()
-            for age in calendar.age_filters[band]:
-                url = _filtered_url(
-                    calendar,
-                    age=age,
-                    start_day=start_day,
-                    end_day=end_day,
-                )
-                driver.get(url)
-                time.sleep(wait_seconds)
-
-                for anchor in driver.find_elements(By.CSS_SELECTOR, "a[href*='/event/']"):
-                    try:
-                        href = anchor.get_attribute("href") or ""
-                    except Exception:
-                        continue
-                    if not href:
-                        continue
-
-                    full = urljoin(calendar.base_url, href)
-                    if urlparse(full).netloc != urlparse(calendar.base_url).netloc:
-                        continue
-
-                    event_id = _event_id_from_url(full)
-                    if not event_id:
-                        continue
-
-                    canonical = f"{calendar.base_url}/event/{event_id}"
-                    entry = found.setdefault(event_id, {
-                        "url": canonical,
-                        "bands": set(),
-                    })
-                    entry["bands"].add(band)
-                    band_links.add(event_id)
-
-            print(
-                f"{calendar.log_id} detail: {band} filter found "
-                f"{len(band_links)} unique event links"
+    for age in library.discovery_ages:
+        try:
+            page = _fetch_text(
+                _listing_url(library, start_date, end_date, age=age)
             )
-    finally:
-        driver.quit()
+        except Exception:
+            continue
+        successful_filters += 1
+        links.update(_event_links_from_listing(page, library.base_url))
 
-    if not found:
+    if not links:
+        page = _fetch_text(_listing_url(library, start_date, end_date))
+        links.update(_event_links_from_listing(page, library.base_url))
+
+    if not links:
         raise RuntimeError(
-            f"{calendar.name} Communico youth filters returned zero event links"
+            f"{library.name} Communico listings returned zero event links"
         )
 
-    return found
-
-
-def _json_string_value(html: str, key: str) -> str:
-    pattern = re.compile(
-        rf'["\']{re.escape(key)}["\']\s*:\s*["\'](.*?)(?<!\\)["\']',
-        re.I | re.S,
+    print(
+        f"{library.log_id} detail: discovered {len(links)} candidate event "
+        f"link(s) from {successful_filters} youth/family Communico filter(s)"
     )
-    match = pattern.search(html)
-    if not match:
-        return ""
-    value = match.group(1)
-    try:
-        # Decode ordinary JSON escapes without treating arbitrary HTML as JSON.
-        value = json.loads(f'"{value}"')
-    except Exception:
-        value = value.replace(r"\/", "/").replace(r"\"", '"')
-    return unescape(re.sub(r"\s+", " ", value)).strip()
+    return links
 
 
-def _meta_title(parser: _EventPageParser) -> str:
-    return (
-        " ".join(parser.h1_parts).strip()
-        or parser.meta.get("og:title", "").strip()
-        or parser.meta.get("twitter:title", "").strip()
-    )
+def _jsonld_event(page_html: str) -> dict[str, Any] | None:
+    def walk(value: Any):
+        if isinstance(value, dict):
+            typ = value.get("@type")
+            if typ == "Event" or (isinstance(typ, list) and "Event" in typ):
+                yield value
+            graph = value.get("@graph")
+            if graph is not None:
+                yield from walk(graph)
+            for child in value.values():
+                if isinstance(child, (dict, list)):
+                    yield from walk(child)
+        elif isinstance(value, list):
+            for child in value:
+                yield from walk(child)
 
-
-def _machine_datetimes(html: str) -> list[datetime]:
-    decoded = unescape(html).replace(r"\/", "/")
-    matches = re.findall(
-        r"(?<!\d)(20\d{2}-\d{2}-\d{2})[ T](\d{2}:\d{2}(?::\d{2})?)(?!\d)",
-        decoded,
-    )
-    values: list[datetime] = []
-    for day_text, clock_text in matches:
-        fmt = "%Y-%m-%d %H:%M:%S" if len(clock_text) == 8 else "%Y-%m-%d %H:%M"
+    for block in _LDJSON_RE.findall(page_html):
         try:
-            dt = datetime.strptime(f"{day_text} {clock_text}", fmt)
-        except ValueError:
+            value = json.loads(html.unescape(block).strip())
+        except Exception:
             continue
-        if not values or dt != values[-1]:
-            values.append(dt)
-    return values
-
-
-def _parse_clock(text: str) -> str | None:
-    clean = text.strip().lower().replace(" ", "")
-    for fmt in ("%I:%M%p", "%I%p"):
-        try:
-            return datetime.strptime(clean, fmt).strftime("%H:%M")
-        except ValueError:
-            pass
+        for event in walk(value):
+            return event
     return None
 
 
-def _visible_date_time_fallback(
-    parser: _EventPageParser,
-    *,
-    reference: date,
-) -> tuple[date | None, str | None, str | None]:
-    joined = " | ".join(parser.text_parts)
+def _plain_heading(page_html: str) -> str:
+    for tag in ("h1", "h2", "h3"):
+        for match in re.finditer(
+            rf"<{tag}\b[^>]*>(.*?)</{tag}>",
+            page_html,
+            re.IGNORECASE | re.DOTALL,
+        ):
+            text = re.sub(r"<[^>]+>", " ", match.group(1))
+            text = re.sub(r"\s+", " ", html.unescape(text)).strip()
+            if not text:
+                continue
+            lowered = text.lower()
+            if lowered in {"events", "event", "add to calendar"}:
+                continue
+            if re.search(
+                r"^(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b",
+                lowered,
+            ):
+                continue
+            return text
+    return ""
 
-    date_match = re.search(
-        r"\b(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),\s*"
-        r"(January|February|March|April|May|June|July|August|September|October|November|December)\s+"
-        r"(\d{1,2})(?:,\s*(20\d{2}))?",
-        joined,
-        re.I,
+
+def _title_from_page(page_html: str, jsonld: dict[str, Any] | None) -> str:
+    if jsonld:
+        name = str(jsonld.get("name") or "").strip()
+        if name:
+            return html.unescape(name)
+
+    for pattern in (
+        r'''<meta\b[^>]*property=["']og:title["'][^>]*content=["']([^"']+)["']''',
+        r'''<meta\b[^>]*content=["']([^"']+)["'][^>]*property=["']og:title["']''',
+    ):
+        match = re.search(pattern, page_html, re.IGNORECASE)
+        if match:
+            title = html.unescape(match.group(1)).strip()
+            title = re.sub(
+                r"\s*[-|]\s*(?:Urbana Free Library|Champaign Public Library)\s*$",
+                "",
+                title,
+                flags=re.IGNORECASE,
+            ).strip()
+            if title:
+                return title
+
+    return _plain_heading(page_html)
+
+
+def _datetime_parts(
+    page_html: str,
+    jsonld: dict[str, Any] | None,
+) -> tuple[str, str | None, str | None]:
+    if jsonld:
+        start = str(jsonld.get("startDate") or "").strip()
+        end = str(jsonld.get("endDate") or "").strip()
+        sm = re.search(
+            r"(20\d{2}-\d{2}-\d{2})(?:[T ](\d{2}:\d{2}))?",
+            start,
+        )
+        em = re.search(
+            r"(20\d{2}-\d{2}-\d{2})(?:[T ](\d{2}:\d{2}))?",
+            end,
+        )
+        if sm:
+            event_date = sm.group(1)
+            start_time = sm.group(2)
+            end_time = em.group(2) if em and em.group(1) == event_date else None
+            return event_date, start_time, end_time
+
+    matches = _ISO_DT_RE.findall(html.unescape(page_html))
+    if matches:
+        event_date, start_time = matches[0]
+        end_time: str | None = None
+        for candidate_date, candidate_time in matches[1:]:
+            if candidate_date == event_date and candidate_time != start_time:
+                end_time = candidate_time
+                break
+        return event_date, start_time, end_time
+
+    raise RuntimeError("event page had no parseable start date/time")
+
+
+def _location_from_jsonld(jsonld: dict[str, Any] | None) -> str:
+    if not jsonld:
+        return ""
+    location = jsonld.get("location")
+    if isinstance(location, dict):
+        name = str(location.get("name") or "").strip()
+        if name:
+            return html.unescape(name)
+    if isinstance(location, str):
+        return html.unescape(location).strip()
+    return ""
+
+
+def _location_from_visible_text(text: str) -> str:
+    lines = text.splitlines()
+    try:
+        index = next(
+            i for i, line in enumerate(lines)
+            if line.strip().lower() == "add to calendar"
+        )
+    except StopIteration:
+        return ""
+
+    candidates: list[str] = []
+    for line in lines[index + 1:index + 7]:
+        line = line.strip()
+        if not line:
+            continue
+        if re.search(
+            r"^(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b",
+            line,
+            re.IGNORECASE,
+        ):
+            continue
+        if re.fullmatch(
+            r"\d{1,2}:\d{2}\s*(?:am|pm)\s*-\s*\d{1,2}:\d{2}\s*(?:am|pm)",
+            line,
+            re.IGNORECASE,
+        ):
+            continue
+        if line.lower() in {"register", "registration now closed"}:
+            continue
+        candidates.append(line)
+
+    if not candidates:
+        return ""
+
+    venue = candidates[0]
+    if len(candidates) >= 2:
+        room = candidates[1]
+        if (
+            len(room) <= 90
+            and not re.search(r"[.!?]$", room)
+            and room.lower() not in {"add to calendar", "register"}
+        ):
+            return f"{venue} — {room}"
+    return venue
+
+
+def _section_text(text: str, heading: str, stop_headings: tuple[str, ...]) -> str:
+    upper = text.upper()
+    start = upper.find(heading.upper())
+    if start < 0:
+        return ""
+    start += len(heading)
+
+    end = len(text)
+    for stop in stop_headings:
+        idx = upper.find(stop.upper(), start)
+        if idx >= 0:
+            end = min(end, idx)
+
+    return text[start:end].strip()
+
+
+def _audience_ids(
+    library: LibraryConfig,
+    title: str,
+    text: str,
+) -> list[str]:
+    age_section = _section_text(
+        text,
+        "AGE GROUP:",
+        ("EVENT TYPE:", "TAGS:", "ABOUT THE LIBRARY"),
     )
-    event_day: date | None = None
-    if date_match:
-        month_name, day_num, explicit_year = date_match.groups()
-        month = datetime.strptime(month_name[:3], "%b").month
-        if explicit_year:
-            years = [int(explicit_year)]
-        else:
-            years = [reference.year - 1, reference.year, reference.year + 1]
-        candidates: list[date] = []
-        for year in years:
-            try:
-                candidates.append(date(year, month, int(day_num)))
-            except ValueError:
-                pass
-        if candidates:
-            event_day = min(candidates, key=lambda d: abs((d - reference).days))
-
-    time_match = re.search(
-        r"\b(\d{1,2}(?::\d{2})?\s*(?:am|pm))\s*[-–—]\s*"
-        r"(\d{1,2}(?::\d{2})?\s*(?:am|pm))\b",
-        joined,
-        re.I,
+    event_type = _section_text(
+        text,
+        "EVENT TYPE:",
+        ("TAGS:", "ABOUT THE LIBRARY"),
     )
-    if time_match:
-        return event_day, _parse_clock(time_match.group(1)), _parse_clock(time_match.group(2))
 
-    single = re.search(
-        r"\b(\d{1,2}(?::\d{2})?\s*(?:am|pm))\b",
-        joined,
-        re.I,
+    age_norm = re.sub(r"[^a-z0-9+]+", " ", age_section.lower()).strip()
+    type_norm = re.sub(r"[^a-z0-9+]+", " ", event_type.lower()).strip()
+    title_norm = title.lower()
+
+    early = any(
+        phrase in age_norm
+        for phrase in (
+            "baby", "babies", "toddler", "toddlers",
+            "preschool", "pre school", "pre schoolers",
+            "early childhood", "infant", "infants",
+        )
     )
-    return event_day, _parse_clock(single.group(1)) if single else None, None
+    elementary = any(
+        phrase in age_norm
+        for phrase in (
+            "school age", "school aged",
+            "elementary", "elementary students",
+        )
+    )
+    teens = any(
+        phrase in age_norm
+        for phrase in (
+            "teen", "teens",
+            "middle school", "middle school students",
+            "high school", "high school students",
+        )
+    )
+
+    explicit_youth = early or elementary or teens
+    family = (
+        "families" in age_norm
+        or "family" in age_norm
+        or "all ages" in age_norm
+    )
+
+    if family and not explicit_youth:
+        adult_only_type = (
+            ("adult" in type_norm or "senior" in type_norm)
+            and "children" not in type_norm
+            and "teen" not in type_norm
+            and "outreach" not in type_norm
+        )
+        adult_title = bool(
+            re.search(
+                r"\b(?:senior|seniors|adult|adults|retirement|medicare)\b",
+                title_norm,
+            )
+        )
+        if not adult_only_type and not adult_title:
+            early = elementary = teens = True
+
+    if not (early or elementary or teens):
+        if re.search(r"\b(?:baby|toddler|preschool|pre-k)\b", title_norm):
+            early = True
+        elif re.search(r"\bteen(?:s|age|aged)?\b", title_norm):
+            teens = True
+        elif re.search(
+            r"\b(?:elementary|school[- ]age|kids club|kids in|diy kids)\b",
+            title_norm,
+        ):
+            elementary = True
+
+    ids: list[str] = []
+    if early:
+        ids.append(library.early_id)
+    if elementary:
+        ids.append(library.elementary_id)
+    if teens:
+        ids.append(library.teens_id)
+    return ids
 
 
-def _event_types(parser: _EventPageParser) -> set[str]:
-    parts = parser.text_parts
-    values: list[str] = []
-
-    for i, part in enumerate(parts):
-        label = part.casefold().strip()
-        if label.startswith("event type"):
-            # Sometimes the first value is on the same text node.
-            same = re.sub(r"^event\s*type\s*:?\s*", "", part, flags=re.I).strip(" |")
-            if same:
-                values.extend(x.strip() for x in same.split("|") if x.strip())
-
-            for following in parts[i + 1:i + 8]:
-                low = following.casefold().strip()
-                if (
-                    low.startswith("tags")
-                    or low.startswith("age group")
-                    or low.startswith("the urbana free library")
-                    or low.startswith("main library")
-                    or low.startswith("douglass branch")
-                ):
-                    break
-                if following != "|":
-                    values.extend(x.strip() for x in following.split("|") if x.strip())
-            break
-
-    # Keep labels short; this prevents a description paragraph from being
-    # mistaken for an event type if page markup changes.
-    return {v for v in values if 0 < len(v) <= 40}
-
-
-def parse_event_page(
-    html: str,
-    *,
-    calendar: LibraryCalendar,
-    event_id: str,
+def _parse_event_page(
+    library: LibraryConfig,
     event_url: str,
-    bands: set[str],
-    reference: date,
-) -> dict | None:
-    parser = _EventPageParser()
-    parser.feed(html)
+) -> dict[str, Any] | None:
+    page_html = _fetch_text(event_url)
+    text = _visible_text(page_html)
+    jsonld = _jsonld_event(page_html)
 
-    title = _meta_title(parser)
-    if not title:
-        title = _json_string_value(html, "title")
-    title = re.sub(
-        rf"\s*[-|]\s*{re.escape(calendar.name)}\s*$",
-        "",
-        title,
-        flags=re.I,
-    ).strip()
+    title = _title_from_page(page_html, jsonld)
     if not title:
         return None
 
-    machine = _machine_datetimes(html)
-    if machine:
-        start_dt = machine[0]
-        end_dt = machine[1] if len(machine) > 1 else None
-        event_day = start_dt.date()
-        start = start_dt.strftime("%H:%M")
-        end = (
-            end_dt.strftime("%H:%M")
-            if end_dt and end_dt.date() == start_dt.date() and end_dt > start_dt
-            else None
-        )
-    else:
-        event_day, start, end = _visible_date_time_fallback(
-            parser,
-            reference=reference,
-        )
-        if event_day is None:
-            return None
+    schools = _audience_ids(library, title, text)
+    if not schools:
+        return None
 
-    event_types = _event_types(parser)
-
-    # Urbana tags some truly generic library business (for example book
-    # sales/meetings) for every age. Keep youth programming, but omit
-    # library-meeting/adult records unless they are also explicitly typed
-    # Children or Teen.
-    if calendar.id == "urbana":
-        lowered_types = {v.casefold() for v in event_types}
-        youth_type = bool(lowered_types & {"children", "teen"})
-        generic_type = bool(lowered_types & {"library meeting", "adult"})
-        if generic_type and not youth_type:
-            return None
-
-    location_name = (
-        _json_string_value(html, "locationName")
-        or _json_string_value(html, "branchName")
+    event_date, start_time, end_time = _datetime_parts(page_html, jsonld)
+    event_id_match = _EVENT_ID_RE.search(event_url)
+    event_id = (
+        event_id_match.group(1)
+        if event_id_match
+        else str(abs(hash(event_url)))
     )
-    room_name = _json_string_value(html, "roomName")
 
-    if location_name and room_name and room_name.casefold() not in location_name.casefold():
-        location = f"{location_name} — {room_name}"
-    elif location_name:
-        location = location_name
-    elif room_name:
-        location = f"{calendar.name} — {room_name}"
-    else:
-        location = calendar.name
-
-    school_ids = [
-        calendar.band_school_ids[band]
-        for band in BAND_ORDER
-        if band in bands
-    ]
-    if not school_ids:
-        return None
+    location = (
+        _location_from_jsonld(jsonld)
+        or _location_from_visible_text(text)
+        or library.name
+    )
 
     event: dict[str, Any] = {
-        "id": f"library-{calendar.id}-{event_id}",
+        "id": f"{library.log_id}-{event_id}",
         "title": title,
-        "date": event_day.isoformat(),
-        "schools": school_ids,
+        "date": event_date,
+        "schools": schools,
         "scope": "community",
         "category": "general",
-        "source": calendar.source,
+        "source": library.source,
         "sourceUrl": event_url,
-        "location": location,
     }
-    if start:
-        event["start"] = start
+    if start_time:
+        event["start"] = start_time
     else:
         event["allDay"] = True
-    if end:
-        event["end"] = end
+    if end_time:
+        event["end"] = end_time
+    if location:
+        event["location"] = location
 
     return event
 
 
 def fetch_library_calendar(
-    calendar: LibraryCalendar,
+    library: LibraryConfig,
     *,
     reference: date | None = None,
-    timeout: int = 30,
-    opener=urlopen,
-) -> list[dict]:
+) -> list[dict[str, Any]]:
     reference = reference or date.today()
-    discovered = discover_youth_event_links(
-        calendar,
-        reference=reference,
+    start_date = reference - timedelta(days=30)
+    end_date = reference + timedelta(days=60)
+
+    event_urls = sorted(
+        _discover_event_links(library, start_date, end_date)
     )
 
-    events: list[dict] = []
-    failed = 0
-    excluded = 0
+    parsed: list[dict[str, Any]] = []
+    fetch_failures = 0
+    non_youth = 0
 
-    for event_id, info in sorted(discovered.items(), key=lambda item: int(item[0])):
-        event_url = info["url"]
-        html = None
-        last_error: Exception | None = None
-        for attempt in range(2):
+    def worker(url: str):
+        return url, _parse_event_page(library, url)
+
+    with concurrent.futures.ThreadPoolExecutor(
+        max_workers=MAX_WORKERS
+    ) as executor:
+        futures = [executor.submit(worker, url) for url in event_urls]
+        for future in concurrent.futures.as_completed(futures):
             try:
-                html = _request_text(
-                    event_url,
-                    timeout=timeout,
-                    opener=opener,
-                )
-                break
-            except Exception as exc:
-                last_error = exc
-                if attempt == 0:
-                    time.sleep(0.4)
+                _url, event = future.result()
+            except Exception:
+                fetch_failures += 1
+                continue
+            if event is None:
+                non_youth += 1
+            else:
+                parsed.append(event)
 
-        if html is None:
-            failed += 1
-            continue
-
-        event = parse_event_page(
-            html,
-            calendar=calendar,
-            event_id=event_id,
-            event_url=event_url,
-            bands=set(info["bands"]),
-            reference=reference,
-        )
-        if event is None:
-            excluded += 1
-            continue
-        events.append(event)
-
-    # A partial event-detail outage should not silently replace a good cache.
-    if failed and failed > max(3, len(discovered) // 10):
+    if fetch_failures > max(8, len(event_urls) // 4):
         raise RuntimeError(
-            f"{calendar.name} event detail fetch failed for "
-            f"{failed} of {len(discovered)} discovered events"
+            f"{library.name} event detail fetches failed too often: "
+            f"{fetch_failures}/{len(event_urls)}"
         )
+
+    if not parsed:
+        raise RuntimeError(
+            f"{library.name} event pages produced zero youth events"
+        )
+
+    unique: dict[str, dict[str, Any]] = {}
+    for event in parsed:
+        unique[event["id"]] = event
+
+    events = sorted(
+        unique.values(),
+        key=lambda event: (
+            event.get("date", ""),
+            event.get("start", ""),
+            event.get("title", ""),
+        ),
+    )
+
+    early_count = sum(
+        library.early_id in event.get("schools", [])
+        for event in events
+    )
+    elementary_count = sum(
+        library.elementary_id in event.get("schools", [])
+        for event in events
+    )
+    teens_count = sum(
+        library.teens_id in event.get("schools", [])
+        for event in events
+    )
 
     print(
-        f"{calendar.log_id} detail: {len(discovered)} unique youth-tagged links; "
-        f"kept {len(events)} events"
-        + (f"; excluded {excluded} generic/non-parseable records" if excluded else "")
-        + (f"; {failed} detail fetches failed" if failed else "")
+        f"{library.log_id} detail: event-page audience classification "
+        f"early={early_count}, elementary={elementary_count}, "
+        f"teens={teens_count}; kept {len(events)} unique youth/family "
+        f"event(s); excluded {non_youth} non-youth page(s); "
+        f"{fetch_failures} detail fetch failure(s)"
     )
-    return sorted(
-        events,
-        key=lambda e: (e.get("date", ""), e.get("start", ""), e.get("title", "")),
+
+    sample = "; ".join(
+        f"{event['date']} {event['title']} "
+        f"[{','.join(event.get('schools', []))}]"
+        for event in events[:8]
     )
+    if sample:
+        print(f"{library.log_id} detail: first classified events: {sample}")
+
+    return events
