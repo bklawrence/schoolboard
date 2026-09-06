@@ -12,6 +12,7 @@ from collectors.snap import fetch_snap
 from collectors.unit4 import UNIT4_GROUPS, fetch_unit4_menus
 from collectors.countryside import SOURCE_NAME as COUNTRYSIDE_SOURCE, fetch_countryside_calendar
 from collectors.libraries import LIBRARIES, fetch_library_calendar
+from collectors.parks import PARK_DISTRICTS, fetch_park_calendar
 from collectors.stmatthew import SOURCE_NAME as STMATTHEW_SOURCE, fetch_stmatthew_calendar
 from collectors.stjohn import SOURCE_NAME as STJOHN_SOURCE, fetch_stjohn_calendar
 from collectors.judah import (
@@ -1365,6 +1366,55 @@ def build(*, offline: bool = False) -> dict:
 
         library_events.extend(source_events)
 
+    # Free child/teen/family programming from Champaign and Urbana park
+    # districts. Events use pseudo-school IDs for age bands so the existing
+    # selection/filter machinery can treat them like library audience groups.
+    # Registration metadata stays attached to each event for the front end.
+    park_events: list[dict] = []
+    for district in PARK_DISTRICTS:
+        if offline:
+            source_events = previous_source_events(district.source)
+            source_events, _, _ = filter_events_to_rolling_window(
+                source_events,
+                reference=today,
+            )
+            source_status.append({
+                "id": district.log_id,
+                "status": "cached" if source_events else "failed",
+                "count": len(source_events),
+                "unit": "events",
+            })
+        else:
+            try:
+                source_events = fetch_park_calendar(
+                    district.key,
+                    reference=today,
+                )
+                source_events, _, _ = filter_events_to_rolling_window(
+                    source_events,
+                    reference=today,
+                )
+                source_status.append({
+                    "id": district.log_id,
+                    "status": "live",
+                    "count": len(source_events),
+                    "unit": "events",
+                })
+            except Exception as exc:
+                source_events = previous_source_events(district.source)
+                source_events, _, _ = filter_events_to_rolling_window(
+                    source_events,
+                    reference=today,
+                )
+                source_status.append({
+                    "id": district.log_id,
+                    "status": "cached" if source_events else "failed",
+                    "count": len(source_events),
+                    "unit": "events",
+                    "error": f"{type(exc).__name__}: {exc}",
+                })
+        park_events.extend(source_events)
+
     quest_meals: list[dict] = []
     for group_id, cfg in QUEST_GROUPS.items():
         if offline:
@@ -1448,6 +1498,7 @@ def build(*, offline: bool = False) -> dict:
         + montessori_events
         + countryside_events
         + library_events
+        + park_events
     )
 
     event_candidates, unit4_district_duplicates_removed = (
