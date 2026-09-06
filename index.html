@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Chambana Schoolboard — your school day + week</title>
   <link rel="icon" href="favicon.png" type="image/png" />
-  <!-- Chambana Schoolboard v49 week-lunch plate markers by school color; community translations, athletics mirror merge, location cleanup, and park colors retained; selection storage intentionally remains v19-compatible. -->
+  <!-- Chambana Schoolboard v50 library registration support, clearer source-feed empty state, and Urbana public-school picker grouping; v49 visual/event fixes retained; selection storage intentionally remains v19-compatible. -->
   <style>
     :root{
       --paper:#f3eedf;
@@ -1077,7 +1077,7 @@
       otherPublic: "Other public",
       preschools: "Preschools",
       privateSchools: "Private schools",
-      chooseSource: "Choose a school or community group to see its public calendar sources.",
+      chooseSource: "No school or community feeds have been selected. Use + Add / remove above to choose the schools and community groups you want to follow.",
       sourceNote: "School, library, park district, athletics, test, and meal sources are collected from their public calendars and feeds. The linked public sources remain authoritative.",
       nothingToday: "Nothing found for your selected schools today.",
       eventNote: "Color identifies the school or community source; symbol identifies the kind of item.",
@@ -1151,7 +1151,7 @@
       otherPublic: "Otras escuelas públicas",
       preschools: "Preescolares",
       privateSchools: "Escuelas privadas",
-      chooseSource: "Elige una escuela o grupo comunitario para ver sus fuentes públicas de calendario.",
+      chooseSource: "No se han seleccionado fuentes escolares ni comunitarias. Usa + Agregar / quitar arriba para elegir las escuelas y los grupos comunitarios que quieres seguir.",
       sourceNote: "Las fuentes escolares, de bibliotecas, distritos de parques, deportes, exámenes y comidas se recopilan de sus calendarios y fuentes públicas. Los enlaces públicos siguen siendo las fuentes oficiales.",
       nothingToday: "No se encontró nada para las escuelas seleccionadas hoy.",
       eventNote: "El color identifica la escuela o fuente comunitaria; el símbolo identifica el tipo de elemento.",
@@ -1225,7 +1225,7 @@
       otherPublic: "Autres écoles publiques",
       preschools: "Écoles maternelles",
       privateSchools: "Écoles privées",
-      chooseSource: "Choisissez une école ou un groupe communautaire pour voir ses sources publiques de calendrier.",
+      chooseSource: "Aucune source scolaire ou communautaire n’a été sélectionnée. Utilisez + Ajouter / retirer ci-dessus pour choisir les écoles et les groupes communautaires que vous souhaitez suivre.",
       sourceNote: "Les sources des écoles, bibliothèques, districts des parcs, sports, évaluations et repas sont recueillies à partir de leurs calendriers et flux publics. Les sources publiques liées demeurent les références officielles.",
       nothingToday: "Aucun élément trouvé aujourd’hui pour les écoles sélectionnées.",
       eventNote: "La couleur indique l’école ou la source communautaire; le symbole indique le type d’élément.",
@@ -18193,9 +18193,18 @@
     return redundant ? "" : escapeHtml(source);
   }
 
+  function registrationTarget(event){
+    if (event?.registrationUrl) return event.registrationUrl;
+    const status = String(event?.registrationStatus || "").toLowerCase();
+    const needsRegistration = event?.registrationRequired === true ||
+      /required|requested|open|waitlist|wait list/.test(status);
+    return needsRegistration ? (event?.sourceUrl || "") : "";
+  }
+
   function registrationHtml(event){
-    if (!event?.registrationUrl) return "";
-    return `<a class="register-link" href="${escapeAttr(event.registrationUrl)}" target="_blank" rel="noopener">${escapeHtml(t("register"))}</a>`;
+    const target = registrationTarget(event);
+    if (!target) return "";
+    return `<a class="register-link" href="${escapeAttr(target)}" target="_blank" rel="noopener">${escapeHtml(t("register"))}</a>`;
   }
 
   function eventTimeLabel(event){
@@ -18525,13 +18534,19 @@
 
     grid.appendChild(unit4Column);
 
-    // Column 2: Urbana SD 116, youngest to oldest; Uni High stays at
-    // the bottom as a separate public school outside either district.
+    // Column 2: Urbana public schools first, followed by Urbana's
+    // library and park-district community feeds.
     const urbanaColumn = makeColumn(t("urbanaSchools"));
     SCHOOLS
       .filter(s => s.system === "USD 116")
       .sort(byAgeThenName)
       .forEach(s => urbanaColumn.appendChild(makePickerLabel(s)));
+
+    const uni = SCHOOLS.find(s => s.id === "uni");
+    if (uni){
+      addSubtitle(urbanaColumn, t("otherPublic"));
+      urbanaColumn.appendChild(makePickerLabel(uni));
+    }
 
     addSubtitle(urbanaColumn, "Urbana Free Library");
     ["urbana-lib-early", "urbana-lib-elementary", "urbana-lib-teens"]
@@ -18545,11 +18560,6 @@
       .filter(Boolean)
       .forEach(s => urbanaColumn.appendChild(makePickerLabel(s)));
 
-    const uni = SCHOOLS.find(s => s.id === "uni");
-    if (uni){
-      addSubtitle(urbanaColumn, t("otherPublic"));
-      urbanaColumn.appendChild(makePickerLabel(uni));
-    }
     grid.appendChild(urbanaColumn);
 
     // Column 3: preschools first, then the regular private schools.
@@ -18630,7 +18640,7 @@
         <div class="event-time">${escapeHtml(eventTimeLabel(e))}</div>
         <div>
           <div class="event-title"><span class="event-marks">${eventMarks(e)}</span><span>${escapeHtml(translateEventTitle(e.title, e.category, e))}</span>${type ? `<span class="event-type-label">${type}</span>` : ""}</div>
-          <div class="event-meta">${eventMetaHtml(e, true)}${e.registrationUrl ? ` · ${registrationHtml(e)}` : ""}</div>
+          <div class="event-meta">${eventMetaHtml(e, true)}${registrationHtml(e) ? ` · ${registrationHtml(e)}` : ""}</div>
           ${detail}
         </div>
         <div class="source">${sourceHtml(e)}</div>
@@ -18937,7 +18947,7 @@
             <div class="week-event">
               <div class="t">${escapeHtml(eventTimeLabel(e))}</div>
               <div class="n"><span class="event-marks">${eventMarks(e,true)}</span> ${escapeHtml(translateEventTitle(e.title, e.category, e))}${type ? ` <span class="type-mini">${type}</span>` : ""}</div>
-              <div class="s">${eventMetaHtml(e)}${e.registrationUrl ? ` · ${registrationHtml(e)}` : ""}</div>
+              <div class="s">${eventMetaHtml(e)}${registrationHtml(e) ? ` · ${registrationHtml(e)}` : ""}</div>
             </div>`;
           }).join("") : `<div class="week-event"><div class="s">${escapeHtml(t("noEvents"))}</div></div>`}
 
