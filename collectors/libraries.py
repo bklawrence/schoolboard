@@ -165,50 +165,131 @@ def _listing_url(
     start_date: date,
     end_date: date,
     *,
-    age: str | None = None,
+    ages: tuple[str, ...],
 ) -> str:
-    url = (
+    # Communico stores multi-select filters in the query string as a JSON
+    # array.  The listings themselves are populated client-side, so these
+    # URLs must be rendered in a browser rather than fetched with urlopen().
+    age_value = quote(json.dumps(list(ages), separators=(",", ":")))
+    return (
         f"{library.base_url.rstrip('/')}/events"
-        f"?start={start_date.isoformat()}&end={end_date.isoformat()}&v=list"
+        f"?start={start_date.isoformat()}&end={end_date.isoformat()}"
+        f"&v=list&a={age_value}"
     )
-    if age:
-        url += f"&a={quote(age)}"
-    return url
+
+
+def _bucket_age_filters(library: LibraryConfig) -> tuple[tuple[str, tuple[str, ...], str], ...]:
+    if library.key == "urbana":
+        return (
+            ("early", ("Babies", "Toddlers", "Pre-Schoolers", "Preschoolers"), library.early_id),
+            ("elementary", ("Elementary Students",), library.elementary_id),
+            ("teens", ("Middle School Students", "High School Students"), library.teens_id),
+        )
+    return (
+        ("early", ("Baby", "Babies", "Preschool"), library.early_id),
+        ("elementary", ("School age", "School-age"), library.elementary_id),
+        ("teens", ("Teen", "Teens"), library.teens_id),
+    )
+
+
+def _canonical_event_url(href: str, base_url: str) -> str | None:
+    if not href:
+        return None
+    full = urljoin(base_url.rstrip("/") + "/", html.unescape(href))
+    parsed = urlparse(full)
+    canonical = f"{parsed.scheme}://{parsed.netloc}{parsed.path}"
+    return canonical if _EVENT_ID_RE.search(canonical) else None
+
+
+def _rendered_filter_links(driver, url: str, base_url: str) -> set[str]:
+    from selenium.webdriver.common.by import By
+    from selenium.webdriver.support.ui import WebDriverWait
+
+    driver.get(url)
+
+    # Communico first serves a shell and then injects event cards with
+    # JavaScript.  Wait for that injection instead of reading the initial
+    # HTML response.  A short scroll loop also catches cards added lazily.
+    try:
+        WebDriverWait(driver, 15).until(
+            lambda d: bool(d.find_elements(By.CSS_SELECTOR, 'a[href*="/event/"]'))
+        )
+    except Exception:
+        # Let the caller decide whether a zero-result bucket is fatal.  This
+        # also allows a legitimately empty filtered period to return cleanly.
+        pass
+
+    stable_rounds = 0
+    previous_count = -1
+    for _ in range(12):
+        anchors = driver.find_elements(By.CSS_SELECTOR, 'a[href*="/event/"]')
+        count = len(anchors)
+        if count == previous_count:
+            stable_rounds += 1
+        else:
+            stable_rounds = 0
+            previous_count = count
+        if stable_rounds >= 2:
+            break
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        import time
+        time.sleep(0.45)
+
+    links: set[str] = set()
+    for anchor in driver.find_elements(By.CSS_SELECTOR, 'a[href*="/event/"]'):
+        canonical = _canonical_event_url(anchor.get_attribute("href") or "", base_url)
+        if canonical:
+            links.add(canonical)
+    return links
 
 
 def _discover_event_links(
     library: LibraryConfig,
     start_date: date,
     end_date: date,
-) -> set[str]:
-    links: set[str] = set()
-    successful_filters = 0
+) -> dict[str, set[str]]:
+    from selenium import webdriver
+    from selenium.webdriver.chrome.options import Options
 
-    for age in library.discovery_ages:
-        try:
-            page = _fetch_text(
-                _listing_url(library, start_date, end_date, age=age)
+    options = Options()
+    options.add_argument("--headless=new")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--disable-gpu")
+    options.add_argument("--window-size=1440,1200")
+    options.add_argument(f"--user-agent={USER_AGENT}")
+    options.page_load_strategy = "eager"
+
+    discovered: dict[str, set[str]] = {}
+    driver = webdriver.Chrome(options=options)
+    driver.set_page_load_timeout(30)
+    try:
+        for label, ages, school_id in _bucket_age_filters(library):
+            url = _listing_url(
+                library,
+                start_date,
+                end_date,
+                ages=ages,
             )
-        except Exception:
-            continue
-        successful_filters += 1
-        links.update(_event_links_from_listing(page, library.base_url))
+            links = _rendered_filter_links(driver, url, library.base_url)
+            print(
+                f"{library.log_id} detail: {label} filter found "
+                f"{len(links)} unique event links"
+            )
+            for event_url in links:
+                discovered.setdefault(event_url, set()).add(school_id)
+    finally:
+        driver.quit()
 
-    if not links:
-        page = _fetch_text(_listing_url(library, start_date, end_date))
-        links.update(_event_links_from_listing(page, library.base_url))
-
-    if not links:
+    if not discovered:
         raise RuntimeError(
-            f"{library.name} Communico listings returned zero event links"
+            f"{library.name} Communico youth filters returned zero event links"
         )
 
     print(
-        f"{library.log_id} detail: discovered {len(links)} candidate event "
-        f"link(s) from {successful_filters} youth/family Communico filter(s)"
+        f"{library.log_id} detail: {len(discovered)} unique youth-tagged links"
     )
-    return links
-
+    return discovered
 
 def _jsonld_event(page_html: str) -> dict[str, Any] | None:
     def walk(value: Any):
@@ -397,6 +478,7 @@ def _audience_ids(
     library: LibraryConfig,
     title: str,
     text: str,
+    discovery_ids: set[str],
 ) -> list[str]:
     age_section = _section_text(
         text,
@@ -413,37 +495,26 @@ def _audience_ids(
     type_norm = re.sub(r"[^a-z0-9+]+", " ", event_type.lower()).strip()
     title_norm = title.lower()
 
-    early = any(
-        phrase in age_norm
-        for phrase in (
-            "baby", "babies", "toddler", "toddlers",
-            "preschool", "pre school", "pre schoolers",
-            "early childhood", "infant", "infants",
-        )
-    )
-    elementary = any(
-        phrase in age_norm
-        for phrase in (
-            "school age", "school aged",
-            "elementary", "elementary students",
-        )
-    )
-    teens = any(
-        phrase in age_norm
-        for phrase in (
-            "teen", "teens",
-            "middle school", "middle school students",
-            "high school", "high school students",
-        )
-    )
+    early = bool(re.search(
+        r"\b(?:baby|babies|toddler|toddlers|preschool|pre school(?:ers)?|early childhood|infant|infants)\b",
+        age_norm,
+    ))
+    elementary = bool(re.search(
+        r"\b(?:school age|school aged|elementary|elementary students)\b",
+        age_norm,
+    ))
+    teens = bool(re.search(
+        r"\b(?:teen|teens|middle school(?: students)?|high school(?: students)?)\b",
+        age_norm,
+    ))
 
+    family = bool(re.search(r"\b(?:family|families|all ages)\b", age_norm))
     explicit_youth = early or elementary or teens
-    family = (
-        "families" in age_norm
-        or "family" in age_norm
-        or "all ages" in age_norm
-    )
 
+    # Some family programs are meant for school-age children but Communico's
+    # listing filters can place them in surprising buckets.  If the event page
+    # says only Family/All Ages, use the event's own wording before falling
+    # back to a conservative school-age classification.
     if family and not explicit_youth:
         adult_only_type = (
             ("adult" in type_norm or "senior" in type_norm)
@@ -451,25 +522,35 @@ def _audience_ids(
             and "teen" not in type_norm
             and "outreach" not in type_norm
         )
-        adult_title = bool(
-            re.search(
-                r"\b(?:senior|seniors|adult|adults|retirement|medicare)\b",
-                title_norm,
-            )
-        )
+        adult_title = bool(re.search(
+            r"\b(?:senior|seniors|adult|adults|retirement|medicare)\b",
+            title_norm,
+        ))
         if not adult_only_type and not adult_title:
-            early = elementary = teens = True
+            local_norm = re.sub(r"[^a-z0-9+]+", " ", f"{title} {text}".lower())
+            if re.search(r"\b(?:baby|babies|toddler|toddlers|preschool|pre k|early childhood)\b", local_norm):
+                early = True
+            elif re.search(r"\b(?:teen|teens|middle school|high school)\b", local_norm):
+                teens = True
+            else:
+                # With no separate library 'Family' checkbox, general family
+                # programming belongs with school-age/elementary rather than
+                # being sprayed across Babies + Teens.
+                elementary = True
 
+    # If the detail page has no usable AGE GROUP metadata, retain the old
+    # rendered-filter result rather than silently dropping a legitimate event.
     if not (early or elementary or teens):
         if re.search(r"\b(?:baby|toddler|preschool|pre-k)\b", title_norm):
             early = True
         elif re.search(r"\bteen(?:s|age|aged)?\b", title_norm):
             teens = True
-        elif re.search(
-            r"\b(?:elementary|school[- ]age|kids club|kids in|diy kids)\b",
-            title_norm,
-        ):
+        elif re.search(r"\b(?:elementary|school[- ]age|kids club|kids in|diy kids)\b", title_norm):
             elementary = True
+        elif not age_norm:
+            early = library.early_id in discovery_ids
+            elementary = library.elementary_id in discovery_ids
+            teens = library.teens_id in discovery_ids
 
     ids: list[str] = []
     if early:
@@ -480,10 +561,10 @@ def _audience_ids(
         ids.append(library.teens_id)
     return ids
 
-
 def _parse_event_page(
     library: LibraryConfig,
     event_url: str,
+    discovery_ids: set[str],
 ) -> dict[str, Any] | None:
     page_html = _fetch_text(event_url)
     text = _visible_text(page_html)
@@ -493,7 +574,7 @@ def _parse_event_page(
     if not title:
         return None
 
-    schools = _audience_ids(library, title, text)
+    schools = _audience_ids(library, title, text, discovery_ids)
     if not schools:
         return None
 
@@ -542,16 +623,15 @@ def fetch_library_calendar(
     start_date = reference - timedelta(days=30)
     end_date = reference + timedelta(days=60)
 
-    event_urls = sorted(
-        _discover_event_links(library, start_date, end_date)
-    )
+    discovered = _discover_event_links(library, start_date, end_date)
+    event_urls = sorted(discovered)
 
     parsed: list[dict[str, Any]] = []
     fetch_failures = 0
     non_youth = 0
 
     def worker(url: str):
-        return url, _parse_event_page(library, url)
+        return url, _parse_event_page(library, url, discovered[url])
 
     with concurrent.futures.ThreadPoolExecutor(
         max_workers=MAX_WORKERS
