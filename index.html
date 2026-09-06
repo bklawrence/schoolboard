@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Chambana Schoolboard — your school day + week</title>
-  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-  <!-- Chambana Schoolboard v45 French school-sports labels; selection storage intentionally remains v18-compatible. -->
+  <link rel="icon" href="favicon.png" type="image/png" />
+  <!-- Chambana Schoolboard v46 community events, parks, registration links, and event-marker pass; selection storage intentionally remains v19-compatible. -->
   <style>
     :root{
       --paper:#f3eedf;
@@ -256,13 +256,14 @@
       letter-spacing:.08em;
     }
     .picker-subtitle{
-      margin:14px 0 7px;
-      padding-top:8px;
+      margin:16px 0 9px;
+      padding:10px 0 5px;
       border-top:1px solid rgba(31,42,68,.28);
-      font:900 9px ui-monospace, SFMono-Regular, Menlo, monospace;
+      border-bottom:1.5px solid var(--ink);
+      font:900 11px ui-monospace, SFMono-Regular, Menlo, monospace;
       text-transform:uppercase;
       letter-spacing:.08em;
-      color:var(--muted);
+      color:var(--ink);
     }
     .picker-column label{
       display:grid;
@@ -761,6 +762,25 @@
       text-transform:uppercase;
     }
 
+    .register-link{
+      display:inline-block;
+      color:var(--ink);
+      font-weight:900;
+      text-decoration:underline;
+      text-decoration-thickness:1px;
+      text-underline-offset:3px;
+      white-space:nowrap;
+    }
+    .register-link:hover{background:rgba(255,181,17,.35)}
+
+    .meal-symbol{
+      display:inline-block;
+      margin-right:4px;
+      color:var(--ink);
+      font:900 13px Arial, sans-serif;
+      line-height:1;
+    }
+
     .week-meal{
       border-top:1px dashed rgba(31,42,68,.65);
       margin-top:12px;
@@ -910,8 +930,11 @@
       <button class="tab" data-view="nextWeekView" data-i18n="nextWeek">Next week</button>
     </nav>
     <div class="event-legend" aria-label="Event type key">
-      <span><b>●</b> <span data-i18n="legendDay">Day event</span></span>
+      <span><b>•</b> <span data-i18n="legendDay">Day event</span></span>
       <span><b>☾</b> <span data-i18n="legendEvening">Evening event</span></span>
+      <span><b>★</b> <span data-i18n="legendCommunity">Library / parks</span></span>
+      <span><b>♪</b> <span data-i18n="legendMusic">Music</span></span>
+      <span><b>⊙</b> <span data-i18n="legendLunch">Lunch</span></span>
       <span><b>◆</b> <span data-i18n="legendTest">Test</span></span>
       <span><b>▲</b> <span data-i18n="legendSport">Sport</span></span>
       <span><b>■</b> <span data-i18n="legendSchedule">Schedule</span></span>
@@ -959,7 +982,7 @@
           <summary data-i18n="sourcesDrawer">Calendars & source feeds</summary>
           <div class="source-grid" id="sourceGrid"></div>
         </details>
-        <span data-i18n="footerSources">Sources: preschool school-year calendars · USD 116 calendars/ParentSquare · Quest · UIUC school calendars · UniWeek · Outlook Tests · Snap! athletics · private school calendars · Champaign Unit 4 district/school calendars · public library youth calendars · Unit 4 School Nutrition</span>
+        <span data-i18n="footerSources">Sources: preschool school-year calendars · USD 116 calendars/ParentSquare · Quest · UIUC school calendars · UniWeek · Outlook Tests · Snap! athletics · private school calendars · Champaign Unit 4 district/school calendars · public library youth calendars · Champaign & Urbana park district youth/family calendars · Unit 4 School Nutrition</span>
         <div class="menu-disclaimer"><strong data-i18n="lunchNoteTitle">Lunch menu note:</strong> <span data-i18n="lunchNoteBody">Published district menus are used when available. When future menus have not yet been published, Chambana Schoolboard may fill dates using repeating patterns inferred from recent published menus. Predicted meals may change; check the district menu for the latest information.</span></div>
         <div class="support-row"><a class="coffee-button" href="https://www.paypal.com/ncp/payment/J78AM77UMPFBC" target="_blank" rel="noopener noreferrer" data-i18n="coffee">☕ Buy me a coffee</a></div>
       </div>
@@ -1010,7 +1033,7 @@
       title: "Chambana Schoolboard — your school day + week",
       tagline: "Champaign-Urbana school day + week, in one place.",
       mySchools: "My schools",
-      chooseSchools: "Choose the schools your household follows",
+      chooseSchools: "Choose the schools and community groups your household follows",
       done: "Done",
       all: "All",
       none: "None",
@@ -1019,12 +1042,15 @@
       nextWeek: "Next week",
       legendDay: "Day event",
       legendEvening: "Evening event",
+      legendCommunity: "Library / parks",
+      legendMusic: "Music",
+      legendLunch: "Lunch",
       legendTest: "Test",
       legendSport: "Sport",
       legendSchedule: "Schedule",
       sourcesDrawer: "Calendars & source feeds",
       meals: "Meals",
-      footerSources: "Sources: preschool school-year calendars · USD 116 calendars/ParentSquare · Quest · UIUC school calendars · UniWeek · Outlook Tests · Snap! athletics · private school calendars · Champaign Unit 4 district/school calendars · public library youth calendars · Unit 4 School Nutrition",
+      footerSources: "Sources: preschool school-year calendars · USD 116 calendars/ParentSquare · Quest · UIUC school calendars · UniWeek · Outlook Tests · Snap! athletics · private school calendars · Champaign Unit 4 district/school calendars · public library youth calendars · Champaign & Urbana park district youth/family calendars · Unit 4 School Nutrition",
       lunchNoteTitle: "Lunch menu note:",
       lunchNoteBody: "Published district menus are used when available. When future menus have not yet been published, Chambana Schoolboard may fill dates using repeating patterns inferred from recent published menus. Predicted meals may change; check the district menu for the latest information.",
       coffee: "☕ Buy me a coffee",
@@ -1040,10 +1066,10 @@
       otherPublic: "Other public",
       preschools: "Preschools",
       privateSchools: "Private schools",
-      chooseSource: "Choose a school to see its public calendar sources.",
-      sourceNote: "Athletics, Uni tests, preschool calendars, and the current Unit 4 school calendars are embedded in this prototype. Public district/school feeds remain the authoritative sources for future refreshes.",
+      chooseSource: "Choose a school or community group to see its public calendar sources.",
+      sourceNote: "School, library, park district, athletics, test, and meal sources are collected from their public calendars and feeds. The linked public sources remain authoritative.",
       nothingToday: "Nothing found for your selected schools today.",
-      eventNote: "Color identifies the school; shape identifies the kind of item.",
+      eventNote: "Color identifies the school or community source; symbol identifies the kind of item.",
       venueMissing: "Venue not specified",
       until: "until",
       source: "source",
@@ -1074,13 +1100,14 @@
       categoryTest: "TEST",
       categoryTestSchedule: "TEST + SCHEDULE",
       categorySport: "SPORT",
-      categorySchedule: "SCHEDULE"
+      categorySchedule: "SCHEDULE",
+      register: "Register"
     },
     es: {
       title: "Chambana Schoolboard — tu día y semana escolar",
       tagline: "El día y la semana escolar de Champaign-Urbana, en un solo lugar.",
       mySchools: "Mis escuelas",
-      chooseSchools: "Elige las escuelas que sigue tu familia",
+      chooseSchools: "Elige las escuelas y grupos comunitarios que sigue tu familia",
       done: "Listo",
       all: "Todas",
       none: "Ninguna",
@@ -1089,12 +1116,15 @@
       nextWeek: "La próxima semana",
       legendDay: "Evento diurno",
       legendEvening: "Evento nocturno",
+      legendCommunity: "Bibliotecas / parques",
+      legendMusic: "Música",
+      legendLunch: "Almuerzo",
       legendTest: "Examen",
       legendSport: "Deporte",
       legendSchedule: "Horario",
       sourcesDrawer: "Calendarios y fuentes",
       meals: "Comidas",
-      footerSources: "Fuentes: calendarios anuales de preescolares · calendarios/ParentSquare de USD 116 · Quest · calendarios escolares de UIUC · UniWeek · exámenes de Outlook · deportes de Snap! · calendarios de escuelas privadas · calendarios del distrito y las escuelas de Champaign Unit 4 · calendarios juveniles de bibliotecas públicas · Nutrición Escolar de Unit 4",
+      footerSources: "Fuentes: calendarios anuales de preescolares · calendarios/ParentSquare de USD 116 · Quest · calendarios escolares de UIUC · UniWeek · exámenes de Outlook · deportes de Snap! · calendarios de escuelas privadas · calendarios del distrito y las escuelas de Champaign Unit 4 · calendarios juveniles de bibliotecas públicas · calendarios juveniles y familiares de los distritos de parques de Champaign y Urbana · Nutrición Escolar de Unit 4",
       lunchNoteTitle: "Nota sobre el menú de almuerzo:",
       lunchNoteBody: "Se usan los menús publicados por los distritos cuando están disponibles. Cuando todavía no se han publicado menús futuros, Chambana Schoolboard puede completar fechas usando patrones repetidos inferidos de menús publicados recientemente. Las comidas previstas pueden cambiar; consulta el menú del distrito para obtener la información más reciente.",
       coffee: "☕ Invítame un café",
@@ -1110,10 +1140,10 @@
       otherPublic: "Otras escuelas públicas",
       preschools: "Preescolares",
       privateSchools: "Escuelas privadas",
-      chooseSource: "Elige una escuela para ver sus fuentes públicas de calendario.",
-      sourceNote: "Los calendarios deportivos, los exámenes de Uni, los calendarios de preescolar y los calendarios actuales de Unit 4 están integrados en este prototipo. Las fuentes públicas de los distritos y las escuelas siguen siendo las fuentes oficiales para futuras actualizaciones.",
+      chooseSource: "Elige una escuela o grupo comunitario para ver sus fuentes públicas de calendario.",
+      sourceNote: "Las fuentes escolares, de bibliotecas, distritos de parques, deportes, exámenes y comidas se recopilan de sus calendarios y fuentes públicas. Los enlaces públicos siguen siendo las fuentes oficiales.",
       nothingToday: "No se encontró nada para las escuelas seleccionadas hoy.",
-      eventNote: "El color identifica la escuela; la forma identifica el tipo de elemento.",
+      eventNote: "El color identifica la escuela o fuente comunitaria; el símbolo identifica el tipo de elemento.",
       venueMissing: "Lugar no especificado",
       until: "hasta",
       source: "fuente",
@@ -1144,27 +1174,31 @@
       categoryTest: "EXAMEN",
       categoryTestSchedule: "EXAMEN + HORARIO",
       categorySport: "DEPORTE",
-      categorySchedule: "HORARIO"
+      categorySchedule: "HORARIO",
+      register: "Inscribirse"
     },
     fr: {
       title: "Chambana Schoolboard — votre journée et semaine scolaires",
       tagline: "La journée et la semaine scolaires de Champaign-Urbana, réunies au même endroit.",
       mySchools: "Mes écoles",
-      chooseSchools: "Choisissez les écoles que suit votre famille",
+      chooseSchools: "Choisissez les écoles et groupes communautaires que suit votre famille",
       done: "Terminé",
       all: "Toutes",
       none: "Aucune",
       today: "Aujourd’hui",
       thisWeek: "Cette semaine",
       nextWeek: "La semaine prochaine",
-      legendDay: "Événement de jour",
+      legendDay: "Événement en journée",
       legendEvening: "Événement en soirée",
+      legendCommunity: "Bibliothèques / parcs",
+      legendMusic: "Musique",
+      legendLunch: "Déjeuner",
       legendTest: "Évaluation",
       legendSport: "Sport",
       legendSchedule: "Horaire",
       sourcesDrawer: "Calendriers et sources",
       meals: "Repas",
-      footerSources: "Sources : calendriers annuels des écoles maternelles · calendriers/ParentSquare d’USD 116 · Quest · calendriers scolaires de l’UIUC · UniWeek · évaluations Outlook · sports Snap! · calendriers des écoles privées · calendriers du district et des écoles de Champaign Unit 4 · calendriers jeunesse des bibliothèques publiques · Nutrition scolaire de Unit 4",
+      footerSources: "Sources : calendriers annuels des écoles maternelles · calendriers/ParentSquare d’USD 116 · Quest · calendriers scolaires de l’UIUC · UniWeek · évaluations Outlook · sports Snap! · calendriers des écoles privées · calendriers du district et des écoles de Champaign Unit 4 · calendriers jeunesse des bibliothèques publiques · calendriers jeunesse et famille des districts des parcs de Champaign et d’Urbana · Nutrition scolaire de Unit 4",
       lunchNoteTitle: "Remarque sur les menus du déjeuner :",
       lunchNoteBody: "Les menus publiés par les districts sont utilisés lorsqu’ils sont disponibles. Lorsque les menus futurs ne sont pas encore publiés, Chambana Schoolboard peut compléter certaines dates à l’aide de cycles répétitifs déduits de menus récemment publiés. Les repas prévus peuvent changer; consultez le menu du district pour obtenir les renseignements les plus récents.",
       coffee: "☕ Offrez-moi un café",
@@ -1180,10 +1214,10 @@
       otherPublic: "Autres écoles publiques",
       preschools: "Écoles maternelles",
       privateSchools: "Écoles privées",
-      chooseSource: "Choisissez une école pour voir ses sources publiques de calendrier.",
-      sourceNote: "Les calendriers sportifs, les évaluations de Uni, les calendriers des écoles maternelles et les calendriers actuels de Unit 4 sont intégrés à ce prototype. Les sources publiques des districts et des écoles demeurent les sources officielles pour les mises à jour futures.",
+      chooseSource: "Choisissez une école ou un groupe communautaire pour voir ses sources publiques de calendrier.",
+      sourceNote: "Les sources des écoles, bibliothèques, districts des parcs, sports, évaluations et repas sont recueillies à partir de leurs calendriers et flux publics. Les sources publiques liées demeurent les références officielles.",
       nothingToday: "Aucun élément trouvé aujourd’hui pour les écoles sélectionnées.",
-      eventNote: "La couleur indique l’école; la forme indique le type d’élément.",
+      eventNote: "La couleur indique l’école ou la source communautaire; le symbole indique le type d’élément.",
       venueMissing: "Lieu non précisé",
       until: "jusqu’à",
       source: "source",
@@ -1214,7 +1248,8 @@
       categoryTest: "ÉVALUATION",
       categoryTestSchedule: "ÉVALUATION + HORAIRE",
       categorySport: "SPORT",
-      categorySchedule: "HORAIRE"
+      categorySchedule: "HORAIRE",
+      register: "S’inscrire"
     }
   };
 
@@ -1260,7 +1295,11 @@
         "Middle School": "Escuela intermedia",
         "High School": "Escuela secundaria",
         "Library age group": "Grupo de edad de biblioteca",
-        "Babies & Preschoolers": "Bebés y preescolares"
+        "Babies & Preschoolers": "Bebés y preescolares",
+        "Early Childhood": "Primera infancia",
+        "Teens": "Adolescentes",
+        "Families & All Ages": "Familias y todas las edades",
+        "Community age group": "Grupo de edad comunitario"
       })[level] || level;
     }
     if (language === "fr"){
@@ -1273,7 +1312,11 @@
         "Middle School": "Collège",
         "High School": "Lycée",
         "Library age group": "Groupe d’âge de la bibliothèque",
-        "Babies & Preschoolers": "Bébés et enfants d’âge préscolaire"
+        "Babies & Preschoolers": "Bébés et enfants d’âge préscolaire",
+        "Early Childhood": "Petite enfance",
+        "Teens": "Ados",
+        "Families & All Ages": "Familles et tous âges",
+        "Community age group": "Groupe d’âge communautaire"
       })[level] || level;
     }
     return level;
@@ -1305,7 +1348,20 @@
         "Champaign Library · Teens": "Biblioteca de Champaign · Adolescentes",
         "Urbana Library · Early": "Biblioteca de Urbana · Primera infancia",
         "Urbana Library · Elementary": "Biblioteca de Urbana · Primaria",
-        "Urbana Library · Teens": "Biblioteca de Urbana · Adolescentes"
+        "Urbana Library · Teens": "Biblioteca de Urbana · Adolescentes",
+        "Champaign Parks · Early": "Parques de Champaign · Primera infancia",
+        "Champaign Parks · Elementary": "Parques de Champaign · Primaria",
+        "Champaign Parks · Teens": "Parques de Champaign · Adolescentes",
+        "Champaign Parks · Family": "Parques de Champaign · Familias y todas las edades",
+        "Urbana Parks · Early": "Parques de Urbana · Primera infancia",
+        "Urbana Parks · Elementary": "Parques de Urbana · Primaria",
+        "Urbana Parks · Teens": "Parques de Urbana · Adolescentes",
+        "Urbana Parks · Family": "Parques de Urbana · Familias y todas las edades",
+        "Babies & Preschoolers": "Bebés y preescolares",
+        "Early Childhood": "Primera infancia",
+        "Elementary": "Primaria",
+        "Teens": "Adolescentes",
+        "Families & All Ages": "Familias y todas las edades"
       })[value] || value;
     }
     if (language === "fr"){
@@ -1315,7 +1371,20 @@
         "Champaign Library · Teens": "Bibliothèque de Champaign · Ados",
         "Urbana Library · Early": "Bibliothèque d’Urbana · Petite enfance",
         "Urbana Library · Elementary": "Bibliothèque d’Urbana · Primaire",
-        "Urbana Library · Teens": "Bibliothèque d’Urbana · Ados"
+        "Urbana Library · Teens": "Bibliothèque d’Urbana · Ados",
+        "Champaign Parks · Early": "Parcs de Champaign · Petite enfance",
+        "Champaign Parks · Elementary": "Parcs de Champaign · Primaire",
+        "Champaign Parks · Teens": "Parcs de Champaign · Ados",
+        "Champaign Parks · Family": "Parcs de Champaign · Familles et tous âges",
+        "Urbana Parks · Early": "Parcs d’Urbana · Petite enfance",
+        "Urbana Parks · Elementary": "Parcs d’Urbana · Primaire",
+        "Urbana Parks · Teens": "Parcs d’Urbana · Ados",
+        "Urbana Parks · Family": "Parcs d’Urbana · Familles et tous âges",
+        "Babies & Preschoolers": "Bébés et enfants d’âge préscolaire",
+        "Early Childhood": "Petite enfance",
+        "Elementary": "Primaire",
+        "Teens": "Ados",
+        "Families & All Ages": "Familles et tous âges"
       })[value] || value;
     }
     return value;
@@ -1332,6 +1401,7 @@
         "Newsletter important dates": "Fechas importantes del boletín",
         "Athletics calendar": "Calendario deportivo",
         "Youth events calendar": "Calendario de eventos juveniles",
+        "Youth & family events calendar": "Calendario de eventos juveniles y familiares",
         "School + athletics calendar": "Calendario escolar y deportivo",
         "School calendars": "Calendarios escolares",
         "School calendars + athletics": "Calendarios escolares y deportes",
@@ -1354,6 +1424,7 @@
         "Newsletter important dates": "Dates importantes du bulletin",
         "Athletics calendar": "Calendrier sportif",
         "Youth events calendar": "Calendrier des événements jeunesse",
+        "Youth & family events calendar": "Calendrier des événements jeunesse et famille",
         "School + athletics calendar": "Calendrier scolaire et sportif",
         "School calendars": "Calendriers scolaires",
         "School calendars + athletics": "Calendriers scolaires et sports",
@@ -2440,6 +2511,122 @@
     ]
   };
 
+  function communityTitleKey(value){
+    return String(value || "")
+      .normalize("NFKD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[’‘]/g, "'")
+      .replace(/[–—]/g, "-")
+      .replace(/\s+/g, " ")
+      .trim()
+      .toLowerCase();
+  }
+
+  const COMMUNITY_EVENT_EXACT = {
+    es: {
+      "family stem night": "Noche familiar STEM",
+      "teens only! back to school bash at sholem aquatic center": "¡SOLO ADOLESCENTES! Fiesta de regreso a clases en Sholem Aquatic Center",
+      "early childhood open house": "Jornada de puertas abiertas de primera infancia",
+      "candyland family adventure": "Aventura familiar Candyland",
+      "fall family doubles pickleball tournament": "Torneo familiar de dobles de pickleball de otoño",
+      "ukulele jam!": "¡Encuentro de ukeleles!",
+      "toddler and sensory-free swim time": "Hora de natación para niños pequeños y con ambiente sensorial tranquilo",
+      "yoga in the park": "Yoga en el parque",
+      "conversation cafe": "Café de conversación",
+      "play day in the park": "Día de juegos en el parque",
+      "early childhood interactive adventures": "Aventuras interactivas para la primera infancia",
+      "toddler art playgroup - fall 2026": "Grupo de juego artístico para niños pequeños — otoño de 2026",
+      "teen open lab": "Laboratorio abierto para adolescentes",
+      "books and bounces!": "¡Libros y brincos!",
+      "crafty tales": "Cuentos y manualidades",
+      "toddler storytime @ douglass": "Hora de cuentos para niños pequeños @ Douglass",
+      "baby storytime": "Hora de cuentos para bebés",
+      "preschool storytime": "Hora de cuentos para preescolares",
+      "saturday storytime": "Hora de cuentos del sábado",
+      "make and take for preschoolers": "Manualidades para hacer y llevar para preescolares",
+      "friendshop bookstore open": "Librería FriendShop abierta",
+      "studio @ main | drop-in": "Studio @ Main | Sin cita previa",
+      "family night": "Noche familiar",
+      "stem activity": "Actividad STEM",
+      "stem night": "Noche STEM",
+      "movie night": "Noche de cine",
+      "playgroup": "Grupo de juego",
+      "swim time": "Hora de natación",
+      "art activity": "Actividad artística",
+      "teen event": "Evento para adolescentes"
+    },
+    fr: {
+      "family stem night": "Soirée familiale STIM",
+      "teens only! back to school bash at sholem aquatic center": "ADOS SEULEMENT ! Fête de rentrée au Sholem Aquatic Center",
+      "early childhood open house": "Portes ouvertes de la petite enfance",
+      "candyland family adventure": "Aventure familiale Candyland",
+      "fall family doubles pickleball tournament": "Tournoi familial de pickleball en double d’automne",
+      "ukulele jam!": "Rencontre de ukulélés !",
+      "toddler and sensory-free swim time": "Séance de baignade pour tout-petits dans un environnement sensoriel calme",
+      "yoga in the park": "Yoga au parc",
+      "conversation cafe": "Café de conversation",
+      "play day in the park": "Journée de jeux au parc",
+      "early childhood interactive adventures": "Aventures interactives pour la petite enfance",
+      "toddler art playgroup - fall 2026": "Groupe de jeu artistique pour tout-petits — automne 2026",
+      "teen open lab": "Laboratoire libre pour ados",
+      "books and bounces!": "Livres et bonds !",
+      "crafty tales": "Contes et bricolages",
+      "toddler storytime @ douglass": "Heure du conte pour tout-petits @ Douglass",
+      "baby storytime": "Heure du conte pour bébés",
+      "preschool storytime": "Heure du conte pour les enfants d’âge préscolaire",
+      "saturday storytime": "Heure du conte du samedi",
+      "make and take for preschoolers": "Bricolage à fabriquer et emporter pour les enfants d’âge préscolaire",
+      "friendshop bookstore open": "Librairie FriendShop ouverte",
+      "studio @ main | drop-in": "Studio @ Main | Sans rendez-vous",
+      "family night": "Soirée familiale",
+      "stem activity": "Activité STIM",
+      "stem night": "Soirée STIM",
+      "movie night": "Soirée cinéma",
+      "playgroup": "Groupe de jeu",
+      "swim time": "Séance de baignade",
+      "art activity": "Activité artistique",
+      "teen event": "Événement pour ados"
+    }
+  };
+
+  function translateCommunityEventTitle(title){
+    const raw = String(title || "").trim();
+    if (!raw || language === "en") return raw;
+
+    const exact = COMMUNITY_EVENT_EXACT[language]?.[communityTitleKey(raw)];
+    if (exact) return exact;
+
+    // Translate status wrappers only when the underlying event title has a
+    // complete community translation. Otherwise leave the whole title in
+    // readable English instead of producing a mixed-language fragment.
+    const statusMatch = raw.match(/^\s*(\(RESCHEDULED\)|RESCHEDULED:|Cancelled:|Canceled:)\s*(.+)$/i);
+    if (statusMatch){
+      const inner = statusMatch[2].trim();
+      const translatedInner = translateCommunityEventTitle(inner);
+      if (translatedInner !== inner){
+        const status = statusMatch[1].toLowerCase();
+        const prefix = language === "es"
+          ? (status.includes("rescheduled") ? "REPROGRAMADO" : "CANCELADO")
+          : (status.includes("rescheduled") ? "REPORTÉ" : "ANNULÉ");
+        return statusMatch[1].startsWith("(")
+          ? `(${prefix}) ${translatedInner}`
+          : `${prefix} : ${translatedInner}`;
+      }
+      return raw;
+    }
+
+    // Movie titles are proper names, so preserving the film name after a
+    // translated recurring program label is intentional rather than partial.
+    const movieMatch = raw.match(/^Moo-vie Night at the Farm:\s*(.+)$/i);
+    if (movieMatch){
+      return language === "es"
+        ? `Noche de cine en la granja: ${movieMatch[1]}`
+        : `Soirée cinéma à la ferme : ${movieMatch[1]}`;
+    }
+
+    return raw;
+  }
+
   const SPORT_NAMES = {
     es: {
       "track & field - outdoor": "atletismo al aire libre",
@@ -2624,9 +2811,13 @@
     return out;
   }
 
-  function translateEventTitle(title, category=""){
+  function translateEventTitle(title, category="", event=null){
     const raw = String(title || "").trim();
     if (!raw || language === "en") return raw;
+
+    if (event && isCommunityEvent(event)){
+      return translateCommunityEventTitle(raw);
+    }
 
     const exact = EVENT_EXACT[language]?.[eventKey(raw)];
     if (exact) return exact;
@@ -3074,7 +3265,72 @@
     "system": "Urbana Free Library",
     "level": "Library age group",
     "color": "#9FCFC9"
+  },
+  {
+    "id": "champaign-parks-early",
+    "short": "Champaign Parks · Early",
+    "full": "Early Childhood",
+    "system": "Champaign Park District",
+    "level": "Community age group",
+    "color": "#A9C2DF"
+  },
+  {
+    "id": "champaign-parks-elementary",
+    "short": "Champaign Parks · Elementary",
+    "full": "Elementary",
+    "system": "Champaign Park District",
+    "level": "Community age group",
+    "color": "#A9C2DF"
+  },
+  {
+    "id": "champaign-parks-teens",
+    "short": "Champaign Parks · Teens",
+    "full": "Teens",
+    "system": "Champaign Park District",
+    "level": "Community age group",
+    "color": "#A9C2DF"
+  },
+  {
+    "id": "champaign-parks-family",
+    "short": "Champaign Parks · Family",
+    "full": "Families & All Ages",
+    "system": "Champaign Park District",
+    "level": "Community age group",
+    "color": "#A9C2DF"
+  },
+  {
+    "id": "urbana-parks-early",
+    "short": "Urbana Parks · Early",
+    "full": "Early Childhood",
+    "system": "Urbana Park District",
+    "level": "Community age group",
+    "color": "#9FCFC9"
+  },
+  {
+    "id": "urbana-parks-elementary",
+    "short": "Urbana Parks · Elementary",
+    "full": "Elementary",
+    "system": "Urbana Park District",
+    "level": "Community age group",
+    "color": "#9FCFC9"
+  },
+  {
+    "id": "urbana-parks-teens",
+    "short": "Urbana Parks · Teens",
+    "full": "Teens",
+    "system": "Urbana Park District",
+    "level": "Community age group",
+    "color": "#9FCFC9"
+  },
+  {
+    "id": "urbana-parks-family",
+    "short": "Urbana Parks · Family",
+    "full": "Families & All Ages",
+    "system": "Urbana Park District",
+    "level": "Community age group",
+    "color": "#9FCFC9"
   }
+
 ];
 
   const SOURCE_FEEDS = [
@@ -3187,6 +3443,30 @@
       "champaign-lib-teens"
     ],
     "url": "https://champaign.libnet.info/events"
+  },
+  {
+    "id": "champaign-parks",
+    "kind": "Youth & family events calendar",
+    "name": "Champaign Park District — Free Youth & Family Events",
+    "schools": [
+      "champaign-parks-early",
+      "champaign-parks-elementary",
+      "champaign-parks-teens",
+      "champaign-parks-family"
+    ],
+    "url": "https://champaignparks.org/events/"
+  },
+  {
+    "id": "urbana-parks",
+    "kind": "Youth & family events calendar",
+    "name": "Urbana Park District — Free Youth & Family Events",
+    "schools": [
+      "urbana-parks-early",
+      "urbana-parks-elementary",
+      "urbana-parks-teens",
+      "urbana-parks-family"
+    ],
+    "url": "https://www.urbanaparks.org/calendar/"
   },
   {
     "id": "ums-athletics",
@@ -17702,7 +17982,12 @@
     if (ids.length === SCHOOLS.length) return t("allSchools");
     if (ids.length && ids.every(id => id.startsWith("urbana-lib-"))) return "Urbana Free Library";
     if (ids.length && ids.every(id => id.startsWith("champaign-lib-"))) return "Champaign Public Library";
-    return ids.map(id => SCHOOLS.find(s => s.id === id)?.short || id).join(" + ");
+    if (ids.length && ids.every(id => id.startsWith("urbana-parks-"))) return "Urbana Park District";
+    if (ids.length && ids.every(id => id.startsWith("champaign-parks-"))) return "Champaign Park District";
+    return ids.map(id => {
+      const school = SCHOOLS.find(s => s.id === id);
+      return school ? translateSchoolDisplay(school.short) : id;
+    }).join(" + ");
   }
 
   function schoolById(id){ return SCHOOLS.find(s => s.id === id); }
@@ -17711,6 +17996,18 @@
     if (!ids || ids.includes("all")) return ["#435060"];
     const colors = [...new Set(ids.map(id => schoolById(id)?.color).filter(Boolean))];
     return colors.length > 3 ? ["#435060"] : colors;
+  }
+
+  function isCommunityEvent(event){
+    if (String(event?.scope || "").toLowerCase() === "community") return true;
+    return (event?.schools || []).some(id =>
+      id.includes("-lib-") || id.includes("-parks-")
+    );
+  }
+
+  function isMusicalEvent(event){
+    const haystack = `${event?.title || ""} ${event?.detail || ""}`.toLowerCase();
+    return /\b(music|musical|concert|choir|chorus|band|orchestra|recital|jazz|symphony|ukulele|dulcimer|marching|strings|sing[- ]?along|karaoke)\b/i.test(haystack);
   }
 
   function isEveningEvent(event){
@@ -17726,8 +18023,10 @@
     if (category === "testschedule") return "◆■";
     if (category === "sport") return "▲";
     if (category === "schedule") return "■";
+    if (isMusicalEvent(event)) return "♪";
+    if (isCommunityEvent(event)) return "★";
     if (isEveningEvent(event)) return "☾";
-    return "●";
+    return "•";
   }
 
   function categoryLabel(category){
@@ -17749,6 +18048,80 @@
   function schoolPips(ids){
     const colors = uniqueSchoolColors(ids);
     return `<span class="school-pips">${colors.map(color => `<span class="school-pip" style="--school-color:${escapeAttr(color)}"></span>`).join("")}</span>`;
+  }
+
+  function comparableText(value){
+    return String(value || "")
+      .normalize("NFKD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/&/g, " and ")
+      .replace(/[^a-z0-9]+/gi, " ")
+      .trim()
+      .toLowerCase();
+  }
+
+  function communitySourceBase(source){
+    return String(source || "")
+      .replace(/\s+Free Youth & Family Events\s*$/i, "")
+      .trim();
+  }
+
+  function displayLocation(event){
+    const location = String(event?.location || "").trim();
+    if (!location) return "";
+
+    const owner = schoolLabel(event.schools);
+    const sourceBase = communitySourceBase(event.source);
+    const locationKey = comparableText(location);
+    const ownerKey = comparableText(owner);
+    const sourceKey = comparableText(sourceBase);
+
+    if (locationKey === ownerKey || (sourceKey && locationKey === sourceKey)) return "";
+
+    for (const prefix of [owner, sourceBase]){
+      const cleanPrefix = String(prefix || "").trim();
+      if (!cleanPrefix) continue;
+      if (location.toLowerCase().startsWith(cleanPrefix.toLowerCase())){
+        const rest = location.slice(cleanPrefix.length)
+          .replace(/^\s*(?:[-–—·,:]|\bat\b)+\s*/i, "")
+          .trim();
+        if (rest) return rest;
+        return "";
+      }
+    }
+    return location;
+  }
+
+  function eventMetaHtml(event, includeEnd=false){
+    const parts = [schoolLabel(event.schools)];
+    const location = displayLocation(event);
+    if (location) parts.push(location);
+    if (!location && event.schools?.length > 1 && (event.category || "general") !== "schedule" && !isCommunityEvent(event)){
+      parts.push(t("venueMissing"));
+    }
+    if (includeEnd && event.end) parts.push(`${t("until")} ${timeLabel(event.end)}`);
+    return parts.map(escapeHtml).join(" · ");
+  }
+
+  function sourceHtml(event){
+    const source = String(event?.source || "").trim();
+    if (!source) return "";
+    const owner = schoolLabel(event.schools);
+    const location = String(event?.location || "").trim();
+    const base = communitySourceBase(source);
+    const redundant = [owner, location].some(value =>
+      value && comparableText(base || source) === comparableText(value)
+    );
+    const label = redundant ? t("source") : source;
+    if (event.sourceUrl){
+      return `<a href="${escapeAttr(event.sourceUrl)}" target="_blank" rel="noopener">${escapeHtml(label)}</a>`;
+    }
+    return redundant ? "" : escapeHtml(source);
+  }
+
+  function registrationHtml(event){
+    if (!event?.registrationUrl) return "";
+    return `<a class="register-link" href="${escapeAttr(event.registrationUrl)}" target="_blank" rel="noopener">${escapeHtml(t("register"))}</a>`;
   }
 
   function eventTimeLabel(event){
@@ -17805,7 +18178,7 @@
       const b = document.createElement("button");
       b.className = "school-chip selected";
       b.style.setProperty("--school-color", s.color);
-      b.innerHTML = `<span class="school-dot" aria-hidden="true"></span><span>${escapeHtml(s.short)}</span>`;
+      b.innerHTML = `<span class="school-dot" aria-hidden="true"></span><span>${escapeHtml(translateSchoolDisplay(s.short))}</span>`;
       b.title = t("removeSchool");
       b.addEventListener("click", () => {
         selected = selected.filter(x => x !== id);
@@ -17903,6 +18276,12 @@
       .filter(Boolean)
       .forEach(s => unit4Column.appendChild(makePickerLabel(s)));
 
+    addSubtitle(unit4Column, "Champaign Park District");
+    ["champaign-parks-early", "champaign-parks-elementary", "champaign-parks-teens", "champaign-parks-family"]
+      .map(id => SCHOOLS.find(s => s.id === id))
+      .filter(Boolean)
+      .forEach(s => unit4Column.appendChild(makePickerLabel(s)));
+
     grid.appendChild(unit4Column);
 
     // Column 2: Urbana SD 116, youngest to oldest; Uni High stays at
@@ -17915,6 +18294,12 @@
 
     addSubtitle(urbanaColumn, "Urbana Free Library");
     ["urbana-lib-early", "urbana-lib-elementary", "urbana-lib-teens"]
+      .map(id => SCHOOLS.find(s => s.id === id))
+      .filter(Boolean)
+      .forEach(s => urbanaColumn.appendChild(makePickerLabel(s)));
+
+    addSubtitle(urbanaColumn, "Urbana Park District");
+    ["urbana-parks-early", "urbana-parks-elementary", "urbana-parks-teens", "urbana-parks-family"]
       .map(id => SCHOOLS.find(s => s.id === id))
       .filter(Boolean)
       .forEach(s => urbanaColumn.appendChild(makePickerLabel(s)));
@@ -17967,7 +18352,7 @@
     host.innerHTML = feeds.map(feed => {
       const visibleSchools = feed.schools
         .filter(id => selected.includes(id))
-        .map(id => schoolById(id)?.short)
+        .map(id => { const school = schoolById(id); return school ? translateSchoolDisplay(school.short) : null; })
         .filter(Boolean)
         .join(" + ");
       return `
@@ -18005,11 +18390,11 @@
       <article class="event">
         <div class="event-time">${escapeHtml(eventTimeLabel(e))}</div>
         <div>
-          <div class="event-title"><span class="event-marks">${eventMarks(e)}</span><span>${escapeHtml(translateEventTitle(e.title, e.category))}</span>${type ? `<span class="event-type-label">${type}</span>` : ""}</div>
-          <div class="event-meta">${escapeHtml(schoolLabel(e.schools))}${e.location ? " · " + escapeHtml(e.location) : ((e.schools?.length > 1 && (e.category || "general") !== "schedule") ? " · " + escapeHtml(t("venueMissing")) : "")}${e.end ? " · " + escapeHtml(t("until")) + " " + timeLabel(e.end) : ""}</div>
+          <div class="event-title"><span class="event-marks">${eventMarks(e)}</span><span>${escapeHtml(translateEventTitle(e.title, e.category, e))}</span>${type ? `<span class="event-type-label">${type}</span>` : ""}</div>
+          <div class="event-meta">${eventMetaHtml(e, true)}${e.registrationUrl ? ` · ${registrationHtml(e)}` : ""}</div>
           ${detail}
         </div>
-        <div class="source">${e.sourceUrl ? `<a href="${escapeAttr(e.sourceUrl)}" target="_blank" rel="noopener">${escapeHtml(e.source || t("source"))}</a>` : escapeHtml(e.source || "")}</div>
+        <div class="source">${sourceHtml(e)}</div>
       </article>`;
     }).join("");
   }
@@ -18314,12 +18699,12 @@
             return `
             <div class="week-event">
               <div class="t">${escapeHtml(eventTimeLabel(e))}</div>
-              <div class="n"><span class="event-marks">${eventMarks(e,true)}</span> ${escapeHtml(translateEventTitle(e.title, e.category))}${type ? ` <span class="type-mini">${type}</span>` : ""}</div>
-              <div class="s">${escapeHtml(schoolLabel(e.schools))}${e.location ? " · " + escapeHtml(e.location) : ((e.schools?.length > 1 && (e.category || "general") !== "schedule") ? " · " + escapeHtml(t("venueMissing")) : "")}</div>
+              <div class="n"><span class="event-marks">${eventMarks(e,true)}</span> ${escapeHtml(translateEventTitle(e.title, e.category, e))}${type ? ` <span class="type-mini">${type}</span>` : ""}</div>
+              <div class="s">${eventMetaHtml(e)}${e.registrationUrl ? ` · ${registrationHtml(e)}` : ""}</div>
             </div>`;
           }).join("") : `<div class="week-event"><div class="s">${escapeHtml(t("noEvents"))}</div></div>`}
 
-          ${lunches.length ? `<div class="week-meal"><b>${escapeHtml(t("lunch"))}</b><br>${renderWeekLunches(lunches)}</div>` : ""}
+          ${lunches.length ? `<div class="week-meal"><span class="meal-symbol" aria-hidden="true">⊙</span><b>${escapeHtml(t("lunch"))}</b><br>${renderWeekLunches(lunches)}</div>` : ""}
         </article>
       `;
     }).join("");
