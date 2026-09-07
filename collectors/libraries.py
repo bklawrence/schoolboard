@@ -129,6 +129,53 @@ class _VisibleTextParser(HTMLParser):
         return "\n".join(line for line in lines if line)
 
 
+class _ActionLinkParser(HTMLParser):
+    """Collect labeled links/buttons from the current event block."""
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.items: list[tuple[str, dict[str, str], str]] = []
+        self._active_tag: str | None = None
+        self._active_attrs: dict[str, str] = {}
+        self._active_text: list[str] = []
+
+    def handle_starttag(
+        self,
+        tag: str,
+        attrs: list[tuple[str, str | None]],
+    ) -> None:
+        tag = tag.lower()
+        if self._active_tag is not None:
+            return
+        if tag not in {"a", "button"}:
+            return
+        self._active_tag = tag
+        self._active_attrs = {
+            key.lower(): (value or "")
+            for key, value in attrs
+        }
+        self._active_text = []
+
+    def handle_data(self, data: str) -> None:
+        if self._active_tag is not None:
+            self._active_text.append(data)
+
+    def handle_endtag(self, tag: str) -> None:
+        if self._active_tag is None or tag.lower() != self._active_tag:
+            return
+        label = re.sub(
+            r"\s+",
+            " ",
+            html.unescape("".join(self._active_text)),
+        ).strip()
+        self.items.append(
+            (self._active_tag, dict(self._active_attrs), label)
+        )
+        self._active_tag = None
+        self._active_attrs = {}
+        self._active_text = []
+
+
 def _fetch_text(url: str) -> str:
     req = Request(
         url,
@@ -475,19 +522,93 @@ def _section_text(text: str, heading: str, stop_headings: tuple[str, ...]) -> st
     return text[start:end].strip()
 
 
-def _registration_metadata(text: str, event_url: str) -> dict[str, Any]:
+def _current_event_html(page_html: str) -> str:
+    """Return only the HTML before Communico's event metadata/related cards."""
+    boundary = re.search(
+        r"AGE(?:\s|&nbsp;|&#160;|<[^>]+>)*GROUP",
+        page_html,
+        re.IGNORECASE,
+    )
+    if boundary is None:
+        return ""
+    return page_html[:boundary.start()]
+
+
+def _registration_url_from_html(
+    page_html: str,
+    event_url: str,
+) -> str | None:
+    """Extract the href attached to this event's own Register/Wait List control."""
+    current_html = _current_event_html(page_html)
+    if not current_html:
+        return None
+
+    parser = _ActionLinkParser()
+    try:
+        parser.feed(current_html)
+    except Exception:
+        return None
+
+    for _tag, attrs, label in parser.items:
+        normalized = re.sub(r"\s+", " ", label).strip().lower()
+        is_registration_control = bool(
+            re.fullmatch(
+                r"register(?:\s+\d+\s+seats?\s+remaining)?",
+                normalized,
+            )
+            or normalized in {
+                "join the wait list",
+                "join wait list",
+                "join the waitlist",
+            }
+        )
+        if not is_registration_control:
+            continue
+
+        candidate = (
+            attrs.get("href")
+            or attrs.get("data-href")
+            or attrs.get("data-url")
+            or attrs.get("data-registration-url")
+            or ""
+        ).strip()
+
+        if not candidate:
+            onclick = attrs.get("onclick", "")
+            match = re.search(
+                r"""(?:window\.)?location(?:\.href)?\s*=\s*['"]([^'"]+)['"]""",
+                onclick,
+                re.IGNORECASE,
+            )
+            if match:
+                candidate = match.group(1).strip()
+
+        if not candidate:
+            continue
+        if candidate.startswith("#") or candidate.lower().startswith("javascript:"):
+            continue
+
+        return urljoin(event_url, html.unescape(candidate))
+
+    return None
+
+
+def _registration_metadata(
+    page_html: str,
+    text: str,
+    event_url: str,
+) -> dict[str, Any]:
     """Return registration metadata only for the *current* Communico event.
 
-    Communico event pages often append a list of other upcoming events below
-    the current event.  Those related-event cards can contain their own
-    Register buttons.  Scanning the whole page therefore makes unrelated
-    events look as if they require registration.
+    Communico event pages append other upcoming events below the current one,
+    and those cards can contain unrelated Register buttons.  We therefore use
+    only the current event block.  More importantly, registrationUrl now comes
+    from the actual Register/Wait List control's href instead of assuming that
+    the event detail page itself is the registration destination.
 
-    The current event's registration control appears in the main event block,
-    before Communico's AGE GROUP / EVENT TYPE / TAGS metadata.  Restrict the
-    search to that block and fail closed if the boundary cannot be identified.
-    This intentionally favors an occasional missed link over a false Register
-    link sprayed across unrelated events.
+    If Communico says registration is required but no event-specific action
+    URL can be recovered, fail closed: keep the status metadata but omit the
+    link rather than send SchoolBoard users to a generic or incorrect page.
     """
     lines = [re.sub(r"\s+", " ", line).strip() for line in text.splitlines()]
     lines = [line for line in lines if line]
@@ -503,8 +624,6 @@ def _registration_metadata(text: str, event_url: str) -> dict[str, Any]:
             boundary = i
             break
 
-    # Without a reliable end to the current-event block, do not risk reading
-    # Register controls from Communico's related/upcoming-event cards.
     if boundary is None:
         return {}
 
@@ -516,25 +635,35 @@ def _registration_metadata(text: str, event_url: str) -> dict[str, Any]:
     ):
         return {}
 
+    registration_url = _registration_url_from_html(page_html, event_url)
+
     for line in lower_lines:
         if re.fullmatch(r"register(?:\s+\d+\s+seats?\s+remaining)?", line):
-            return {
+            metadata: dict[str, Any] = {
                 "registrationRequired": True,
                 "registrationStatus": "open",
-                "registrationUrl": event_url,
             }
+            if registration_url:
+                metadata["registrationUrl"] = registration_url
+            return metadata
+
         if line in {"join the wait list", "join wait list", "join the waitlist"}:
-            return {
+            metadata = {
                 "registrationRequired": True,
                 "registrationStatus": "waitlist",
-                "registrationUrl": event_url,
             }
+            if registration_url:
+                metadata["registrationUrl"] = registration_url
+            return metadata
+
         if line.startswith("registration opens "):
-            return {
+            metadata = {
                 "registrationRequired": True,
                 "registrationStatus": "requested",
-                "registrationUrl": event_url,
             }
+            if registration_url:
+                metadata["registrationUrl"] = registration_url
+            return metadata
 
     return {}
 
@@ -677,7 +806,7 @@ def _parse_event_page(
     if location:
         event["location"] = location
 
-    event.update(_registration_metadata(text, event_url))
+    event.update(_registration_metadata(page_html, text, event_url))
 
     return event
 
