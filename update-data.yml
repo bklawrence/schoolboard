@@ -51,17 +51,41 @@ jobs:
             git push
           fi
 
+      - name: Verify Home Screen assets
+        run: |
+          echo "Repository root contents:"
+          find . -maxdepth 1 -type f -printf '%f\n' | sort
+
+          missing=0
+          for f in index.html schoolboard-data.json manifest.webmanifest apple-touch-icon.png; do
+            if [ ! -f "$f" ]; then
+              echo "::error::Required site asset is missing from repository root: $f"
+              missing=1
+            fi
+          done
+
+          if [ "$missing" -ne 0 ]; then
+            echo "One or more required Home Screen files are missing."
+            exit 1
+          fi
+
       - name: Prepare public site
         run: |
+          rm -rf site
           mkdir -p site
-          cp index.html schoolboard-data.json site/
 
-          # Static site assets used by browsers and Home Screen web apps.
-          for f in favicon.png favicon.svg manifest.webmanifest apple-touch-icon*.png; do
-            if [ -e "$f" ]; then
+          cp index.html schoolboard-data.json site/
+          cp manifest.webmanifest apple-touch-icon.png site/
+
+          # Optional browser and device-specific icons.
+          for f in favicon.png favicon.svg apple-touch-icon-*.png; do
+            if [ -f "$f" ]; then
               cp "$f" site/
             fi
           done
+
+          echo "Files that will be published to GitHub Pages:"
+          find site -maxdepth 1 -type f -printf '%f\n' | sort
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v6
