@@ -687,7 +687,7 @@ def _registration_url(
         return None
 
     # Series pages can contain one registration link per month. Prefer the link
-    # whose label names this event's month.
+    # whose label names this event's month/date.
     if event_day:
         try:
             event_date = date.fromisoformat(event_day)
@@ -703,7 +703,39 @@ def _registration_url(
         except ValueError:
             pass
 
-    # Prefer purpose-built external registration endpoints.
+    # Prefer a registration link clearly written as part of the event prose
+    # over a sitewide "Register" navigation link. Urbana Park District often
+    # phrases the real event link as "please register at this link"; its
+    # destination may be an event-specific partner page rather than the final
+    # form, and SchoolBoard should preserve that authored destination.
+    contextual_patterns = (
+        r"\bplease register\b",
+        r"\bplease sign up\b",
+        r"\bregister at this link\b",
+        r"\bsign up at this link\b",
+        r"\bregister here\b",
+        r"\bsign up here\b",
+        r"\bregister online\b",
+        r"\bsign up online\b",
+    )
+    for href, label in candidates:
+        label_key = _clean(label).casefold()
+        if any(re.search(pattern, label_key) for pattern in contextual_patterns):
+            return href
+
+    # If there is a longer descriptive registration label, prefer it to a
+    # terse global navigation label such as "Register" or "Registration".
+    for href, label in candidates:
+        label_key = _clean(label).casefold()
+        words = re.findall(r"[a-z0-9]+", label_key)
+        if len(words) >= 4 and re.search(
+            r"\b(register|registration|sign\s*up|signup)\b",
+            label_key,
+        ):
+            return href
+
+    # Only after event-context clues fail do we prefer a purpose-built external
+    # registration platform.
     for href, _label in candidates:
         parsed = urlparse(href)
         if parsed.netloc and "champaignparks.org" not in parsed.netloc and "urbanaparks.org" not in parsed.netloc:
