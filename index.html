@@ -17,7 +17,7 @@
   <meta name="apple-mobile-web-app-title" content="Schoolboard" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 
-  <!-- Chambana Schoolboard v55 custom-domain Home Screen paths; v50 library registration, source-feed empty state, Urbana picker grouping, and v49 visual/event fixes retained; selection storage intentionally remains v19-compatible. -->
+  <!-- Chambana Schoolboard v56 foreground data refresh + custom-domain Home Screen paths; v50 library registration, source-feed empty state, Urbana picker grouping, and v49 visual/event fixes retained; selection storage intentionally remains v19-compatible. -->
   <style>
     :root{
       --paper:#f3eedf;
@@ -1034,22 +1034,56 @@
 
   const TODAY = centralISODate();
   const PAGE_DATE = TODAY;
+  const FOREGROUND_REFRESH_THROTTLE_MS = 15 * 1000;
+  let lastForegroundRefreshAt = 0;
+  let foregroundRefreshInFlight = null;
 
   function checkForNewSchoolboardDay(){
     if (centralISODate() !== PAGE_DATE){
       location.reload();
+      return true;
     }
+    return false;
+  }
+
+  async function refreshSchoolboardDataOnForeground(){
+    if (checkForNewSchoolboardDay()) return;
+
+    const now = Date.now();
+    if (foregroundRefreshInFlight) return foregroundRefreshInFlight;
+    if (now - lastForegroundRefreshAt < FOREGROUND_REFRESH_THROTTLE_MS) return;
+
+    lastForegroundRefreshAt = now;
+    foregroundRefreshInFlight = fetch(`${DATA_URL}?refresh=${now}`, {cache:"no-store"})
+      .then(response => {
+        if (!response.ok) throw new Error("No data file");
+        return response.json();
+      })
+      .then(json => {
+        if (json && Array.isArray(json.events)){
+          data = json;
+          renderAll();
+        }
+      })
+      .catch(() => {
+        // Keep the already displayed data if a foreground refresh fails.
+      })
+      .finally(() => {
+        foregroundRefreshInFlight = null;
+      });
+
+    return foregroundRefreshInFlight;
   }
 
   setInterval(checkForNewSchoolboardDay, 60 * 1000);
 
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden){
-      checkForNewSchoolboardDay();
+      refreshSchoolboardDataOnForeground();
     }
   });
 
-  window.addEventListener("focus", checkForNewSchoolboardDay);
+  window.addEventListener("focus", refreshSchoolboardDataOnForeground);
 
   const I18N = {
     en: {
@@ -19032,7 +19066,7 @@
     });
   });
 
-  fetch(DATA_URL, {cache:"no-store"})
+  fetch(`${DATA_URL}?initial=${Date.now()}`, {cache:"no-store"})
     .then(r => {
       if(!r.ok) throw new Error("No data file");
       return r.json();
@@ -19040,6 +19074,7 @@
     .then(json => {
       if(json && Array.isArray(json.events)){
         data = json;
+        lastForegroundRefreshAt = Date.now();
         renderAll();
       }
     })
