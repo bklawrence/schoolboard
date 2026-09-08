@@ -17,7 +17,7 @@
   <meta name="apple-mobile-web-app-title" content="Schoolboard" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 
-  <!-- Chambana Schoolboard v56 foreground data refresh + custom-domain Home Screen paths; v50 library registration, source-feed empty state, Urbana picker grouping, and v49 visual/event fixes retained; selection storage intentionally remains v19-compatible. -->
+  <!-- Chambana Schoolboard v57 admission-fee display + foreground data refresh; v50 library registration, source-feed empty state, Urbana picker grouping, and v49 visual/event fixes retained; selection storage intentionally remains v19-compatible. -->
   <style>
     :root{
       --paper:#f3eedf;
@@ -1158,7 +1158,9 @@
       categoryTestSchedule: "TEST + SCHEDULE",
       categorySport: "SPORT",
       categorySchedule: "SCHEDULE",
-      register: "Register"
+      register: "Register",
+      admission: "Admission",
+      perPerson: "per person"
     },
     es: {
       title: "Chambana Schoolboard — tu día y semana escolar",
@@ -1232,7 +1234,9 @@
       categoryTestSchedule: "EXAMEN + HORARIO",
       categorySport: "DEPORTE",
       categorySchedule: "HORARIO",
-      register: "Inscribirse"
+      register: "Inscribirse",
+      admission: "Entrada",
+      perPerson: "por persona"
     },
     fr: {
       title: "Chambana Schoolboard — votre journée et semaine scolaires",
@@ -1306,7 +1310,9 @@
       categoryTestSchedule: "ÉVALUATION + HORAIRE",
       categorySport: "SPORT",
       categorySchedule: "HORAIRE",
-      register: "S’inscrire"
+      register: "S’inscrire",
+      admission: "Entrée",
+      perPerson: "par personne"
     }
   };
 
@@ -18212,6 +18218,14 @@
     return location;
   }
 
+  function admissionText(event){
+    const amount = Number(event?.admissionAmount);
+    if (!Number.isFinite(amount) || amount <= 0) return "";
+    const formatted = Number.isInteger(amount) ? String(amount) : amount.toFixed(2);
+    const unit = event?.admissionUnit === "person" ? ` ${t("perPerson")}` : "";
+    return `${t("admission")}: $${formatted}${unit}`;
+  }
+
   function eventMetaHtml(event, includeEnd=false){
     const parts = [schoolLabel(event.schools)];
     const location = displayLocation(event);
@@ -18220,6 +18234,8 @@
       parts.push(t("venueMissing"));
     }
     if (includeEnd && event.end) parts.push(`${t("until")} ${timeLabel(event.end)}`);
+    const admission = admissionText(event);
+    if (admission) parts.push(admission);
     return parts.map(escapeHtml).join(" · ");
   }
 
