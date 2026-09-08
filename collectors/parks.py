@@ -365,6 +365,37 @@ def _page_is_free(title: str, text: str, parser: _PageParser, node: dict | None)
     return False
 
 
+
+
+def _page_is_low_cost_public_event(text: str, *, max_admission: float = 10.0) -> bool:
+    """Recognize inexpensive one-off public events without admitting paid programs.
+
+    This intentionally keys off admission/entry wording, not any dollar amount
+    appearing on the page. That allows events such as Barnyard Bash
+    ("Admission is just $5 per person") while avoiding camps, classes, lessons,
+    and other fee-based programs whose pages simply contain a price.
+    """
+    lowered = text.casefold()
+
+    # Match wording such as:
+    #   Admission is just $5 per person
+    #   Admission: $8
+    #   Entry fee is $10
+    patterns = (
+        r"\badmission\b[^$\n]{0,80}\$\s*(\d+(?:\.\d{1,2})?)",
+        r"\bentry fee\b[^$\n]{0,80}\$\s*(\d+(?:\.\d{1,2})?)",
+    )
+    for pattern in patterns:
+        for match in re.finditer(pattern, lowered, re.I):
+            try:
+                amount = float(match.group(1))
+            except ValueError:
+                continue
+            if 0 < amount <= max_admission:
+                return True
+    return False
+
+
 _AGE_RANGE_PATTERNS = (
     re.compile(r"\bages?\s*:?\s*(\d{1,2})\s*(?:-|–|to)\s*(\d{1,2})\b", re.I),
     re.compile(r"\bage\s*:?\s*(\d{1,2})\s*(?:-|–|to)\s*(\d{1,2})\b", re.I),
@@ -894,17 +925,24 @@ def _champaign_event(url: str, district: ParkDistrict) -> dict | None:
     if not event_day:
         return None
 
-    if not _page_is_free(title, local_text, parser, node):
+    # Administrative/governance items, galas/fundraisers, registration notices,
+    # and explicitly adult-only programming are outside SchoolBoard's park-event
+    # scope even if they are technically public or inexpensive.
+    if _exclude_from_champaign_family_fallback(title, audience_text):
         return None
+
+    is_free = _page_is_free(title, local_text, parser, node)
+    is_low_cost_public = _page_is_low_cost_public_event(local_text)
+    if not (is_free or is_low_cost_public):
+        return None
+
     buckets = _audience_buckets(title, audience_text)
 
-    # Champaign often publishes genuinely public, free community events without
+    # Champaign often publishes genuinely public community events without
     # explicit age language. If no specific audience can be inferred, treat
-    # the event as Families & All Ages unless it is clearly administrative,
-    # fundraising-oriented, a registration notice, or adult-only.
+    # the event as Families & All Ages. This applies to free events and to
+    # inexpensive admission-style special events (currently <= $10/person).
     if not buckets:
-        if _exclude_from_champaign_family_fallback(title, audience_text):
-            return None
         buckets = {"family"}
 
     reg_status, reg_url = _registration_details(
