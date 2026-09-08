@@ -428,6 +428,51 @@ def _add_range_buckets(buckets: set[str], low: int, high: int) -> None:
         buckets.add("teens")
 
 
+def _exclude_from_champaign_family_fallback(title: str, text: str) -> bool:
+    """Return True for free Champaign items that should not become family events.
+
+    Champaign Park District often publishes free public community events
+    without explicit age wording. Those may fall back to Families & All Ages,
+    but administrative meetings, fundraising events, registration notices,
+    and clearly adult-only programming should not.
+    """
+    combined = f"{title}\n{text}"
+    lowered = combined.casefold()
+
+    exclusion_patterns = (
+        # Administrative/governance items.
+        r"\bstudy session\b",
+        r"\bboard (?:of commissioners )?meeting\b",
+        r"\bcommittee meeting\b",
+        r"\bcommission meeting\b",
+        r"\badvisory (?:board|committee) meeting\b",
+        r"\bpublic hearing\b",
+
+        # Galas and fundraising events.
+        r"\bgala\b",
+        r"\bfundraiser\b",
+        r"\bfundraising\b",
+        r"\bbenefit (?:dinner|luncheon|gala|auction|event)\b",
+        r"\bdonor (?:reception|event)\b",
+
+        # Administrative registration notices rather than actual programs.
+        r"\bregistration (?:opens|begins|starts|deadline|ends|closes)\b",
+        r"\bprogram registration\b",
+
+        # Explicitly adult-only / older-adult programming.
+        r"\badults? only\b",
+        r"\bfor adults?\b",
+        r"\b21\+\b",
+        r"\b(?:ages?|age)\s*:?\s*(?:18|19|20|21|[2-9]\d)\s*"
+        r"(?:\+|and\s+(?:up|older|better)|or\s+older)\b",
+        r"\bolder adults?\b",
+        r"\bfor seniors?\b",
+        r"\bseniors? only\b",
+        r"\b50 and better\b",
+    )
+    return any(re.search(pattern, lowered, re.I) for pattern in exclusion_patterns)
+
+
 def _audience_buckets(title: str, text: str) -> set[str]:
     """Return only age bands supported by positive event-specific evidence."""
     combined = f"{title}\n{text}"
@@ -536,6 +581,40 @@ _NO_REG = (
     r"\bwalk-?ins? welcome\b",
     r"\bdrop-?ins? welcome\b",
 )
+
+
+_URBANA_2026_FAMILY_STEM_REGISTRATION_PAGE = (
+    "https://csbs.research.illinois.edu/"
+    "urbana-family-stem-nights-september-10-october-8-and-november-12/"
+)
+_URBANA_2026_FAMILY_STEM_DATES = {
+    "2026-09-10",
+    "2026-10-08",
+    "2026-11-12",
+}
+
+
+def _known_registration_override(
+    district_key: str,
+    title: str,
+    event_day: str | None,
+) -> str | None:
+    """Return a verified event-series registration page for known exceptions.
+
+    Urbana Park District's 2026 Illinois Science Explorers Family STEM Night
+    pages direct families to a CSBS series page with the registration links for
+    September 10, October 8, and November 12. Preserve that authored destination
+    instead of substituting the park district's general registration system.
+    """
+    title_key = _clean(title).casefold()
+    if (
+        district_key == "urbana"
+        and event_day in _URBANA_2026_FAMILY_STEM_DATES
+        and "family stem night" in title_key
+        and "illinois science explorers" in title_key
+    ):
+        return _URBANA_2026_FAMILY_STEM_REGISTRATION_PAGE
+    return None
 
 
 def _registration_status(text: str) -> str:
@@ -686,23 +765,6 @@ def _registration_url(
     if not candidates:
         return None
 
-    # Series pages can contain one registration link per month. Prefer the link
-    # whose label names this event's month/date.
-    if event_day:
-        try:
-            event_date = date.fromisoformat(event_day)
-            month_name = event_date.strftime("%B").casefold()
-            month_number = str(event_date.month)
-            day_number = str(event_date.day)
-            for href, label in candidates:
-                label_key = label.casefold()
-                if month_name in label_key or re.search(
-                    rf"\b{month_number}[/-]{day_number}\b", label_key
-                ):
-                    return href
-        except ValueError:
-            pass
-
     # Prefer a registration link clearly written as part of the event prose
     # over a sitewide "Register" navigation link. Urbana Park District often
     # phrases the real event link as "please register at this link"; its
@@ -722,6 +784,23 @@ def _registration_url(
         label_key = _clean(label).casefold()
         if any(re.search(pattern, label_key) for pattern in contextual_patterns):
             return href
+
+    # Series pages can contain one registration link per month. After explicit
+    # event-prose links, prefer the candidate whose label names this occurrence.
+    if event_day:
+        try:
+            event_date = date.fromisoformat(event_day)
+            month_name = event_date.strftime("%B").casefold()
+            month_number = str(event_date.month)
+            day_number = str(event_date.day)
+            for href, label in candidates:
+                label_key = label.casefold()
+                if month_name in label_key or re.search(
+                    rf"\b{month_number}[/-]{day_number}\b", label_key
+                ):
+                    return href
+        except ValueError:
+            pass
 
     # If there is a longer descriptive registration label, prefer it to a
     # terse global navigation label such as "Register" or "Registration".
@@ -818,8 +897,15 @@ def _champaign_event(url: str, district: ParkDistrict) -> dict | None:
     if not _page_is_free(title, local_text, parser, node):
         return None
     buckets = _audience_buckets(title, audience_text)
+
+    # Champaign often publishes genuinely public, free community events without
+    # explicit age language. If no specific audience can be inferred, treat
+    # the event as Families & All Ages unless it is clearly administrative,
+    # fundraising-oriented, a registration notice, or adult-only.
     if not buckets:
-        return None
+        if _exclude_from_champaign_family_fallback(title, audience_text):
+            return None
+        buckets = {"family"}
 
     reg_status, reg_url = _registration_details(
         parser,
@@ -828,6 +914,15 @@ def _champaign_event(url: str, district: ParkDistrict) -> dict | None:
         title,
         local_text,
     )
+
+    known_reg_url = _known_registration_override(
+        district.key,
+        title,
+        event_day,
+    )
+    if known_reg_url:
+        reg_status = "requested"
+        reg_url = known_reg_url
 
     title = _strip_free_prefix(title)
     event = {
