@@ -33,6 +33,15 @@ SCHOOL_FEEDS = (
 
 ALL_USD116_SCHOOLS = tuple(s.id for s in SCHOOL_FEEDS)
 
+# Public ParentSquare posts can contain events weeks in the future, but each
+# school homepage exposes only a small "Latest News" panel. A post may therefore
+# disappear from homepage discovery before the event it announces has happened.
+_SUPPLEMENTAL_ARTICLE_IDS: dict[str, tuple[str, ...]] = {
+    # 2026 Back to School Family Focus. This post contains the SGC
+    # September 17 Curriculum Night date/time and remains publicly accessible.
+    "sgc": ("83997796",),
+}
+
 _HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
@@ -262,8 +271,30 @@ def _discover_post_urls(school: SchoolFeed) -> list[str]:
                 seen.add(article_id)
                 article_ids.append(article_id)
 
-    urls = [_canonical_post_url(school.homepage, article_id) for article_id in article_ids[:4]]
-    print(f"usd-feed-{school.id} detail: found {len(urls)} public ParentSquare posts via homepage HTML")
+    # Keep more than the visible four when the page source exposes additional
+    # ParentSquare IDs. Future events can otherwise disappear from SchoolBoard
+    # merely because newer news pushes the announcing post off the homepage.
+    selected_ids = list(article_ids[:12])
+
+    supplemental_added = 0
+    for article_id in _SUPPLEMENTAL_ARTICLE_IDS.get(school.id, ()):
+        if article_id not in selected_ids:
+            selected_ids.append(article_id)
+            supplemental_added += 1
+
+    urls = [
+        _canonical_post_url(school.homepage, article_id)
+        for article_id in selected_ids
+    ]
+    print(
+        f"usd-feed-{school.id} detail: found {len(article_ids)} public ParentSquare "
+        f"post id(s) via homepage HTML; refreshing {len(urls)} post(s)"
+        + (
+            f" including {supplemental_added} supplemental future-event source(s)"
+            if supplemental_added
+            else ""
+        )
+    )
     if not urls:
         raise RuntimeError(f"{school.name} homepage exposed no public ParentSquare post links")
     return urls
