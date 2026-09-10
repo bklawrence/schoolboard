@@ -629,6 +629,169 @@ def _event_record(
     return record
 
 
+def _school_name_line_matches(school: SchoolFeed, text: str) -> bool:
+    """Return True when a line is clearly naming the current school.
+
+    District ParentSquare/Family Focus posts are replicated onto each school's
+    website and sometimes format a schedule as:
+
+        Urbana Sixth Grade Center
+        Thursday, September 17, 2026 from 6:00-7:00 pm
+
+    The date line itself has no event title, so the normal date-led parser
+    cannot connect it back to the school named immediately above it.
+    """
+    normalized = _normalize_title(text)
+    aliases = {
+        "uecs": {
+            "urbana early childhood school",
+        },
+        "yankee": {
+            "yankee ridge multilingual",
+            "yankee ridge multilingual school",
+            "yankee ridge multilingual elementary school",
+        },
+        "leal": {
+            "leal elementary",
+            "leal elementary school",
+        },
+        "paine": {
+            "thomas paine elementary",
+            "thomas paine elementary school",
+        },
+        "williams": {
+            "dr preston l williams jr elementary school",
+            "dr williams elementary",
+            "dr williams elementary school",
+        },
+        "king": {
+            "dr martin luther king jr elementary",
+            "dr martin luther king jr elementary school",
+            "martin luther king jr elementary school",
+        },
+        "sgc": {
+            "urbana sixth grade center",
+            "sixth grade center",
+        },
+        "ums": {
+            "urbana middle school",
+        },
+        "uhs": {
+            "urbana high school",
+        },
+    }
+    return normalized in aliases.get(school.id, {_normalize_title(school.name)})
+
+
+def _school_block_title_hint(
+    *,
+    school: SchoolFeed,
+    post_title: str,
+    event_date: date,
+) -> str | None:
+    """Supply a title only when the surrounding district source is unambiguous.
+
+    The August 2026 Back-to-School Family Focus publishes the SGC date under a
+    "Secondary Schools" graphic, but that graphic's words are image alt text
+    rather than visible HTML text. The SGC's own public About page identifies
+    its September family event as Curriculum Night. Keep this hint narrow so
+    unrelated date-only school blocks are not invented into events.
+    """
+    if (
+        school.id == "sgc"
+        and event_date.month == 9
+        and re.search(r"\bback to school family focus\b", post_title, re.I)
+    ):
+        return "Curriculum Night"
+    return None
+
+
+def _named_school_block_events(
+    lines: list[tuple[str, str]],
+    *,
+    school: SchoolFeed,
+    source_url: str,
+    post_title: str,
+    posted: date,
+    reference: date,
+) -> list[dict]:
+    """Parse school-name lines followed by an otherwise untitled date/time line."""
+    events: list[dict] = []
+    current_heading = ""
+
+    for idx, (tag, text) in enumerate(lines):
+        if tag in _HEADING_TAGS:
+            current_heading = text
+            continue
+        if not _school_name_line_matches(school, text):
+            continue
+
+        # ParentSquare/Smore can insert an empty-looking block between the school
+        # name and its date, so allow a small look-ahead but stop at a new heading
+        # or another school name.
+        for next_tag, next_text in lines[idx + 1:idx + 4]:
+            if next_tag in _HEADING_TAGS:
+                break
+            if any(
+                _school_name_line_matches(other, next_text)
+                for other in SCHOOL_FEEDS
+            ):
+                break
+
+            date_match = _DATE_TOKEN_RE.search(next_text)
+            if not date_match:
+                continue
+
+            event_date = _parse_date_token(date_match.group(0), posted)
+            if not event_date or not _event_date_ok(event_date, reference):
+                break
+
+            context = f"{current_heading} {text} {next_text}".strip()
+            if _exclude_context(context, prose=False):
+                break
+
+            # Prefer an explicit event cue if one survived as text. The SGC
+            # Family Focus block needs the narrow source-specific fallback above
+            # because its section heading is an image.
+            title = (
+                _event_title_from_prose(next_text, current_heading)
+                or _event_title_from_heading(current_heading)
+                or _school_block_title_hint(
+                    school=school,
+                    post_title=post_title,
+                    event_date=event_date,
+                )
+            )
+            if not title:
+                break
+
+            start, end = _parse_time_range(next_text)
+            if not start and re.search(
+                r"\b(?:meeting|night|open house)\b",
+                title,
+                re.I,
+            ):
+                start, end = _parse_unsuffixed_evening_range(next_text)
+
+            events.append(
+                _event_record(
+                    school=school,
+                    title=title,
+                    event_date=event_date,
+                    source_url=source_url,
+                    # The surrounding post is district-wide, but this particular
+                    # record is explicitly attached to one named school.
+                    district_post=False,
+                    start=start,
+                    end=end,
+                    location=school.name,
+                )
+            )
+            break
+
+    return events
+
+
 def _event_date_ok(event_date: date, reference: date) -> bool:
     # Match the site's rolling horizon closely enough to keep stale newsletter dates
     # from resurfacing, while leaving the final global windowing to build_data.py.
@@ -961,9 +1124,29 @@ def _parse_post(
             district_post=district_post,
         )
     )
+    if district_post:
+        events.extend(
+            _named_school_block_events(
+                content,
+                school=school,
+                source_url=source_url,
+                post_title=post_title,
+                posted=posted,
+                reference=reference,
+            )
+        )
+
     events = _dedupe(events)
     if district_post:
-        events = [event for event in events if _district_event_allowed(event.get("title", ""))]
+        # Apply the conservative district-event allowlist only to genuinely
+        # district-wide records. A school-name/date block extracted from the same
+        # newsletter is school-specific and should survive this filter.
+        events = [
+            event
+            for event in events
+            if event.get("scope") != "district"
+            or _district_event_allowed(event.get("title", ""))
+        ]
     return events
 
 
