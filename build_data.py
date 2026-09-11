@@ -9,6 +9,7 @@ from zoneinfo import ZoneInfo
 
 from collectors.quest import QUEST_GROUPS, fetch_quest_group
 from collectors.snap import fetch_snap
+from collectors.athleticnet_xc import ATHLETICNET_XC_SOURCES, fetch_athleticnet_xc
 from collectors.unit4 import UNIT4_GROUPS, fetch_unit4_menus
 from collectors.countryside import SOURCE_NAME as COUNTRYSIDE_SOURCE, fetch_countryside_calendar
 from collectors.libraries import LIBRARIES, fetch_library_calendar
@@ -480,6 +481,52 @@ def build(*, offline: bool = False) -> dict:
                     "error": f"{type(exc).__name__}: {exc}",
                 })
         snap_events.extend(source_events)
+
+    # Athletic.net cross-country calendars fill two gaps in the Snap! feeds:
+    # Uni High's 8th-grade team and the shared Urbana Middle / Sixth Grade
+    # Center middle-school team.
+    athleticnet_xc_events: list[dict] = []
+    for cfg in ATHLETICNET_XC_SOURCES:
+        if offline:
+            source_events = previous_source_events(cfg.source)
+            source_events, _, _ = filter_events_to_rolling_window(
+                source_events,
+                reference=today,
+            )
+            source_status.append({
+                "id": cfg.id,
+                "status": "cached" if source_events else "failed",
+                "count": len(source_events),
+                "unit": "events",
+            })
+        else:
+            try:
+                source_events = fetch_athleticnet_xc(cfg, reference=today)
+                source_events, _, _ = filter_events_to_rolling_window(
+                    source_events,
+                    reference=today,
+                )
+                source_status.append({
+                    "id": cfg.id,
+                    "status": "live",
+                    "count": len(source_events),
+                    "unit": "events",
+                })
+            except Exception as exc:
+                source_events = previous_source_events(cfg.source)
+                source_events, _, _ = filter_events_to_rolling_window(
+                    source_events,
+                    reference=today,
+                )
+                source_status.append({
+                    "id": cfg.id,
+                    "status": "cached" if source_events else "failed",
+                    "count": len(source_events),
+                    "unit": "events",
+                    "error": f"{type(exc).__name__}: {exc}",
+                })
+
+        athleticnet_xc_events.extend(source_events)
 
     # Shared ArbiterLive athletics layer. Uni High, UHS, and UMS are present
     # in the Arbiter opponent map but have fetch=False because their existing
@@ -1477,6 +1524,7 @@ def build(*, offline: bool = False) -> dict:
     event_candidates = (
         static_events
         + snap_events
+        + athleticnet_xc_events
         + arbiter_events
         + usd116_calendar_events
         + usd116_school_events
