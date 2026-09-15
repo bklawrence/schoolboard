@@ -90,7 +90,7 @@ _MONTH_WORD = (
     r"(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|"
     r"Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\.??"
 )
-_DATE_TOKEN = rf"{_MONTH_WORD}\s+\d{{1,2}}(?:st|nd|rd|th)?(?:,?\s+\d{{4}})?"
+_DATE_TOKEN = rf"{_MONTH_WORD}\s*\d{{1,2}}(?:st|nd|rd|th)?(?:,?\s+\d{{4}})?"
 _DATE_TOKEN_RE = re.compile(_DATE_TOKEN, re.IGNORECASE)
 _DATE_MARKER_RE = re.compile(
     rf"(?:{_DATE_TOKEN})\s*(?:[-–—]|\bto\b)\s*(?:{_DATE_TOKEN})|(?:{_DATE_TOKEN})",
@@ -109,6 +109,7 @@ _SINGLE_TIME_RE = re.compile(r"\b(\d{1,2})(?::(\d{2}))?\s*([ap]\.??m\.??)\b", re
 # intentionally conservative: it requires both a real date and one of these concepts
 # before turning ordinary newsletter prose into an event.
 _EVENT_PATTERNS: tuple[tuple[re.Pattern[str], str], ...] = (
+    (re.compile(r"\blatine heritage (?:celebration )?month\b", re.I), "Latine Heritage Celebration Month"),
     (re.compile(r"\bfamily neighborhood night\b", re.I), "Family Neighborhood Night"),
     (re.compile(r"\bwelcome back(?: to school)? celebration\b|\bback to school celebration\b", re.I), "Welcome Back Celebration"),
     (re.compile(r"\bvillage investment promise\b", re.I), "Village Investment Promise Meeting"),
@@ -374,7 +375,7 @@ def _infer_year(month: int, day_num: int, explicit_year: int | None, posted: dat
 
 def _parse_date_token(token: str, posted: date) -> date | None:
     match = re.search(
-        rf"(?P<month>{_MONTH_WORD})\s+(?P<day>\d{{1,2}})(?:st|nd|rd|th)?(?:,?\s+(?P<year>\d{{4}}))?",
+        rf"(?P<month>{_MONTH_WORD})\s*(?P<day>\d{{1,2}})(?:st|nd|rd|th)?(?:,?\s+(?P<year>\d{{4}}))?",
         token,
         re.IGNORECASE,
     )
@@ -940,6 +941,12 @@ def _section_list_events(
         if not markers:
             continue
         if _exclude_context(text, prose=True):
+            continue
+
+        # Multi-entry calendar/list lines are split date-by-date by
+        # _calendar_style_events(). Parsing the whole line again here can
+        # attach one event title or a later time to the wrong date.
+        if _is_calendarish_line(text, current_heading):
             continue
 
         own_title = _event_title_from_prose(text, current_heading)
