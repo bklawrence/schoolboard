@@ -9,11 +9,10 @@ from zoneinfo import ZoneInfo
 
 from collectors.quest import QUEST_GROUPS, fetch_quest_group
 from collectors.snap import fetch_snap
-from collectors.athleticnet_xc import ATHLETICNET_XC_SOURCES, fetch_athleticnet_xc
+from collectors.uni import SOURCE_NAME as UNI_CALENDAR_SOURCE, fetch_uni_calendar
 from collectors.unit4 import UNIT4_GROUPS, fetch_unit4_menus
 from collectors.countryside import SOURCE_NAME as COUNTRYSIDE_SOURCE, fetch_countryside_calendar
 from collectors.libraries import LIBRARIES, fetch_library_calendar
-from collectors.parks import PARK_DISTRICTS, fetch_park_calendar
 from collectors.stmatthew import SOURCE_NAME as STMATTHEW_SOURCE, fetch_stmatthew_calendar
 from collectors.stjohn import SOURCE_NAME as STJOHN_SOURCE, fetch_stjohn_calendar
 from collectors.judah import (
@@ -27,30 +26,6 @@ from collectors.academyhigh import (
     NEWSLETTER_SOURCE_NAME as ACADEMY_NEWSLETTER_SOURCE,
     fetch_academy_calendar,
     fetch_academy_newsletter,
-)
-from collectors.uniprimary import SOURCE_NAME as UNIPRIMARY_SOURCE, fetch_uniprimary_calendar
-from collectors.holycross import (
-    CALENDAR_SOURCE_NAME as HOLYCROSS_CALENDAR_SOURCE,
-    HOMEPAGE_SOURCE_NAME as HOLYCROSS_HOMEPAGE_SOURCE,
-    fetch_holycross_calendar,
-    fetch_holycross_homepage,
-)
-from collectors.arbiter import ARBITER_SOURCES, dedupe_arbiter_events, fetch_arbiter_source
-from collectors.nextgen import (
-    EARLY_SOURCE_NAME as NEXTGEN_EARLY_SOURCE,
-    fetch_nextgen_early_closures,
-)
-from collectors.chesterbrook import (
-    CALENDAR_SOURCE_NAME as CHESTERBROOK_CALENDAR_SOURCE,
-    EVENTS_SOURCE_NAME as CHESTERBROOK_EVENTS_SOURCE,
-    MENU_GROUP as CHESTERBROOK_MENU_GROUP,
-    fetch_chesterbrook_calendar,
-    fetch_chesterbrook_menu,
-    fetch_chesterbrook_website_events,
-)
-from collectors.hidaya import (
-    SOURCE_NAME as HIDAYA_CALENDAR_SOURCE,
-    fetch_hidaya_calendar,
 )
 from collectors.montessori import SOURCE_NAME as MONTESSORI_SOURCE, fetch_montessori_calendar
 from collectors.usd116_calendar import SOURCE_NAME as USD116_CALENDAR_SOURCE, fetch_usd116_calendar
@@ -482,106 +457,46 @@ def build(*, offline: bool = False) -> dict:
                 })
         snap_events.extend(source_events)
 
-    # Athletic.net cross-country calendars fill two gaps in the Snap! feeds:
-    # Uni High's 8th-grade team and the shared Urbana Middle / Sixth Grade
-    # Center middle-school team.
-    athleticnet_xc_events: list[dict] = []
-    for cfg in ATHLETICNET_XC_SOURCES:
-        if offline:
-            source_events = previous_source_events(cfg.source)
-            source_events, _, _ = filter_events_to_rolling_window(
-                source_events,
+    # Uni High general-events calendar. This is the public Google Calendar
+    # published by the Assistant Director; athletics remain in the Snap! feed.
+    if offline:
+        uni_calendar_events = previous_source_events(UNI_CALENDAR_SOURCE)
+        uni_calendar_events, _, _ = filter_events_to_rolling_window(
+            uni_calendar_events,
+            reference=today,
+        )
+        source_status.append({
+            "id": "uni-calendar",
+            "status": "cached" if uni_calendar_events else "failed",
+            "count": len(uni_calendar_events),
+            "unit": "events",
+        })
+    else:
+        try:
+            uni_calendar_events = fetch_uni_calendar(reference=today)
+            uni_calendar_events, _, _ = filter_events_to_rolling_window(
+                uni_calendar_events,
                 reference=today,
             )
             source_status.append({
-                "id": cfg.id,
-                "status": "cached" if source_events else "failed",
-                "count": len(source_events),
+                "id": "uni-calendar",
+                "status": "live",
+                "count": len(uni_calendar_events),
                 "unit": "events",
             })
-        else:
-            try:
-                source_events = fetch_athleticnet_xc(cfg, reference=today)
-                source_events, _, _ = filter_events_to_rolling_window(
-                    source_events,
-                    reference=today,
-                )
-                source_status.append({
-                    "id": cfg.id,
-                    "status": "live",
-                    "count": len(source_events),
-                    "unit": "events",
-                })
-            except Exception as exc:
-                source_events = previous_source_events(cfg.source)
-                source_events, _, _ = filter_events_to_rolling_window(
-                    source_events,
-                    reference=today,
-                )
-                source_status.append({
-                    "id": cfg.id,
-                    "status": "cached" if source_events else "failed",
-                    "count": len(source_events),
-                    "unit": "events",
-                    "error": f"{type(exc).__name__}: {exc}",
-                })
-
-        athleticnet_xc_events.extend(source_events)
-
-    # Shared ArbiterLive athletics layer. Uni High, UHS, and UMS are present
-    # in the Arbiter opponent map but have fetch=False because their existing
-    # Snap! feeds remain the primary athletics sources.
-    arbiter_events: list[dict] = []
-    for cfg in ARBITER_SOURCES:
-        if not cfg.get("fetch", True):
-            continue
-
-        if offline:
-            source_events = previous_source_events(cfg["name"])
-            source_events, _, _ = filter_events_to_rolling_window(
-                source_events,
+        except Exception as exc:
+            uni_calendar_events = previous_source_events(UNI_CALENDAR_SOURCE)
+            uni_calendar_events, _, _ = filter_events_to_rolling_window(
+                uni_calendar_events,
                 reference=today,
             )
             source_status.append({
-                "id": cfg["id"],
-                "status": "cached" if source_events else "failed",
-                "count": len(source_events),
+                "id": "uni-calendar",
+                "status": "cached" if uni_calendar_events else "failed",
+                "count": len(uni_calendar_events),
                 "unit": "events",
+                "error": f"{type(exc).__name__}: {exc}",
             })
-        else:
-            try:
-                source_events = fetch_arbiter_source(cfg, reference=today)
-                source_events, _, _ = filter_events_to_rolling_window(
-                    source_events,
-                    reference=today,
-                )
-                source_status.append({
-                    "id": cfg["id"],
-                    "status": "live",
-                    "count": len(source_events),
-                    "unit": "events",
-                })
-            except Exception as exc:
-                source_events = previous_source_events(cfg["name"])
-                source_events, _, _ = filter_events_to_rolling_window(
-                    source_events,
-                    reference=today,
-                )
-                source_status.append({
-                    "id": cfg["id"],
-                    "status": "cached" if source_events else "failed",
-                    "count": len(source_events),
-                    "unit": "events",
-                    "error": f"{type(exc).__name__}: {exc}",
-                })
-
-        arbiter_events.extend(source_events)
-
-    # The same competition can appear on both schools' Arbiter pages. Collapse
-    # those mirror records after every source has been collected, while
-    # preserving separate games in a true doubleheader because start time is
-    # part of the dedupe key.
-    arbiter_events = dedupe_arbiter_events(arbiter_events)
 
     # USD 116 district school-year calendar. This replaces the hand-entered
     # USD 116 schedule records while leaving school-specific events untouched.
@@ -990,311 +905,6 @@ def build(*, offline: bool = False) -> dict:
         academy_newsletter_events,
     )
 
-    # University Primary School: public University of Illinois WebTools
-    # iCalendar feed.
-    if offline:
-        uniprimary_events = previous_source_events(UNIPRIMARY_SOURCE)
-        uniprimary_events, _, _ = filter_events_to_rolling_window(
-            uniprimary_events,
-            reference=today,
-        )
-        source_status.append({
-            "id": "uniprimary-calendar",
-            "status": "cached" if uniprimary_events else "failed",
-            "count": len(uniprimary_events),
-            "unit": "events",
-        })
-    else:
-        try:
-            uniprimary_events = fetch_uniprimary_calendar()
-            uniprimary_events, _, _ = filter_events_to_rolling_window(
-                uniprimary_events,
-                reference=today,
-            )
-            source_status.append({
-                "id": "uniprimary-calendar",
-                "status": "live",
-                "count": len(uniprimary_events),
-                "unit": "events",
-            })
-        except Exception as exc:
-            uniprimary_events = previous_source_events(UNIPRIMARY_SOURCE)
-            uniprimary_events, _, _ = filter_events_to_rolling_window(
-                uniprimary_events,
-                reference=today,
-            )
-            source_status.append({
-                "id": "uniprimary-calendar",
-                "status": "cached" if uniprimary_events else "failed",
-                "count": len(uniprimary_events),
-                "unit": "events",
-                "error": f"{type(exc).__name__}: {exc}",
-            })
-
-    # Holy Cross Catholic School: public Google Calendar plus the school's
-    # homepage upcoming-dates block. These are kept as separate public sources
-    # so one can remain live if the other has a transient failure.
-    if offline:
-        holycross_calendar_events = previous_source_events(HOLYCROSS_CALENDAR_SOURCE)
-        holycross_calendar_events, _, _ = filter_events_to_rolling_window(
-            holycross_calendar_events,
-            reference=today,
-        )
-        source_status.append({
-            "id": "holycross-calendar",
-            "status": "cached" if holycross_calendar_events else "failed",
-            "count": len(holycross_calendar_events),
-            "unit": "events",
-        })
-    else:
-        try:
-            holycross_calendar_events = fetch_holycross_calendar()
-            holycross_calendar_events, _, _ = filter_events_to_rolling_window(
-                holycross_calendar_events,
-                reference=today,
-            )
-            source_status.append({
-                "id": "holycross-calendar",
-                "status": "live",
-                "count": len(holycross_calendar_events),
-                "unit": "events",
-            })
-        except Exception as exc:
-            holycross_calendar_events = previous_source_events(HOLYCROSS_CALENDAR_SOURCE)
-            holycross_calendar_events, _, _ = filter_events_to_rolling_window(
-                holycross_calendar_events,
-                reference=today,
-            )
-            source_status.append({
-                "id": "holycross-calendar",
-                "status": "cached" if holycross_calendar_events else "failed",
-                "count": len(holycross_calendar_events),
-                "unit": "events",
-                "error": f"{type(exc).__name__}: {exc}",
-            })
-
-    if offline:
-        holycross_homepage_events = previous_source_events(HOLYCROSS_HOMEPAGE_SOURCE)
-        holycross_homepage_events, _, _ = filter_events_to_rolling_window(
-            holycross_homepage_events,
-            reference=today,
-        )
-        source_status.append({
-            "id": "holycross-homepage",
-            "status": "cached" if holycross_homepage_events else "failed",
-            "count": len(holycross_homepage_events),
-            "unit": "events",
-        })
-    else:
-        try:
-            holycross_homepage_events = fetch_holycross_homepage(reference=today)
-            holycross_homepage_events, _, _ = filter_events_to_rolling_window(
-                holycross_homepage_events,
-                reference=today,
-            )
-            source_status.append({
-                "id": "holycross-homepage",
-                "status": "live",
-                "count": len(holycross_homepage_events),
-                "unit": "events",
-            })
-        except Exception as exc:
-            holycross_homepage_events = previous_source_events(HOLYCROSS_HOMEPAGE_SOURCE)
-            holycross_homepage_events, _, _ = filter_events_to_rolling_window(
-                holycross_homepage_events,
-                reference=today,
-            )
-            source_status.append({
-                "id": "holycross-homepage",
-                "status": "cached" if holycross_homepage_events else "failed",
-                "count": len(holycross_homepage_events),
-                "unit": "events",
-                "error": f"{type(exc).__name__}: {exc}",
-            })
-
-    # Next Generation Early Education, Preschool, and Transitional
-    # Kindergarten operate year-round and publish a separate 2026 closure
-    # schedule. Do not apply the older 2025-26 Primary/Middle calendar to
-    # 2026-27 dates.
-    nextgen_early_events = fetch_nextgen_early_closures(reference=today)
-    nextgen_early_events, _, _ = filter_events_to_rolling_window(
-        nextgen_early_events,
-        reference=today,
-    )
-    source_status.append({
-        "id": "nextgen-early-closures",
-        "status": "live",
-        "count": len(nextgen_early_events),
-        "unit": "events",
-    })
-
-    # Chesterbrook Academy Preschool at UIUC: annual school-year PDF,
-    # public monthly website calendar, and the current published
-    # breakfast/lunch/PM-snack menu PDF.
-    if offline:
-        chesterbrook_calendar_events = previous_source_events(
-            CHESTERBROOK_CALENDAR_SOURCE
-        )
-        chesterbrook_calendar_events, _, _ = filter_events_to_rolling_window(
-            chesterbrook_calendar_events,
-            reference=today,
-        )
-        source_status.append({
-            "id": "chesterbrook-calendar",
-            "status": "cached" if chesterbrook_calendar_events else "failed",
-            "count": len(chesterbrook_calendar_events),
-            "unit": "events",
-        })
-    else:
-        try:
-            chesterbrook_calendar_events = fetch_chesterbrook_calendar(
-                reference=today
-            )
-            chesterbrook_calendar_events, _, _ = filter_events_to_rolling_window(
-                chesterbrook_calendar_events,
-                reference=today,
-            )
-            source_status.append({
-                "id": "chesterbrook-calendar",
-                "status": "live",
-                "count": len(chesterbrook_calendar_events),
-                "unit": "events",
-            })
-        except Exception as exc:
-            chesterbrook_calendar_events = previous_source_events(
-                CHESTERBROOK_CALENDAR_SOURCE
-            )
-            chesterbrook_calendar_events, _, _ = filter_events_to_rolling_window(
-                chesterbrook_calendar_events,
-                reference=today,
-            )
-            source_status.append({
-                "id": "chesterbrook-calendar",
-                "status": "cached" if chesterbrook_calendar_events else "failed",
-                "count": len(chesterbrook_calendar_events),
-                "unit": "events",
-                "error": f"{type(exc).__name__}: {exc}",
-            })
-
-    if offline:
-        chesterbrook_website_events = previous_source_events(
-            CHESTERBROOK_EVENTS_SOURCE
-        )
-        chesterbrook_website_events, _, _ = filter_events_to_rolling_window(
-            chesterbrook_website_events,
-            reference=today,
-        )
-        source_status.append({
-            "id": "chesterbrook-events",
-            "status": "cached" if chesterbrook_website_events else "failed",
-            "count": len(chesterbrook_website_events),
-            "unit": "events",
-        })
-    else:
-        try:
-            chesterbrook_website_events = fetch_chesterbrook_website_events(
-                reference=today
-            )
-            chesterbrook_website_events, _, _ = filter_events_to_rolling_window(
-                chesterbrook_website_events,
-                reference=today,
-            )
-            source_status.append({
-                "id": "chesterbrook-events",
-                "status": "live",
-                "count": len(chesterbrook_website_events),
-                "unit": "events",
-            })
-        except Exception as exc:
-            chesterbrook_website_events = previous_source_events(
-                CHESTERBROOK_EVENTS_SOURCE
-            )
-            chesterbrook_website_events, _, _ = filter_events_to_rolling_window(
-                chesterbrook_website_events,
-                reference=today,
-            )
-            source_status.append({
-                "id": "chesterbrook-events",
-                "status": "cached" if chesterbrook_website_events else "failed",
-                "count": len(chesterbrook_website_events),
-                "unit": "events",
-                "error": f"{type(exc).__name__}: {exc}",
-            })
-
-    if offline:
-        chesterbrook_meals = previous_group_meals(CHESTERBROOK_MENU_GROUP)
-        source_status.append({
-            "id": "chesterbrook-menu",
-            "status": "cached" if chesterbrook_meals else "failed",
-            "count": len(chesterbrook_meals),
-            "unit": "menu days",
-        })
-    else:
-        try:
-            chesterbrook_meals = fetch_chesterbrook_menu(reference=today)
-            if not chesterbrook_meals:
-                raise RuntimeError(
-                    "Chesterbrook menu collector returned zero menu records"
-                )
-            source_status.append({
-                "id": "chesterbrook-menu",
-                "status": "live",
-                "count": len(chesterbrook_meals),
-                "unit": "menu days",
-            })
-        except Exception as exc:
-            chesterbrook_meals = previous_group_meals(CHESTERBROOK_MENU_GROUP)
-            source_status.append({
-                "id": "chesterbrook-menu",
-                "status": "cached" if chesterbrook_meals else "failed",
-                "count": len(chesterbrook_meals),
-                "unit": "menu days",
-                "error": f"{type(exc).__name__}: {exc}",
-            })
-
-    # Hidaya Academy of Champaign-Urbana: current 2026-27 public PDF.
-    # The collector validates the published revision before returning the
-    # transcribed dated entries, so a changed PDF fails visibly rather than
-    # silently serving stale schedule data.
-    if offline:
-        hidaya_events = previous_source_events(HIDAYA_CALENDAR_SOURCE)
-        hidaya_events, _, _ = filter_events_to_rolling_window(
-            hidaya_events,
-            reference=today,
-        )
-        source_status.append({
-            "id": "hidaya-calendar",
-            "status": "cached" if hidaya_events else "failed",
-            "count": len(hidaya_events),
-            "unit": "events",
-        })
-    else:
-        try:
-            hidaya_events = fetch_hidaya_calendar(reference=today)
-            hidaya_events, _, _ = filter_events_to_rolling_window(
-                hidaya_events,
-                reference=today,
-            )
-            source_status.append({
-                "id": "hidaya-calendar",
-                "status": "live",
-                "count": len(hidaya_events),
-                "unit": "events",
-            })
-        except Exception as exc:
-            hidaya_events = previous_source_events(HIDAYA_CALENDAR_SOURCE)
-            hidaya_events, _, _ = filter_events_to_rolling_window(
-                hidaya_events,
-                reference=today,
-            )
-            source_status.append({
-                "id": "hidaya-calendar",
-                "status": "cached" if hidaya_events else "failed",
-                "count": len(hidaya_events),
-                "unit": "events",
-                "error": f"{type(exc).__name__}: {exc}",
-            })
-
     # Montessori School of Champaign-Urbana: public Google Calendar
     # discovered from the school's own Import Google Calendar control.
     if offline:
@@ -1413,55 +1023,6 @@ def build(*, offline: bool = False) -> dict:
 
         library_events.extend(source_events)
 
-    # Free child/teen/family programming from Champaign and Urbana park
-    # districts. Events use pseudo-school IDs for age bands so the existing
-    # selection/filter machinery can treat them like library audience groups.
-    # Registration metadata stays attached to each event for the front end.
-    park_events: list[dict] = []
-    for district in PARK_DISTRICTS:
-        if offline:
-            source_events = previous_source_events(district.source)
-            source_events, _, _ = filter_events_to_rolling_window(
-                source_events,
-                reference=today,
-            )
-            source_status.append({
-                "id": district.log_id,
-                "status": "cached" if source_events else "failed",
-                "count": len(source_events),
-                "unit": "events",
-            })
-        else:
-            try:
-                source_events = fetch_park_calendar(
-                    district.key,
-                    reference=today,
-                )
-                source_events, _, _ = filter_events_to_rolling_window(
-                    source_events,
-                    reference=today,
-                )
-                source_status.append({
-                    "id": district.log_id,
-                    "status": "live",
-                    "count": len(source_events),
-                    "unit": "events",
-                })
-            except Exception as exc:
-                source_events = previous_source_events(district.source)
-                source_events, _, _ = filter_events_to_rolling_window(
-                    source_events,
-                    reference=today,
-                )
-                source_status.append({
-                    "id": district.log_id,
-                    "status": "cached" if source_events else "failed",
-                    "count": len(source_events),
-                    "unit": "events",
-                    "error": f"{type(exc).__name__}: {exc}",
-                })
-        park_events.extend(source_events)
-
     quest_meals: list[dict] = []
     for group_id, cfg in QUEST_GROUPS.items():
         if offline:
@@ -1524,8 +1085,7 @@ def build(*, offline: bool = False) -> dict:
     event_candidates = (
         static_events
         + snap_events
-        + athleticnet_xc_events
-        + arbiter_events
+        + uni_calendar_events
         + usd116_calendar_events
         + usd116_school_events
         + unit4_school_events
@@ -1536,17 +1096,9 @@ def build(*, offline: bool = False) -> dict:
         + judah_athletics_events
         + academy_calendar_events
         + academy_newsletter_events
-        + uniprimary_events
-        + holycross_calendar_events
-        + holycross_homepage_events
-        + nextgen_early_events
-        + chesterbrook_calendar_events
-        + chesterbrook_website_events
-        + hidaya_events
         + montessori_events
         + countryside_events
         + library_events
-        + park_events
     )
 
     event_candidates, unit4_district_duplicates_removed = (
@@ -1573,12 +1125,7 @@ def build(*, offline: bool = False) -> dict:
         f"{unfiltered_event_count} merged events"
     )
 
-    meals = merge_meals(
-        static_meals
-        + quest_meals
-        + unit4_meals
-        + chesterbrook_meals
-    )
+    meals = merge_meals(static_meals + quest_meals + unit4_meals)
     now = datetime.now(ZoneInfo("America/Chicago")).isoformat(timespec="seconds")
     return {
         "updated": now,
