@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-21T03:31:38-05:00",
+  "updated": "2026-09-21T07:31:44-05:00",
   "mode": "live-collector",
   "sources": [
     {
@@ -208,10 +208,9 @@
     },
     {
       "id": "stmatthew-calendar",
-      "status": "cached",
+      "status": "live",
       "count": 114,
-      "unit": "events",
-      "error": "RuntimeError: St. Matthew calendar discovery produced no usable feed and homepage fallback failed quickly: URLError: <urlopen error timed out>"
+      "unit": "events"
     },
     {
       "id": "stjohn-calendar",
@@ -264,7 +263,7 @@
     {
       "id": "champaign-library",
       "status": "live",
-      "count": 348,
+      "count": 349,
       "unit": "events"
     },
     {
@@ -281,9 +280,10 @@
     },
     {
       "id": "quest-high",
-      "status": "live",
+      "status": "cached",
       "count": 5,
-      "unit": "menu days"
+      "unit": "menu days",
+      "error": "WebDriverException: Message: unknown error: net::ERR_CONNECTION_RESET\n  (Session info: chrome=152.0.7977.82)\nStacktrace:\n#0 0x5592ae05703a <unknown>\n#1 0x5592ad9bf4c9 <unknown>\n#2 0x5592ad9b62bc <unknown>\n#3 0x5592ad9a7431 <unknown>\n#4 0x5592ad9a9186 <unknown>\n#5 0x5592ad9a792d <unknown>\n#6 0x5592ad9a6fb9 <unknown>\n#7 0x5592ad9a6bd6 <unknown>\n#8 0x5592ad9a47b8 <unknown>\n#9 0x5592ad9a5000 <unknown>\n#10 0x5592ad9c2f2d <unknown>\n#11 0x5592ada5e2bb <unknown>\n#12 0x5592ada5d5ad <unknown>\n#13 0x5592ada0883b <unknown>\n#14 0x5592ada09621 <unknown>\n#15 0x5592ae01b5f0 <unknown>\n#16 0x5592ae019c6a <unknown>\n#17 0x5592ae0049f5 <unknown>\n#18 0x5592ae01a92a <unknown>\n#19 0x5592adfedd10 <unknown>\n#20 0x5592ae042158 <unknown>\n#21 0x5592ae0422f5 <unknown>\n#22 0x5592ae055bc3 <unknown>\n#23 0x7fabffc9cb84 <unknown>\n#24 0x7fabffd29d6c <unknown>\n"
     },
     {
       "id": "unit4-menus",
@@ -9129,6 +9129,21 @@
       "allDay": true
     },
     {
+      "id": "champaign-library-16690761",
+      "title": "Preschool Storytime",
+      "date": "2026-09-16",
+      "schools": [
+        "champaign-lib-early"
+      ],
+      "scope": "community",
+      "category": "general",
+      "source": "Champaign Public Library",
+      "sourceUrl": "https://champaign.libnet.info/event/16690761",
+      "start": "09:30",
+      "end": "10:00",
+      "location": "Main Library"
+    },
+    {
       "id": "champaign-library-16785222",
       "title": "FriendShop Bookstore Open",
       "date": "2026-09-16",
@@ -10823,7 +10838,7 @@
       "location": "Curtis Orchard & Pumpkin Patch, 3902 S Duncan Rd, Champaign, IL 61822, USA"
     },
     {
-      "id": "u4-stm-e0b9ea904269626740",
+      "id": "u4-stm-d01c74f5322bac07da",
       "title": "Green Bell 1",
       "date": "2026-09-21",
       "schools": [
@@ -10878,7 +10893,7 @@
       "allDay": true
     },
     {
-      "id": "u4-bottenfield-63a8d86b9ea3ef5a14",
+      "id": "u4-bottenfield-0ff8e8ac06f8177d5a",
       "title": "No School for Students- School Improvement Day",
       "date": "2026-09-21",
       "schools": [
@@ -10891,7 +10906,7 @@
       "allDay": true
     },
     {
-      "id": "u4-district-cb019948954bc74cc2",
+      "id": "u4-district-e2a3a55c2532cc8499",
       "title": "SIP Day (No school for students)",
       "date": "2026-09-21",
       "schools": [
@@ -10921,7 +10936,7 @@
       "allDay": true
     },
     {
-      "id": "u4-barkstall-cda325539798bcfd0d",
+      "id": "u4-barkstall-3f38367837f97a5039",
       "title": "SIP Day- NO SCHOOL",
       "date": "2026-09-21",
       "schools": [
@@ -10934,7 +10949,7 @@
       "allDay": true
     },
     {
-      "id": "u4-westview-5291d27724f89e61f9",
+      "id": "u4-westview-7f8a874d29655198d7",
       "title": "School Improvement Day - No School",
       "date": "2026-09-21",
       "schools": [
@@ -10947,7 +10962,7 @@
       "allDay": true
     },
     {
-      "id": "u4-kenwood-0c8a130ad3b6da2a9b",
+      "id": "u4-kenwood-11b41633e98f216be0",
       "title": "School Improvement Day - No School for Students",
       "date": "2026-09-21",
       "schools": [
@@ -10960,7 +10975,7 @@
       "allDay": true
     },
     {
-      "id": "u4-garden-9ce812a7b7d19920d8",
+      "id": "u4-garden-f36f1912476ad33fd4",
       "title": "School Improvement Day - TA's Present",
       "date": "2026-09-21",
       "schools": [
@@ -11002,7 +11017,7 @@
       "sourceUrl": "https://www.champaignschools.org/events"
     },
     {
-      "id": "u4-franklin-61eaef424b7b23d6d3",
+      "id": "u4-franklin-997ad71e6ec2bd941a",
       "title": "School Improvement Day- No School for Students",
       "date": "2026-09-21",
       "schools": [
@@ -11015,7 +11030,7 @@
       "allDay": true
     },
     {
-      "id": "u4-howard-b3979d5cda02fa06f1",
+      "id": "u4-howard-4023b5fe8a0d020338",
       "title": "School Improvement Day-No Student Attendance",
       "date": "2026-09-21",
       "schools": [
@@ -11028,7 +11043,7 @@
       "allDay": true
     },
     {
-      "id": "u4-cecc-e0a3c47e193c79b72c",
+      "id": "u4-cecc-5e726c3639d599edc3",
       "title": "Staff SIP No School for Students",
       "date": "2026-09-21",
       "schools": [
@@ -11146,7 +11161,7 @@
       "location": "Douglass Branch Library"
     },
     {
-      "id": "u4-ipa-3926635574d76412c3",
+      "id": "u4-ipa-b5073d190430d27e57",
       "title": "Girls BB Practice",
       "date": "2026-09-21",
       "schools": [
@@ -11346,7 +11361,7 @@
       "end": "20:00"
     },
     {
-      "id": "u4-centennial-e48bc5d0e8f8d8dd77",
+      "id": "u4-centennial-87aa6361ca78b76519",
       "title": "Bus Evacuation Drill",
       "date": "2026-09-22",
       "schools": [
@@ -11359,7 +11374,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-ab1bdca5fce6743501",
+      "id": "u4-stm-4bcfc3bec8630df566",
       "title": "Gold Bell 1",
       "date": "2026-09-22",
       "schools": [
@@ -11610,7 +11625,7 @@
       "location": "Garden Hills Academy"
     },
     {
-      "id": "u4-ipa-4e28b97314e50220d7",
+      "id": "u4-ipa-70fa990a73c050b09e",
       "title": "Girls BB Practice",
       "date": "2026-09-22",
       "schools": [
@@ -11712,7 +11727,7 @@
       "location": "Urbana High School"
     },
     {
-      "id": "u4-central-469a82fd39a1eafa7c",
+      "id": "u4-central-0f365ae3ae1522bcb9",
       "title": "Boys Soccer @ Urbana",
       "date": "2026-09-22",
       "schools": [
@@ -11741,7 +11756,7 @@
       "end": "18:30"
     },
     {
-      "id": "u4-central-495542ef5a34717251",
+      "id": "u4-central-0a32cf015670902f49",
       "title": "Girls Swim and Dive @ Centennial",
       "date": "2026-09-22",
       "schools": [
@@ -12054,7 +12069,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28739"
     },
     {
-      "id": "u4-busey-7254c54db1f48fccc2",
+      "id": "u4-busey-de01d0af2985b21bf7",
       "title": "CB Bobcat Spirit Day",
       "date": "2026-09-23",
       "schools": [
@@ -12081,7 +12096,7 @@
       "location": "Urbana (TIME TBD)"
     },
     {
-      "id": "u4-stm-1baaad26b10a760333",
+      "id": "u4-stm-33736d41bcd7d17f0b",
       "title": "Green Bell 1",
       "date": "2026-09-23",
       "schools": [
@@ -12166,7 +12181,7 @@
       "location": "FriendShop Bookstore"
     },
     {
-      "id": "u4-ipa-4b33f31e26dc154af6",
+      "id": "u4-ipa-5ce2334941a35265e4",
       "title": "Boys BB Open Gym",
       "date": "2026-09-23",
       "schools": [
@@ -12255,7 +12270,7 @@
       "location": "Douglass Branch Library"
     },
     {
-      "id": "u4-ipa-b0b154f1be317a00cd",
+      "id": "u4-ipa-d0b3ed490cf41c822a",
       "title": "Girls BB Practice",
       "date": "2026-09-23",
       "schools": [
@@ -12402,7 +12417,7 @@
       "location": "Champaign Central High School"
     },
     {
-      "id": "u4-robeson-21689ef8706eb66e96",
+      "id": "u4-robeson-4173293c9eb1b613e4",
       "title": "Girl Scouts",
       "date": "2026-09-23",
       "schools": [
@@ -12416,7 +12431,7 @@
       "end": "19:30"
     },
     {
-      "id": "u4-stm-da983c70330980fa0c",
+      "id": "u4-stm-e756f93c6fba7f4617",
       "title": "Fulton Sheen Beatification",
       "date": "2026-09-24",
       "schools": [
@@ -12442,7 +12457,7 @@
       "allDay": true
     },
     {
-      "id": "u4-jefferson-a41f7b02cae4e514fa",
+      "id": "u4-jefferson-f335281a7fda8640c6",
       "title": "Bus Evacuation Drill",
       "date": "2026-09-24",
       "schools": [
@@ -12532,7 +12547,7 @@
       "location": "FriendShop Bookstore"
     },
     {
-      "id": "u4-garden-c5baaf6398bf14b8fc",
+      "id": "u4-garden-b568e2b0420f1cc030",
       "title": "Steward Meeting with Admin",
       "date": "2026-09-24",
       "schools": [
@@ -12636,7 +12651,7 @@
       "location": "Douglass Branch Library"
     },
     {
-      "id": "u4-ipa-27a88ac8e302d72171",
+      "id": "u4-ipa-b14c05ebae7a9e8cf9",
       "title": "Girls BB Practice",
       "date": "2026-09-24",
       "schools": [
@@ -12854,7 +12869,7 @@
       "location": "Urbana High School"
     },
     {
-      "id": "u4-central-59e701faf3474bb903",
+      "id": "u4-central-902f6ddb13d5e0385c",
       "title": "Volleyball @ Urbana * All levels",
       "date": "2026-09-24",
       "schools": [
@@ -12896,7 +12911,7 @@
       "end": "19:30"
     },
     {
-      "id": "u4-franklin-5b07f61e7a38a5d184",
+      "id": "u4-franklin-2776f957b3edd0efa7",
       "title": "Franklin PTA Meeting",
       "date": "2026-09-24",
       "schools": [
@@ -13026,7 +13041,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-40c2de1702279a2ef4",
+      "id": "u4-stm-db8b29a3da6765233b",
       "title": "Gold Bell 3 Late Start",
       "date": "2026-09-25",
       "schools": [
@@ -13039,7 +13054,7 @@
       "allDay": true
     },
     {
-      "id": "u4-busey-256506665949ea102f",
+      "id": "u4-busey-de54bf6074cbf4e7c3",
       "title": "University/College Color or Shirt Day",
       "date": "2026-09-25",
       "schools": [
@@ -13149,7 +13164,7 @@
       "end": "18:00"
     },
     {
-      "id": "u4-central-6c64b013db458345da",
+      "id": "u4-central-c33bbe5db5a2f8b450",
       "title": "Girls Golf @ Centennial John Macek",
       "date": "2026-09-25",
       "schools": [
@@ -13308,7 +13323,7 @@
       "location": "Away - DUNLAP"
     },
     {
-      "id": "u4-ipa-3d03af6e77651f1940",
+      "id": "u4-ipa-853be0487a5b3d9ecb",
       "title": "Girls BB Practice",
       "date": "2026-09-25",
       "schools": [
@@ -13555,7 +13570,7 @@
       "location": "Champaign Central High School"
     },
     {
-      "id": "u4-centennial-483b4366b24c3cd524",
+      "id": "u4-centennial-a2a4718bff4136dcda",
       "title": "Homecoming Dance Decorating",
       "date": "2026-09-26",
       "schools": [
@@ -13614,7 +13629,7 @@
       "end": "12:00"
     },
     {
-      "id": "u4-central-16b0d83b5d9f7eeb17",
+      "id": "u4-central-9bc2c3974b6ac4de01",
       "title": "Girls Tennis @ Centennial",
       "date": "2026-09-26",
       "schools": [
@@ -13924,7 +13939,7 @@
       "location": "The Urbana Free Library"
     },
     {
-      "id": "u4-district-08b40a7e41f8927934",
+      "id": "u4-district-f46af132a10fc08a69",
       "title": "Jefferson Middle School Tour",
       "date": "2026-09-26",
       "schools": [
@@ -13956,7 +13971,7 @@
       "location": "Jefferson Middle School, 1115 Crescent Dr, Champaign, IL 61821, USA"
     },
     {
-      "id": "u4-jefferson-a70dd5d073714935bd",
+      "id": "u4-jefferson-120a549c12ebacd25b",
       "title": "Referendum Open House",
       "date": "2026-09-26",
       "schools": [
@@ -14059,7 +14074,7 @@
       "location": "at the school - enter at gym entrance"
     },
     {
-      "id": "u4-stm-2f4c7717e349b11d48",
+      "id": "u4-stm-0977de828d1e7be5be",
       "title": "Maroon Day",
       "date": "2026-09-28",
       "schools": [
@@ -14147,7 +14162,7 @@
       "location": "Uni 218"
     },
     {
-      "id": "u4-jefferson-e4e0f2013c0fca69d8",
+      "id": "u4-jefferson-44ce72c3719a46f151",
       "title": "Department Collaboration meeting",
       "date": "2026-09-28",
       "schools": [
@@ -14207,7 +14222,7 @@
       "location": "Douglass Branch Library"
     },
     {
-      "id": "u4-ipa-cb88271cefefe4645b",
+      "id": "u4-ipa-2cf88e485fc3979aaa",
       "title": "Girls BB Practice",
       "date": "2026-09-28",
       "schools": [
@@ -14365,7 +14380,7 @@
       "end": "18:30"
     },
     {
-      "id": "u4-district-0a421d7277369af834",
+      "id": "u4-district-e4bbe735d36a31a4c0",
       "title": "Board of Education Special Meeting",
       "date": "2026-09-28",
       "schools": [
@@ -14468,7 +14483,7 @@
       "location": "Band Room"
     },
     {
-      "id": "u4-stm-168a4ecb359fcca520",
+      "id": "u4-stm-b685ca18fdae34b2da",
       "title": "Green Bell 1",
       "date": "2026-09-29",
       "schools": [
@@ -14523,7 +14538,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28897"
     },
     {
-      "id": "u4-robeson-ebd791966c363427a6",
+      "id": "u4-robeson-aea80c51419b31f230",
       "title": "Evacuation Drill",
       "date": "2026-09-29",
       "schools": [
@@ -14671,7 +14686,7 @@
       "location": "Uni 109"
     },
     {
-      "id": "u4-centennial-8a0f81fc81fdeec0d4",
+      "id": "u4-centennial-010b5bc7ee9fa4d2f8",
       "title": "Fire Drill (#1)",
       "date": "2026-09-29",
       "schools": [
@@ -14788,7 +14803,7 @@
       "location": "Away - UNITY"
     },
     {
-      "id": "u4-ipa-c42284ef7742b5ccb8",
+      "id": "u4-ipa-e3d36675b6d4ae6abe",
       "title": "Girls BB Practice",
       "date": "2026-09-29",
       "schools": [
@@ -14903,7 +14918,7 @@
       "location": "Jefferson Middle School"
     },
     {
-      "id": "u4-garden-65b7718dea236728b0",
+      "id": "u4-garden-3a1c6d07e48bcd9ff4",
       "title": "Girls' Basketball vs Bement (at Franklin)",
       "date": "2026-09-29",
       "schools": [
@@ -15035,7 +15050,7 @@
       "location": "Champaign Central High School"
     },
     {
-      "id": "u4-central-9f8f4050155805404b",
+      "id": "u4-central-a27ebac34e5db18f93",
       "title": "Boys Soccer vs. Centennial",
       "date": "2026-09-29",
       "schools": [
@@ -15182,7 +15197,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28790"
     },
     {
-      "id": "u4-busey-ade7baa6e85327e646",
+      "id": "u4-busey-a99ae8a9f989ac5621",
       "title": "CB Bobcat Spirit Day",
       "date": "2026-09-30",
       "schools": [
@@ -15195,7 +15210,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-8878f0740c159decd3",
+      "id": "u4-stm-1802add3746cd0ca65",
       "title": "Gold Bell 1",
       "date": "2026-09-30",
       "schools": [
@@ -15340,7 +15355,7 @@
       "location": "Uni Kitchen"
     },
     {
-      "id": "u4-ipa-298fbb7c9d6fdd13fd",
+      "id": "u4-ipa-d98823dab119d6fba9",
       "title": "Boys BB Open Gym",
       "date": "2026-09-30",
       "schools": [
@@ -15618,7 +15633,7 @@
       "location": "Jefferson Middle School"
     },
     {
-      "id": "u4-garden-a35e01b77115e911d4",
+      "id": "u4-garden-11f0100326ad27f002",
       "title": "Fall Picture Day",
       "date": "2026-10-01",
       "schools": [
@@ -15631,7 +15646,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-af9944c8ade9faf4f9",
+      "id": "u4-stm-dacaf57938a736fce1",
       "title": "Green Bell 1",
       "date": "2026-10-01",
       "schools": [
@@ -16100,7 +16115,7 @@
       "end": "17:30"
     },
     {
-      "id": "u4-garden-bf08bfa83eb8c68d7a",
+      "id": "u4-garden-d3f47b2216ce2a752d",
       "title": "Girls' Basketball vs Edison MS (at Edison)",
       "date": "2026-10-01",
       "schools": [
@@ -16130,7 +16145,7 @@
       "location": "Away - EDISON MIDDLE SCHOOL"
     },
     {
-      "id": "u4-franklin-d9b6b2a2821dc05bc3",
+      "id": "u4-franklin-748a8e4fb630ff106b",
       "title": "Knights GBB-MS Girls @ Edison Middle School (Game)",
       "date": "2026-10-01",
       "schools": [
@@ -16262,7 +16277,7 @@
       "location": "Centennial High School"
     },
     {
-      "id": "u4-central-68655ca67a2e07f503",
+      "id": "u4-central-b7ad095f020d46311c",
       "title": "Volleyball @ Centennial * all levels HUFF HALL",
       "date": "2026-10-01",
       "schools": [
@@ -16466,7 +16481,7 @@
       "end": "20:00"
     },
     {
-      "id": "u4-barkstall-e190185a55a7e39a47",
+      "id": "u4-barkstall-c490135bc65acfba7c",
       "title": "3rd Gr/Meadowbrook Park 9:10-1:15",
       "date": "2026-10-02",
       "schools": [
@@ -16479,7 +16494,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-2efdeeefa25cd7bf1a",
+      "id": "u4-stm-2499c1427d29eda798",
       "title": "Gold Bell 1",
       "date": "2026-10-02",
       "schools": [
@@ -16519,7 +16534,7 @@
       "allDay": true
     },
     {
-      "id": "u4-barkstall-ad48daf86d1e1b8492",
+      "id": "u4-barkstall-da1ef2a28612771a3e",
       "title": "National Custodian Day",
       "date": "2026-10-02",
       "schools": [
@@ -16584,7 +16599,7 @@
       "source": "Children’s Center 2026 Calendar"
     },
     {
-      "id": "u4-busey-7324bd145e7e45654e",
+      "id": "u4-busey-5be6e2f5bdec886f08",
       "title": "University/College Color or Shirt Day",
       "date": "2026-10-02",
       "schools": [
@@ -16922,7 +16937,7 @@
       "location": "Urbana Middle School"
     },
     {
-      "id": "u4-jefferson-679b0f1bdcab8216af",
+      "id": "u4-jefferson-f454cfe76375f24200",
       "title": "GBB Tournament @ Urbana Time TBA",
       "date": "2026-10-03",
       "schools": [
@@ -16949,7 +16964,7 @@
       "location": "Champaign Central High School"
     },
     {
-      "id": "u4-centennial-1e08c37c010d490cb2",
+      "id": "u4-centennial-1e268e113d7d25121c",
       "title": "Marching Band Practice/Away Competition",
       "date": "2026-10-03",
       "schools": [
@@ -17359,7 +17374,7 @@
       "location": "FriendShop Bookstore"
     },
     {
-      "id": "u4-district-6915e629e2298e33af",
+      "id": "u4-district-0b8c1208f74d44b590",
       "title": "IPA Middle School Tour",
       "date": "2026-10-04",
       "schools": [
@@ -17405,7 +17420,7 @@
       "end": "16:00"
     },
     {
-      "id": "u4-stm-c84d8e6ce706dd550e",
+      "id": "u4-stm-fc39b154474f685dd2",
       "title": "Academic Award Ceremony After Mass",
       "date": "2026-10-05",
       "schools": [
@@ -17418,7 +17433,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-e2038cd0a707825c36",
+      "id": "u4-stm-0d5a631c68eb135f0f",
       "title": "Green Bell 2 All School Mass",
       "date": "2026-10-05",
       "schools": [
@@ -17578,7 +17593,7 @@
       "location": "Uni 218"
     },
     {
-      "id": "u4-jefferson-417519acef77a6b45c",
+      "id": "u4-jefferson-64b7e94004090f1aee",
       "title": "Faculty Meeting",
       "date": "2026-10-05",
       "schools": [
@@ -17768,7 +17783,7 @@
       "end": "19:00"
     },
     {
-      "id": "u4-ipa-7e86594e03a331c742",
+      "id": "u4-ipa-3eaac207abb713bd7d",
       "title": "GBB vs. Ellsworth Dansby (away)",
       "date": "2026-10-05",
       "schools": [
@@ -17856,7 +17871,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28681"
     },
     {
-      "id": "u4-stm-e5541a64520285c133",
+      "id": "u4-stm-51bcddc3345bac1c5f",
       "title": "ABO (Athletic Booster Organization) Meeting",
       "date": "2026-10-05",
       "schools": [
@@ -17914,7 +17929,7 @@
       "location": "Curtis Orchard & Pumpkin Patch, 3902 S Duncan Rd, Champaign, IL 61822, USA"
     },
     {
-      "id": "u4-stm-7a48fea12a3643aa7a",
+      "id": "u4-stm-11a002c630cce67470",
       "title": "Gold Bell 1",
       "date": "2026-10-06",
       "schools": [
@@ -17927,7 +17942,7 @@
       "allDay": true
     },
     {
-      "id": "u4-robeson-840ecca0b5676c892c",
+      "id": "u4-robeson-33fa1556e3db0640ac",
       "title": "PTA Book Fair",
       "date": "2026-10-06",
       "schools": [
@@ -18029,7 +18044,7 @@
       "location": "Uni 218"
     },
     {
-      "id": "u4-westview-1dd61c8b3761530f90",
+      "id": "u4-westview-c2c532e25afe661f10",
       "title": "Lockdown Drill",
       "date": "2026-10-06",
       "schools": [
@@ -18043,7 +18058,7 @@
       "end": "14:00"
     },
     {
-      "id": "u4-robeson-6f0b8ef85e4aefe409",
+      "id": "u4-robeson-f5a4f0001e22b07fed",
       "title": "Scholastic Book Fair",
       "date": "2026-10-06",
       "schools": [
@@ -18206,7 +18221,7 @@
       "end": "18:15"
     },
     {
-      "id": "u4-central-d37441bb24b1b343a7",
+      "id": "u4-central-6c23fb9eee78f6bb7e",
       "title": "Girls tennis @ Urbana",
       "date": "2026-10-06",
       "schools": [
@@ -18279,7 +18294,7 @@
       "location": "Jefferson Middle School"
     },
     {
-      "id": "u4-garden-3be75c48f047c8ad2b",
+      "id": "u4-garden-cbd27006491b4dd27d",
       "title": "Girls' Basketball vs Rantoul (at Franklin)",
       "date": "2026-10-06",
       "schools": [
@@ -18643,7 +18658,7 @@
       "end": "20:00"
     },
     {
-      "id": "u4-busey-6caf3a50442737b20a",
+      "id": "u4-busey-70ff4a93e295c99d13",
       "title": "CB Bobcat Spirit Day",
       "date": "2026-10-07",
       "schools": [
@@ -18725,7 +18740,7 @@
       "location": "Franklin STEAM Academy"
     },
     {
-      "id": "u4-stm-10537bee7d463e9001",
+      "id": "u4-stm-7f61d772b0f6c9da44",
       "title": "Green Bell 1",
       "date": "2026-10-07",
       "schools": [
@@ -18738,7 +18753,7 @@
       "allDay": true
     },
     {
-      "id": "u4-garden-0edabc62f7a61cd510",
+      "id": "u4-garden-e4abd3385e867586d0",
       "title": "Kindergarten Field Trip-Curtis Orchard",
       "date": "2026-10-07",
       "schools": [
@@ -18751,7 +18766,7 @@
       "allDay": true
     },
     {
-      "id": "u4-cecc-6c8307a09a789e0b97",
+      "id": "u4-cecc-f444ac62cba0ba1bbd",
       "title": "No School: Family Conferences",
       "date": "2026-10-07",
       "schools": [
@@ -18764,7 +18779,7 @@
       "allDay": true
     },
     {
-      "id": "u4-robeson-eee307d0a87688b388",
+      "id": "u4-robeson-16a944acff8fb0b333",
       "title": "PTA Book Fair",
       "date": "2026-10-07",
       "schools": [
@@ -18851,7 +18866,7 @@
       "location": "FriendShop Bookstore"
     },
     {
-      "id": "u4-westview-352795a04fe4b55a73",
+      "id": "u4-westview-41dd05a7247ff1f1b6",
       "title": "Hispanic Heritage Parade",
       "date": "2026-10-07",
       "schools": [
@@ -18880,7 +18895,7 @@
       "location": "Gym"
     },
     {
-      "id": "u4-robeson-594be098319814f33d",
+      "id": "u4-robeson-ba4188da595ad006d9",
       "title": "Scholastic Book Fair",
       "date": "2026-10-07",
       "schools": [
@@ -18982,7 +18997,7 @@
       "end": "18:30"
     },
     {
-      "id": "u4-jefferson-d5d3eb2c8bd8c21145",
+      "id": "u4-jefferson-76f37be9fc67133301",
       "title": "GBB @ Franklin",
       "date": "2026-10-07",
       "schools": [
@@ -18996,7 +19011,7 @@
       "end": "17:30"
     },
     {
-      "id": "u4-garden-7c5306078df191aa2b",
+      "id": "u4-garden-2a5db8355eabb5d1fc",
       "title": "Girls' Basketball vs Jefferson MS (at Franklin)",
       "date": "2026-10-07",
       "schools": [
@@ -19026,7 +19041,7 @@
       "location": "HOME -"
     },
     {
-      "id": "u4-franklin-1711e62e95e0955ae9",
+      "id": "u4-franklin-9acf392fe30f13d675",
       "title": "Knights GBB-MS Girls - VS Jefferson Middle School (Game)",
       "date": "2026-10-07",
       "schools": [
@@ -19175,7 +19190,7 @@
       "location": "Jefferson Middle School"
     },
     {
-      "id": "u4-stm-96054bf3fd282c7e79",
+      "id": "u4-stm-6a500bec388764c6e3",
       "title": "Parent Association Meeting",
       "date": "2026-10-07",
       "schools": [
@@ -19233,7 +19248,7 @@
       "location": "Dr. Howard Elementary"
     },
     {
-      "id": "u4-stm-0afcd0f5a976609a29",
+      "id": "u4-stm-9604ee06b41c394ded",
       "title": "Gold Bell 1",
       "date": "2026-10-08",
       "schools": [
@@ -19259,7 +19274,7 @@
       "allDay": true
     },
     {
-      "id": "u4-bottenfield-5dba32d39128783aa5",
+      "id": "u4-bottenfield-f1908c28ee412f8b72",
       "title": "No School for Students- Parent Teacher Conference",
       "date": "2026-10-08",
       "schools": [
@@ -19274,7 +19289,7 @@
       "weekdaysOnly": false
     },
     {
-      "id": "u4-cecc-4fd1e0b3442954595e",
+      "id": "u4-cecc-1f7a4b1e9000a2433f",
       "title": "No School: Family Conferences",
       "date": "2026-10-08",
       "schools": [
@@ -19287,7 +19302,7 @@
       "allDay": true
     },
     {
-      "id": "u4-robeson-b4a7ada054ba86556b",
+      "id": "u4-robeson-0b3c5788a08c5f9ef8",
       "title": "PTA Book Fair",
       "date": "2026-10-08",
       "schools": [
@@ -19300,7 +19315,7 @@
       "allDay": true
     },
     {
-      "id": "u4-garden-350e1dc42c02f964d5",
+      "id": "u4-garden-2e2c21aa5e06e6c391",
       "title": "Parent Teacher Conferences - No School for Students",
       "date": "2026-10-08",
       "schools": [
@@ -19356,7 +19371,7 @@
       "allDay": true
     },
     {
-      "id": "u4-barkstall-3e75e2781410ac5a70",
+      "id": "u4-barkstall-e3963d841809819394",
       "title": "Parent/Teacher Conferences (No School)",
       "date": "2026-10-08",
       "schools": [
@@ -19398,7 +19413,7 @@
       "sourceUrl": "https://www.champaignschools.org/events"
     },
     {
-      "id": "u4-centennial-89019ea8db4a2c949f",
+      "id": "u4-centennial-1429856e87b8e1dd47",
       "title": "SIP-NO SCHOOL for Students",
       "date": "2026-10-08",
       "schools": [
@@ -19411,7 +19426,7 @@
       "allDay": true
     },
     {
-      "id": "u4-district-797149f58dcddc0b58",
+      "id": "u4-district-e222c20c06495933db",
       "title": "SIP/PT Conf (no school for students)",
       "date": "2026-10-08",
       "schools": [
@@ -19441,7 +19456,7 @@
       "allDay": true
     },
     {
-      "id": "u4-robeson-b5dc51c3a9dc3d537c",
+      "id": "u4-robeson-c2d0494de50ccec903",
       "title": "SIP/PT Conf (no school for students, TA/SSA)",
       "date": "2026-10-08",
       "schools": [
@@ -19454,7 +19469,7 @@
       "allDay": true
     },
     {
-      "id": "u4-westview-73a1f4b7e4baddb4ba",
+      "id": "u4-westview-6785db105c61ac5dc3",
       "title": "School Improvement Day - No School",
       "date": "2026-10-08",
       "schools": [
@@ -19543,7 +19558,7 @@
       "location": "Kenwood Elementary"
     },
     {
-      "id": "u4-kenwood-d571f837bda3b53b99",
+      "id": "u4-kenwood-4547999d89def0784a",
       "title": "Scholastic Book Fair",
       "date": "2026-10-08",
       "schools": [
@@ -19648,7 +19663,7 @@
       "location": "Centennial High School"
     },
     {
-      "id": "u4-robeson-a8b8a198849c1b87c5",
+      "id": "u4-robeson-5232520867a6a0a44d",
       "title": "Scholastic Book Fair",
       "date": "2026-10-08",
       "schools": [
@@ -19984,7 +19999,7 @@
       "allDay": true
     },
     {
-      "id": "u4-centennial-c20efb37e44f7ffe83",
+      "id": "u4-centennial-3f46bb1ccbe60a4908",
       "title": "NO SCHOOL for Students",
       "date": "2026-10-09",
       "schools": [
@@ -20023,7 +20038,7 @@
       "allDay": true
     },
     {
-      "id": "u4-cecc-68a70af42b28e9a3d5",
+      "id": "u4-cecc-08de887bf6d4162473",
       "title": "No School: Family Conferences",
       "date": "2026-10-09",
       "schools": [
@@ -20036,7 +20051,7 @@
       "allDay": true
     },
     {
-      "id": "u4-district-d58506ac23ba0fc1ca",
+      "id": "u4-district-22748d360786f43a0a",
       "title": "PT Conf (no school for students)",
       "date": "2026-10-09",
       "schools": [
@@ -20066,7 +20081,7 @@
       "allDay": true
     },
     {
-      "id": "u4-robeson-380372fe4554cc234b",
+      "id": "u4-robeson-f6ffc93c8ab3198394",
       "title": "PT Conf (no school for students, TA/SSA)",
       "date": "2026-10-09",
       "schools": [
@@ -20079,7 +20094,7 @@
       "allDay": true
     },
     {
-      "id": "u4-robeson-678ce8b1c493e43cfd",
+      "id": "u4-robeson-c221f825366838dea7",
       "title": "PTA Book Fair",
       "date": "2026-10-09",
       "schools": [
@@ -20092,7 +20107,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-ad1f09eb96b3801050",
+      "id": "u4-stm-28213e2247771ae7b3",
       "title": "Parent Teacher Conferences - No Classes",
       "date": "2026-10-09",
       "schools": [
@@ -20147,7 +20162,7 @@
       "allDay": true
     },
     {
-      "id": "u4-barkstall-774862d0eb27dc42b1",
+      "id": "u4-barkstall-b3c322cb946f97fe2a",
       "title": "Parent/Teacher Conferences (No School)",
       "date": "2026-10-09",
       "schools": [
@@ -20160,7 +20175,7 @@
       "allDay": true
     },
     {
-      "id": "u4-busey-32dd9e31e37e9c5ef9",
+      "id": "u4-busey-c6da0c9567b5eb1f32",
       "title": "University/College Color or Shirt Day",
       "date": "2026-10-09",
       "schools": [
@@ -20218,7 +20233,7 @@
       "location": "Franklin STEAM Academy"
     },
     {
-      "id": "u4-westview-a70f22697d3704c75f",
+      "id": "u4-westview-c8abe7cab55ab60774",
       "title": "Family/Teacher Conferences - No School",
       "date": "2026-10-09",
       "schools": [
@@ -20284,7 +20299,7 @@
       "location": "Kenwood Elementary"
     },
     {
-      "id": "u4-kenwood-dba071d847eb2dec87",
+      "id": "u4-kenwood-ff5e7e433e7bb71ed1",
       "title": "Scholastic Book Fair",
       "date": "2026-10-09",
       "schools": [
@@ -20298,7 +20313,7 @@
       "end": "11:00"
     },
     {
-      "id": "u4-robeson-30c1544dec54178d6b",
+      "id": "u4-robeson-b734e759631ce1a3e9",
       "title": "Scholastic Book Fair",
       "date": "2026-10-09",
       "schools": [
@@ -20427,7 +20442,7 @@
       "end": "17:30"
     },
     {
-      "id": "u4-ipa-948305d9842fc98081",
+      "id": "u4-ipa-be3797a7948b7b84e1",
       "title": "Girls BB Practice",
       "date": "2026-10-09",
       "schools": [
@@ -20599,7 +20614,7 @@
       "allDay": true
     },
     {
-      "id": "u4-centennial-a8ebdc9cf873e64a68",
+      "id": "u4-centennial-c48775756fe93c308a",
       "title": "Marching Band Practice/Away Competition",
       "date": "2026-10-10",
       "schools": [
@@ -20671,7 +20686,7 @@
       "end": "13:00"
     },
     {
-      "id": "u4-central-c36d02babb4c53812b",
+      "id": "u4-central-4e403f4f0eaf3c8259",
       "title": "Girls Swim and Dive @ Urbana",
       "date": "2026-10-10",
       "schools": [
@@ -20909,7 +20924,7 @@
       "location": "Uni Kitchen"
     },
     {
-      "id": "u4-district-c2eb62bb15e4beebbf",
+      "id": "u4-district-8baa0ce62315c5f29e",
       "title": "Franklin Middle School Tour",
       "date": "2026-10-10",
       "schools": [
@@ -21047,7 +21062,7 @@
       "allDay": true
     },
     {
-      "id": "u4-centennial-8ef59108d0b812103d",
+      "id": "u4-centennial-25ada406fdd6f171f5",
       "title": "FALL BREAK - NO SCHOOL",
       "date": "2026-10-12",
       "schools": [
@@ -21062,7 +21077,7 @@
       "weekdaysOnly": false
     },
     {
-      "id": "u4-district-3cb06e3660c19f4a51",
+      "id": "u4-district-0396a3af46d74295ce",
       "title": "Fall Break",
       "date": "2026-10-12",
       "schools": [
@@ -21094,7 +21109,7 @@
       "weekdaysOnly": false
     },
     {
-      "id": "u4-barkstall-2a87a7c58e7a449bb5",
+      "id": "u4-barkstall-67a7c48d06f5feceb7",
       "title": "Fall Break (No School)",
       "date": "2026-10-12",
       "schools": [
@@ -21121,7 +21136,7 @@
       "endDate": "2026-10-13"
     },
     {
-      "id": "u4-westview-1d151d1cf77ac74ae5",
+      "id": "u4-westview-4feae93c0f04f81d4c",
       "title": "Fall Break - No School",
       "date": "2026-10-12",
       "schools": [
@@ -21220,7 +21235,7 @@
       "weekdaysOnly": true
     },
     {
-      "id": "u4-franklin-1fcf6322463710ed7b",
+      "id": "u4-franklin-3726f7351753077471",
       "title": "Fall Break- No School",
       "date": "2026-10-12",
       "schools": [
@@ -21235,7 +21250,7 @@
       "weekdaysOnly": false
     },
     {
-      "id": "u4-howard-952641db5df7a65ef4",
+      "id": "u4-howard-ae630eca0e62faabae",
       "title": "Fall Break- No Student Attendance",
       "date": "2026-10-12",
       "schools": [
@@ -21250,7 +21265,7 @@
       "weekdaysOnly": false
     },
     {
-      "id": "u4-district-c7ab1fb1ca8b1ba0b6",
+      "id": "u4-district-c55e53784886cd4e88",
       "title": "Fall Holiday",
       "date": "2026-10-12",
       "schools": [
@@ -21293,7 +21308,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-21447feb9b953d1a4c",
+      "id": "u4-stm-77d9c693930835845f",
       "title": "Juniors Only - PSAT/NMSQT Test Day",
       "date": "2026-10-12",
       "schools": [
@@ -21320,7 +21335,7 @@
       "endDate": "2026-10-16"
     },
     {
-      "id": "u4-bottenfield-9281f2712185f6d61b",
+      "id": "u4-bottenfield-0538e1dc3b45fa68f9",
       "title": "No School - Fall Break",
       "date": "2026-10-12",
       "schools": [
@@ -21408,7 +21423,7 @@
       "location": "Douglass Branch Library"
     },
     {
-      "id": "u4-ipa-bd63458d52b0316d3a",
+      "id": "u4-ipa-206b2a0d8d71fc4140",
       "title": "Girls BB Practice",
       "date": "2026-10-12",
       "schools": [
@@ -21437,7 +21452,7 @@
       "end": "18:00"
     },
     {
-      "id": "u4-central-7d801a5ad97f8b7337",
+      "id": "u4-central-e7b0644398f371d770",
       "title": "Girls Tennis @ Centennial",
       "date": "2026-10-12",
       "schools": [
@@ -21579,7 +21594,7 @@
       "end": "20:00"
     },
     {
-      "id": "u4-barkstall-4bc3942290d2b61379",
+      "id": "u4-barkstall-af5541950f705b3afc",
       "title": "Fall Break (No School)",
       "date": "2026-10-13",
       "schools": [
@@ -21592,7 +21607,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-c7ed245756943e880f",
+      "id": "u4-stm-9bdb3ddcb302f06874",
       "title": "Green Bell 1",
       "date": "2026-10-13",
       "schools": [
@@ -21710,7 +21725,7 @@
       "location": "Garden Hills Academy"
     },
     {
-      "id": "u4-ipa-0e4d88e00a0187bc7f",
+      "id": "u4-ipa-7891ad919176f609f1",
       "title": "Girls BB Practice",
       "date": "2026-10-13",
       "schools": [
@@ -21897,7 +21912,7 @@
       "location": "Main Library"
     },
     {
-      "id": "u4-busey-a19999876aabde482e",
+      "id": "u4-busey-393ce3012e6cccc8c6",
       "title": "CB Bobcat Spirit Day",
       "date": "2026-10-14",
       "schools": [
@@ -21910,7 +21925,7 @@
       "allDay": true
     },
     {
-      "id": "u4-barkstall-38bc306d95a35e0a75",
+      "id": "u4-barkstall-fa50203ea3a2d532f2",
       "title": "Fall Break (No School)",
       "date": "2026-10-14",
       "schools": [
@@ -21923,7 +21938,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-d80a0a4a1f2faa4ff9",
+      "id": "u4-stm-8130ff69ebc99eb0c9",
       "title": "Gold Bell 1",
       "date": "2026-10-14",
       "schools": [
@@ -22039,7 +22054,7 @@
       "end": "18:30"
     },
     {
-      "id": "u4-barkstall-ab06588350f9525cca",
+      "id": "u4-barkstall-353003928364aeb484",
       "title": "Fall Break (No School)",
       "date": "2026-10-15",
       "schools": [
@@ -22052,7 +22067,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-6e21d967a7efaf6e97",
+      "id": "u4-stm-2a3671eea6c54864ab",
       "title": "Green Bell 1",
       "date": "2026-10-15",
       "schools": [
@@ -22199,7 +22214,7 @@
       "location": "Champaign Central High School"
     },
     {
-      "id": "u4-central-f872ef994c68834f28",
+      "id": "u4-central-e881fd3618106facde",
       "title": "Freshman Football vs. Centennial",
       "date": "2026-10-15",
       "schools": [
@@ -22448,7 +22463,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28804"
     },
     {
-      "id": "u4-barkstall-8a4acfa3078951c913",
+      "id": "u4-barkstall-dbb81561636a0fb10c",
       "title": "Fall Break (No School)",
       "date": "2026-10-16",
       "schools": [
@@ -22461,7 +22476,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-30d0a6fbae716bc722",
+      "id": "u4-stm-a964d75ed00cf1c847",
       "title": "Gold Bell 1",
       "date": "2026-10-16",
       "schools": [
@@ -22499,7 +22514,7 @@
       "source": "CDL 2026–27 Calendar"
     },
     {
-      "id": "u4-busey-b9651969c3d605e584",
+      "id": "u4-busey-563a16b2d2dd886041",
       "title": "University/College Color or Shirt Day",
       "date": "2026-10-16",
       "schools": [
@@ -22718,7 +22733,7 @@
       "location": "Centennial High School"
     },
     {
-      "id": "u4-centennial-083797f0d74a304f84",
+      "id": "u4-centennial-e9f6683b1ea99ca721",
       "title": "Central vs. Centennial Football Game",
       "date": "2026-10-16",
       "schools": [
@@ -22762,7 +22777,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28741"
     },
     {
-      "id": "u4-central-b3d7edc2821b3749f8",
+      "id": "u4-central-f3e0ea58a3bf55d65b",
       "title": "Varsity Football @ Centennial",
       "date": "2026-10-16",
       "schools": [
@@ -23067,7 +23082,7 @@
       "location": "Douglass Branch Library"
     },
     {
-      "id": "u4-district-cd23697a93bb6ea1cd",
+      "id": "u4-district-56fedacd078a312e8b",
       "title": "Jefferson Middle School Tour",
       "date": "2026-10-17",
       "schools": [
@@ -23129,7 +23144,7 @@
       "location": "FriendShop Bookstore"
     },
     {
-      "id": "u4-jefferson-7965e516a91aed50f5",
+      "id": "u4-jefferson-e92b36a16258865274",
       "title": "Referendum Open House",
       "date": "2026-10-17",
       "schools": [
@@ -23188,7 +23203,7 @@
       "endDate": "2026-10-23"
     },
     {
-      "id": "u4-stm-c41f830f89c27bf769",
+      "id": "u4-stm-b1524c7e77a2c4bb6b",
       "title": "Maroon Bell 3 Late Start",
       "date": "2026-10-19",
       "schools": [
@@ -23297,7 +23312,7 @@
       "location": "Uni 106S"
     },
     {
-      "id": "u4-jefferson-fa174109362e3848de",
+      "id": "u4-jefferson-64ce1b85091f65efc8",
       "title": "Department Collaboration Meeting",
       "date": "2026-10-19",
       "schools": [
@@ -23357,7 +23372,7 @@
       "location": "Douglass Branch Library"
     },
     {
-      "id": "u4-ipa-e0ce7a69ad45d8c6b8",
+      "id": "u4-ipa-8f1632b778e6799cc3",
       "title": "Girls BB Practice",
       "date": "2026-10-19",
       "schools": [
@@ -23387,7 +23402,7 @@
       "location": "Champaign Central High School"
     },
     {
-      "id": "u4-central-a8598db699b9f9d695",
+      "id": "u4-central-918de23baf0e70cb47",
       "title": "JV Football vs. Centennial",
       "date": "2026-10-19",
       "schools": [
@@ -23546,7 +23561,7 @@
       "end": "20:00"
     },
     {
-      "id": "u4-stm-a263e611239b6436d9",
+      "id": "u4-stm-c26d538406ac277a7f",
       "title": "Green Bell 1",
       "date": "2026-10-20",
       "schools": [
@@ -23590,7 +23605,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28172"
     },
     {
-      "id": "u4-centennial-32b9f77349095b9670",
+      "id": "u4-centennial-81e6f01a8eab73f585",
       "title": "Fire Drill (#2)",
       "date": "2026-10-20",
       "schools": [
@@ -23739,7 +23754,7 @@
       "end": "19:00"
     },
     {
-      "id": "u4-central-a2dcdb1c1534fcc2e9",
+      "id": "u4-central-31807b8a575ba60717",
       "title": "Girls Swim and Dive @ Urbana",
       "date": "2026-10-20",
       "schools": [
@@ -23768,7 +23783,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28437"
     },
     {
-      "id": "u4-garden-b3734e5316f5c48067",
+      "id": "u4-garden-99f0982f5600e1ea15",
       "title": "Girls' Basketball vs Danville (at Franklin)",
       "date": "2026-10-20",
       "schools": [
@@ -23870,7 +23885,7 @@
       "end": "19:00"
     },
     {
-      "id": "u4-robeson-9c9d3edc4d6d8b47c8",
+      "id": "u4-robeson-fb056e596ece252774",
       "title": "PTA Meeting * in cafeteria",
       "date": "2026-10-20",
       "schools": [
@@ -23913,7 +23928,7 @@
       "location": "Douglass Branch Library"
     },
     {
-      "id": "u4-busey-2f2c42b782441a64f0",
+      "id": "u4-busey-340ce7651ddf80ba59",
       "title": "CB Bobcat Spirit Day",
       "date": "2026-10-21",
       "schools": [
@@ -23940,7 +23955,7 @@
       "location": "Centennial High School"
     },
     {
-      "id": "u4-stm-75a5f99b2d9aac3608",
+      "id": "u4-stm-96d0cd9f669776c271",
       "title": "Gold Bell 1",
       "date": "2026-10-21",
       "schools": [
@@ -23953,7 +23968,7 @@
       "allDay": true
     },
     {
-      "id": "u4-garden-697074a97f9e4a96d7",
+      "id": "u4-garden-9348956cdfe973e6e2",
       "title": "IEP",
       "date": "2026-10-21",
       "schools": [
@@ -24036,7 +24051,7 @@
       "location": "Main Library"
     },
     {
-      "id": "u4-robeson-7cdf2a9a5df88e7d6c",
+      "id": "u4-robeson-bc1492a6dd3d722d7f",
       "title": "Lockdown Drill",
       "date": "2026-10-21",
       "schools": [
@@ -24050,7 +24065,7 @@
       "end": "10:30"
     },
     {
-      "id": "u4-garden-c5dd162fb7e0351b93",
+      "id": "u4-garden-c8024b3aea17f5f3a2",
       "title": "Dr. Ponce Listen and Learn Visit - Teacher Lounge",
       "date": "2026-10-21",
       "schools": [
@@ -24139,7 +24154,7 @@
       "location": "Douglass Branch Library"
     },
     {
-      "id": "u4-ipa-41616dbbcd1d01f835",
+      "id": "u4-ipa-44caeb2b618fb04816",
       "title": "Girls BB Practice",
       "date": "2026-10-21",
       "schools": [
@@ -24167,7 +24182,7 @@
       "end": "17:30"
     },
     {
-      "id": "u4-garden-44cfd47a78a58d8004",
+      "id": "u4-garden-d69f614df3184a5e3a",
       "title": "Girls' Basketball vs Urbana (at Franklin)",
       "date": "2026-10-21",
       "schools": [
@@ -24197,7 +24212,7 @@
       "location": "HOME -"
     },
     {
-      "id": "u4-franklin-fb8402dc23f7b98b49",
+      "id": "u4-franklin-f614633ac63f9a4ca4",
       "title": "Knights GBB-MS Girls - VS Urbana Middle School (Game)",
       "date": "2026-10-21",
       "schools": [
@@ -24271,7 +24286,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28675"
     },
     {
-      "id": "u4-stm-a3aa15f9764b41b421",
+      "id": "u4-stm-487f97e2aa8ec32af6",
       "title": "STM Preview Nights",
       "date": "2026-10-21",
       "schools": [
@@ -24341,7 +24356,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-75941ad5fb12803661",
+      "id": "u4-stm-5b3c6429293eed1dc4",
       "title": "Green Bell 1",
       "date": "2026-10-22",
       "schools": [
@@ -24393,7 +24408,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-501bb6b84e395132bc",
+      "id": "u4-stm-25e2864551a9561f6e",
       "title": "Picture Retake Day",
       "date": "2026-10-22",
       "schools": [
@@ -24495,7 +24510,7 @@
       "location": "FriendShop Bookstore"
     },
     {
-      "id": "u4-jefferson-c00cd02b9aa03593e4",
+      "id": "u4-jefferson-90e3742eae40918769",
       "title": "Dr. Ponce's Listen & Learn Visit",
       "date": "2026-10-22",
       "schools": [
@@ -24614,7 +24629,7 @@
       "location": "Jefferson Middle School"
     },
     {
-      "id": "u4-garden-dad3716ecfc22aedfc",
+      "id": "u4-garden-6ab6f426cb242991fe",
       "title": "Girls' Basketball vs Dansby Ellsworth (at Franklin)",
       "date": "2026-10-22",
       "schools": [
@@ -24799,7 +24814,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-294bc5d4c1846714dc",
+      "id": "u4-stm-9d9cffac448867dc7c",
       "title": "Freshman Class Retreat",
       "date": "2026-10-23",
       "schools": [
@@ -24826,7 +24841,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-b59df492d033304e3f",
+      "id": "u4-stm-1059b2d65397674605",
       "title": "Gold Bell 1",
       "date": "2026-10-23",
       "schools": [
@@ -24892,7 +24907,7 @@
       "allDay": true
     },
     {
-      "id": "u4-busey-1bb5156b8557a5a2ea",
+      "id": "u4-busey-d973a76a4c7548c23a",
       "title": "University/College Color or Shirt Day",
       "date": "2026-10-23",
       "schools": [
@@ -25092,7 +25107,7 @@
       "end": "18:30"
     },
     {
-      "id": "u4-ipa-1cda30c5234c2d13a0",
+      "id": "u4-ipa-1ed5ec140740699a10",
       "title": "Girls BB Practice",
       "date": "2026-10-23",
       "schools": [
@@ -25240,7 +25255,7 @@
       "allDay": true
     },
     {
-      "id": "u4-jefferson-37c776b0f2c794818a",
+      "id": "u4-jefferson-cc08dfb4d64acdb644",
       "title": "Korean Festival",
       "date": "2026-10-24",
       "schools": [
@@ -25355,7 +25370,7 @@
       "location": "Centennial High School"
     },
     {
-      "id": "u4-central-d3a6c156983c859cb6",
+      "id": "u4-central-77f0e43a295544c845",
       "title": "JV Volleyball @ Centennial",
       "date": "2026-10-24",
       "schools": [
@@ -25474,7 +25489,7 @@
       "location": "The Urbana Free Library"
     },
     {
-      "id": "u4-district-5e1f44c287797cc1c9",
+      "id": "u4-district-ca3db5ff437f52e246",
       "title": "IPA Middle School Tour",
       "date": "2026-10-25",
       "schools": [
@@ -25563,7 +25578,7 @@
       "endDate": "2026-10-30"
     },
     {
-      "id": "u4-stm-69ef2793e6ed6dfe7a",
+      "id": "u4-stm-5b0f79dcc35083f513",
       "title": "Maroon Day",
       "date": "2026-10-26",
       "schools": [
@@ -25756,7 +25771,7 @@
       "location": "Urbana Middle School"
     },
     {
-      "id": "u4-jefferson-84a2beb21231df3da2",
+      "id": "u4-jefferson-bd0d97793a56572331",
       "title": "GBB @ Urbana",
       "date": "2026-10-26",
       "schools": [
@@ -25770,7 +25785,7 @@
       "end": "17:30"
     },
     {
-      "id": "u4-garden-f49a5304502f385632",
+      "id": "u4-garden-2fc222168d5267abed",
       "title": "Girls' Basketball vs Mattoon (at Franklin)",
       "date": "2026-10-26",
       "schools": [
@@ -25842,7 +25857,7 @@
       "end": "18:30"
     },
     {
-      "id": "u4-district-2acba31ff4993d3b78",
+      "id": "u4-district-b45fb17717fed14e07",
       "title": "Board of Education Regular Meeting",
       "date": "2026-10-26",
       "schools": [
@@ -25904,7 +25919,7 @@
       "location": "Carrodine Gym"
     },
     {
-      "id": "u4-jefferson-6e8dd75eb22fa068b9",
+      "id": "u4-jefferson-06d6e575722c9703b5",
       "title": "AVID National Visit",
       "date": "2026-10-27",
       "schools": [
@@ -25931,7 +25946,7 @@
       "location": "Garden Hills Academy"
     },
     {
-      "id": "u4-stm-0810802af2b4b7391d",
+      "id": "u4-stm-b1003766973e97b8e6",
       "title": "Green Bell 1",
       "date": "2026-10-27",
       "schools": [
@@ -26139,7 +26154,7 @@
       "location": "Garden Hills Academy"
     },
     {
-      "id": "u4-ipa-e6ec133bb5a379ea69",
+      "id": "u4-ipa-aeea748aacb5048a0f",
       "title": "Girls BB Practice",
       "date": "2026-10-27",
       "schools": [
@@ -26153,7 +26168,7 @@
       "end": "17:30"
     },
     {
-      "id": "u4-jefferson-617396b6d038c318f0",
+      "id": "u4-jefferson-da7d25f5edf9dbbe7a",
       "title": "GBB vs. Franklin",
       "date": "2026-10-27",
       "schools": [
@@ -26167,7 +26182,7 @@
       "end": "17:30"
     },
     {
-      "id": "u4-garden-e2955bfb4da1fc2f50",
+      "id": "u4-garden-3de00e13686b960b82",
       "title": "Girls' Basketball vs Jefferson (at Jefferson)",
       "date": "2026-10-27",
       "schools": [
@@ -26197,7 +26212,7 @@
       "location": "Away - JEFFERSON MIDDLE SCHOOL"
     },
     {
-      "id": "u4-franklin-bdb2ddcb858e56df28",
+      "id": "u4-franklin-4758e7884388750ebd",
       "title": "Knights GBB-MS Girls @ Jefferson Middle School (Game)",
       "date": "2026-10-27",
       "schools": [
@@ -26254,7 +26269,7 @@
       "end": "19:00"
     },
     {
-      "id": "u4-busey-8d4d3920752717b2ee",
+      "id": "u4-busey-8f4fd06a8e6a5b1d71",
       "title": "CB Bobcat Spirit Day",
       "date": "2026-10-28",
       "schools": [
@@ -26267,7 +26282,7 @@
       "allDay": true
     },
     {
-      "id": "u4-franklin-ec4bd63019f439fa14",
+      "id": "u4-franklin-1fa34cc7b70dc44062",
       "title": "FSA AVID Initial Visit",
       "date": "2026-10-28",
       "schools": [
@@ -26280,7 +26295,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-5ef0e9f4ef48ec5838",
+      "id": "u4-stm-ae4b9c37dfb5e95fd1",
       "title": "Gold Bell 1",
       "date": "2026-10-28",
       "schools": [
@@ -26306,7 +26321,7 @@
       "allDay": true
     },
     {
-      "id": "u4-garden-dc8673337e9925846b",
+      "id": "u4-garden-b0cc513de3a4513b07",
       "title": "IEP",
       "date": "2026-10-28",
       "schools": [
@@ -26424,7 +26439,7 @@
       "location": "Douglass Branch Library"
     },
     {
-      "id": "u4-garden-6cccee2b33af7a8774",
+      "id": "u4-garden-5419c92826510d4195",
       "title": "Girls' Basketball vs IPA (at IPA)",
       "date": "2026-10-28",
       "schools": [
@@ -26438,7 +26453,7 @@
       "end": "19:00"
     },
     {
-      "id": "u4-franklin-916180ee83a0c5f56a",
+      "id": "u4-franklin-75405a4046f3480266",
       "title": "Knights GBB-MS Girls @ International Prep Academy (Game)",
       "date": "2026-10-28",
       "schools": [
@@ -26483,7 +26498,7 @@
       "location": "IPA gym"
     },
     {
-      "id": "u4-ipa-f5fd7ffbe4d35de434",
+      "id": "u4-ipa-c71fc15522d8f095c3",
       "title": "GBB vs. Franklin (home)",
       "date": "2026-10-28",
       "schools": [
@@ -26511,7 +26526,7 @@
       "end": "19:00"
     },
     {
-      "id": "u4-robeson-757ef532b3b41d5773",
+      "id": "u4-robeson-24f4c3a8f269980e58",
       "title": "Girl Scouts",
       "date": "2026-10-28",
       "schools": [
@@ -26540,7 +26555,7 @@
       "sourceUrl": "https://trinity-urbana.org/wp/wp-content/uploads/2026/02/WD-Calendar-of-Events.26-27.pdf"
     },
     {
-      "id": "u4-stm-6fd966b30a64446c8b",
+      "id": "u4-stm-77ed178d7eac4dacfb",
       "title": "Green Bell 1",
       "date": "2026-10-29",
       "schools": [
@@ -26657,7 +26672,7 @@
       "location": "FriendShop Bookstore"
     },
     {
-      "id": "u4-garden-c77be36ed26affcfda",
+      "id": "u4-garden-61b1519cacbaab469f",
       "title": "Steward Meeting with Admin",
       "date": "2026-10-29",
       "schools": [
@@ -26834,7 +26849,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-9e60376a4df0d20141",
+      "id": "u4-stm-0e116ea59008794d1f",
       "title": "Gold Bell 2 All School Adoration",
       "date": "2026-10-30",
       "schools": [
@@ -26889,7 +26904,7 @@
       "allDay": true
     },
     {
-      "id": "u4-busey-0b4a7887caf2c7000a",
+      "id": "u4-busey-fc36760ca6d1d32f1d",
       "title": "University/College Color or Shirt Day",
       "date": "2026-10-30",
       "schools": [
@@ -26991,7 +27006,7 @@
       "end": "17:30"
     },
     {
-      "id": "u4-ipa-1ceebfb0ae74eba1db",
+      "id": "u4-ipa-6cdc30dd09178f3db9",
       "title": "Girls BB Practice",
       "date": "2026-10-30",
       "schools": [
@@ -27244,7 +27259,7 @@
       "location": "The Urbana Free Library"
     },
     {
-      "id": "u4-district-b40037cbdfcf1b26a2",
+      "id": "u4-district-427d59901a0f50f45c",
       "title": "Franklin Middle School Tour",
       "date": "2026-11-01",
       "schools": [
@@ -27276,7 +27291,7 @@
       "location": "Franklin STEAM Academy, 817 N Harris Ave, Champaign, IL 61820, USA"
     },
     {
-      "id": "u4-stm-09ff9290c72d53d872",
+      "id": "u4-stm-5d2b5d61399ef50590",
       "title": "Maroon Bell 2 All School Mass",
       "date": "2026-11-02",
       "schools": [
@@ -27419,7 +27434,7 @@
       "location": "Uni 218"
     },
     {
-      "id": "u4-jefferson-083a3a4f4edbfffddd",
+      "id": "u4-jefferson-cd15ba4258f93b4674",
       "title": "Faculty Meeting",
       "date": "2026-11-02",
       "schools": [
@@ -27522,7 +27537,7 @@
       "end": "18:00"
     },
     {
-      "id": "u4-ipa-52fea1eef4af63e276",
+      "id": "u4-ipa-7caa230a288433aa39",
       "title": "Girls BB Practice",
       "date": "2026-11-02",
       "schools": [
@@ -27565,7 +27580,7 @@
       "end": "17:30"
     },
     {
-      "id": "u4-garden-a8aa7d9c17c0e610e2",
+      "id": "u4-garden-19c04f6bc40112634e",
       "title": "Girls' Basketball vs Edison MS (at Franklin)",
       "date": "2026-11-02",
       "schools": [
@@ -27610,7 +27625,7 @@
       "location": "HOME -"
     },
     {
-      "id": "u4-franklin-9ae06754b2bae43920",
+      "id": "u4-franklin-dc5c48e127d3982b69",
       "title": "Knights GBB-MS Girls - VS Edison Middle School (Game)",
       "date": "2026-11-02",
       "schools": [
@@ -27669,7 +27684,7 @@
       "location": "The Urbana Free Library"
     },
     {
-      "id": "u4-stm-820a77cd31f11d011b",
+      "id": "u4-stm-9747e8a54327bf8a4d",
       "title": "Fall Sports Signing Day",
       "date": "2026-11-03",
       "schools": [
@@ -27682,7 +27697,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-a07aaf2f3db62a0733",
+      "id": "u4-stm-10256ccea060a125f2",
       "title": "Green Bell 1",
       "date": "2026-11-03",
       "schools": [
@@ -27695,7 +27710,7 @@
       "allDay": true
     },
     {
-      "id": "u4-cecc-b5629aa0852f74d802",
+      "id": "u4-cecc-b74667b8559fa08aba",
       "title": "Picture Day",
       "date": "2026-11-03",
       "schools": [
@@ -28063,7 +28078,7 @@
       "location": "Douglass Branch Library"
     },
     {
-      "id": "u4-busey-3a35983340fbba4091",
+      "id": "u4-busey-35ef7584833bbc46fe",
       "title": "CB Bobcat Spirit Day",
       "date": "2026-11-04",
       "schools": [
@@ -28092,7 +28107,7 @@
       "location": "Franklin STEAM Academy"
     },
     {
-      "id": "u4-stm-5e59549f9086ec1473",
+      "id": "u4-stm-f3c3bc6c30dc3555e6",
       "title": "Gold Bell 1",
       "date": "2026-11-04",
       "schools": [
@@ -28105,7 +28120,7 @@
       "allDay": true
     },
     {
-      "id": "u4-garden-de7fccd2237fc0144d",
+      "id": "u4-garden-c59b35c93dae9dbeaa",
       "title": "IEP",
       "date": "2026-11-04",
       "schools": [
@@ -28284,7 +28299,7 @@
       "location": "Jefferson Middle School"
     },
     {
-      "id": "u4-jefferson-fbda14477f6ce4c99e",
+      "id": "u4-jefferson-74ace6a54fea5763b2",
       "title": "GBB vs. Urbana",
       "date": "2026-11-04",
       "schools": [
@@ -28372,7 +28387,7 @@
       "location": "Westview Elementary"
     },
     {
-      "id": "u4-stm-9256be3635c14c4b98",
+      "id": "u4-stm-2dcaebc5c3c84b7216",
       "title": "Parent Association Meeting",
       "date": "2026-11-04",
       "schools": [
@@ -28414,7 +28429,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-26330256c54fa16397",
+      "id": "u4-stm-c4aab41327629af773",
       "title": "Green Bell 1",
       "date": "2026-11-05",
       "schools": [
@@ -28633,7 +28648,7 @@
       "location": "Away - URBANA MIDDLE SCHOOL"
     },
     {
-      "id": "u4-franklin-fcaf97eea028ee29b0",
+      "id": "u4-franklin-e76cc8efb2b0b26d43",
       "title": "Knights GBB-MS Girls @ Urbana Middle School (Game)",
       "date": "2026-11-05",
       "schools": [
@@ -28664,7 +28679,7 @@
       "location": "Jefferson Middle School"
     },
     {
-      "id": "u4-jefferson-9422ffcbcb4b80ec8b",
+      "id": "u4-jefferson-63733a703199ef8d0c",
       "title": "GBB vs. Edison",
       "date": "2026-11-05",
       "schools": [
@@ -28694,7 +28709,7 @@
       "location": "Away - EDISON MIDDLE SCHOOL"
     },
     {
-      "id": "u4-franklin-a13ecdab05411b6275",
+      "id": "u4-franklin-b202b2c691083ce6fa",
       "title": "Knights BBB-MS Boys @ Edison Middle School (Game)",
       "date": "2026-11-05",
       "schools": [
@@ -28885,7 +28900,7 @@
       "location": "North Attic"
     },
     {
-      "id": "u4-westview-0d8afda3c0c29290c3",
+      "id": "u4-westview-b853c9a4b16f6b497b",
       "title": "Clothing Drive Shopping Day",
       "date": "2026-11-06",
       "schools": [
@@ -28898,7 +28913,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-d1b2289726bd4e7713",
+      "id": "u4-stm-b8cad368822986b33f",
       "title": "Gold Bell 1",
       "date": "2026-11-06",
       "schools": [
@@ -28925,7 +28940,7 @@
       "location": "Dr. Howard Elementary"
     },
     {
-      "id": "u4-busey-1cd2029108b1ca4054",
+      "id": "u4-busey-19eaff9512bef595c0",
       "title": "University/College Color or Shirt Day",
       "date": "2026-11-06",
       "schools": [
@@ -29041,7 +29056,7 @@
       "end": "17:30"
     },
     {
-      "id": "u4-ipa-5da61c5ad3ead8b2ae",
+      "id": "u4-ipa-5efceda18efb207ef2",
       "title": "Girls BB Practice",
       "date": "2026-11-06",
       "schools": [
@@ -29069,7 +29084,7 @@
       "end": "20:00"
     },
     {
-      "id": "u4-jefferson-3d830922a741c6d1a8",
+      "id": "u4-jefferson-0783de1e0c76631f2c",
       "title": "Jefferson Fall Dance",
       "date": "2026-11-06",
       "schools": [
@@ -29273,7 +29288,7 @@
       "sourceUrl": "https://schools.snap.app/Uni/event/4875"
     },
     {
-      "id": "u4-garden-39593b4f8de6ee46d6",
+      "id": "u4-garden-0669d9b22a971ebb1c",
       "title": "Girls' Basketball vs Stephen Decatur (at Franklin)",
       "date": "2026-11-07",
       "schools": [
@@ -29481,7 +29496,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-0293e548e7928d6020",
+      "id": "u4-stm-769badd62effd2cc91",
       "title": "Maroon Day",
       "date": "2026-11-09",
       "schools": [
@@ -29615,7 +29630,7 @@
       "location": "Jefferson Middle School"
     },
     {
-      "id": "u4-jefferson-e951b94627a2f419a4",
+      "id": "u4-jefferson-dfb0e81d596d931da7",
       "title": "BBB vs. Urbana",
       "date": "2026-11-09",
       "schools": [
@@ -29702,7 +29717,7 @@
       "end": "19:30"
     },
     {
-      "id": "u4-district-29d71f43095323f0fa",
+      "id": "u4-district-80b2e193d374ab9a77",
       "title": "Board of Education Regular Meeting",
       "date": "2026-11-09",
       "schools": [
@@ -29777,7 +29792,7 @@
       "location": "The Urbana Free Library"
     },
     {
-      "id": "u4-stm-14ca67ba040be70af1",
+      "id": "u4-stm-e8073d866c00c14e69",
       "title": "STM ABO (Athletic Booster Organization)",
       "date": "2026-11-09",
       "schools": [
@@ -29791,7 +29806,7 @@
       "end": "20:00"
     },
     {
-      "id": "u4-stm-5cbae2bac075c86e1f",
+      "id": "u4-stm-399112bcc920871b27",
       "title": "Green Bell 2 Veteran's Day Assembly",
       "date": "2026-11-10",
       "schools": [
@@ -30083,7 +30098,7 @@
       "location": "Main Library"
     },
     {
-      "id": "u4-busey-5a86835504ac16d32e",
+      "id": "u4-busey-349bc8241e6bce68d6",
       "title": "CB Bobcat Spirit Day",
       "date": "2026-11-11",
       "schools": [
@@ -30096,7 +30111,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-82f4c4594a026ce142",
+      "id": "u4-stm-938def4222edac22a2",
       "title": "Gold Bell 1",
       "date": "2026-11-11",
       "schools": [
@@ -30282,7 +30297,7 @@
       "location": "Douglass Branch Library"
     },
     {
-      "id": "u4-ipa-0d85d3a6f34fc4cb24",
+      "id": "u4-ipa-1876c32ba00ae1c65f",
       "title": "Girls BB Practice",
       "date": "2026-11-11",
       "schools": [
@@ -30312,7 +30327,7 @@
       "location": "Edison Middle School"
     },
     {
-      "id": "u4-jefferson-f9c7ecbdb355463526",
+      "id": "u4-jefferson-9c39630e1a38b76735",
       "title": "GBB @ Edison",
       "date": "2026-11-11",
       "schools": [
@@ -30370,7 +30385,7 @@
       "location": "Centennial Auditorium"
     },
     {
-      "id": "u4-robeson-738ba60ebfb64bdd8d",
+      "id": "u4-robeson-3a829eeec3436a05aa",
       "title": "Girl Scouts",
       "date": "2026-11-11",
       "schools": [
@@ -30384,7 +30399,7 @@
       "end": "19:30"
     },
     {
-      "id": "u4-stm-73ec0508f181e6c80e",
+      "id": "u4-stm-9ab8d018a4338e2a25",
       "title": "Green Bell 1",
       "date": "2026-11-12",
       "schools": [
@@ -30397,7 +30412,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-c46e050006a5d8e7a5",
+      "id": "u4-stm-c0b31c02969df690fd",
       "title": "Jr and Sr LOGOS Retreat",
       "date": "2026-11-12",
       "schools": [
@@ -30733,7 +30748,7 @@
       "location": "Main Library"
     },
     {
-      "id": "u4-stm-2ab3e066303a9b6e15",
+      "id": "u4-stm-81cdd0ae80afd65291",
       "title": "Empty Bowl Supper/Saber Showcase",
       "date": "2026-11-13",
       "schools": [
@@ -30759,7 +30774,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-89458ae8e9d67dec5a",
+      "id": "u4-stm-723c75fb8cfff7ec18",
       "title": "Gold Bell 1",
       "date": "2026-11-13",
       "schools": [
@@ -30772,7 +30787,7 @@
       "allDay": true
     },
     {
-      "id": "u4-busey-4fb5825108954e4e8b",
+      "id": "u4-busey-166a6a674a873f59d9",
       "title": "University/College Color or Shirt Day",
       "date": "2026-11-13",
       "schools": [
@@ -30919,7 +30934,7 @@
       "end": "17:30"
     },
     {
-      "id": "u4-ipa-8f3050d2c153c1c196",
+      "id": "u4-ipa-7fbdfd6298aabd272f",
       "title": "Girls BB Practice",
       "date": "2026-11-13",
       "schools": [
@@ -31343,7 +31358,7 @@
       "location": "FriendShop Bookstore"
     },
     {
-      "id": "u4-stm-b5ca90350111957e4c",
+      "id": "u4-stm-d253fc55cacce4e9bf",
       "title": "Maroon Day",
       "date": "2026-11-16",
       "schools": [
@@ -31401,7 +31416,7 @@
       "location": "Uni 218"
     },
     {
-      "id": "u4-jefferson-1b6b27f810decff0d1",
+      "id": "u4-jefferson-63e8165095dfdf2f9c",
       "title": "Department Collaboration Meeting",
       "date": "2026-11-16",
       "schools": [
@@ -31475,7 +31490,7 @@
       "location": "Douglass Branch Library"
     },
     {
-      "id": "u4-ipa-cd942c36a21780f2cc",
+      "id": "u4-ipa-29c40cf996a85b64bf",
       "title": "Girls BB Practice",
       "date": "2026-11-16",
       "schools": [
@@ -31505,7 +31520,7 @@
       "location": "Jefferson Middle School"
     },
     {
-      "id": "u4-jefferson-fb1243916137699e31",
+      "id": "u4-jefferson-799efec3f4d7a19e4a",
       "title": "BBB vs. Garden Hills",
       "date": "2026-11-16",
       "schools": [
@@ -31591,7 +31606,7 @@
       "end": "19:15"
     },
     {
-      "id": "u4-stm-062fb6d7c0983ba759",
+      "id": "u4-stm-b5fd1fec66cf619a90",
       "title": "Green Bell 1",
       "date": "2026-11-17",
       "schools": [
@@ -31618,7 +31633,7 @@
       "location": "Franklin STEAM Academy"
     },
     {
-      "id": "u4-westview-40f24ed5dc5fb6b068",
+      "id": "u4-westview-0f77a30ba4691a21dd",
       "title": "Picture Day Retakes",
       "date": "2026-11-17",
       "schools": [
@@ -31884,7 +31899,7 @@
       "location": "Cornerstone Christian Academy"
     },
     {
-      "id": "u4-robeson-cb85f8844d97bd2a00",
+      "id": "u4-robeson-1ffe38fe4310ae97ef",
       "title": "PTA Meeting * in cafeteria",
       "date": "2026-11-17",
       "schools": [
@@ -31943,7 +31958,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28801"
     },
     {
-      "id": "u4-busey-43b73035c0fc8c6c5b",
+      "id": "u4-busey-b07da67900ab2d33c0",
       "title": "CB Bobcat Spirit Day",
       "date": "2026-11-18",
       "schools": [
@@ -31972,7 +31987,7 @@
       "location": "Centennial High School"
     },
     {
-      "id": "u4-stm-9408ed19eb9d5a9d04",
+      "id": "u4-stm-f9df11c36efef29e23",
       "title": "Gold Bell 1",
       "date": "2026-11-18",
       "schools": [
@@ -31985,7 +32000,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-a9839a1e4bb57a8083",
+      "id": "u4-stm-e3a39fa033fd9b8e0c",
       "title": "NHS Induction Ceremony",
       "date": "2026-11-18",
       "schools": [
@@ -32189,7 +32204,7 @@
       "location": "Carrie Busey Elementary"
     },
     {
-      "id": "u4-stm-06ec81288009424864",
+      "id": "u4-stm-612f386381e62f21e8",
       "title": "Green Bell 1",
       "date": "2026-11-19",
       "schools": [
@@ -32240,7 +32255,7 @@
       "location": "Robeson Elementary"
     },
     {
-      "id": "u4-centennial-5ce9b412a5e643e885",
+      "id": "u4-centennial-81d8b6d28842ab83fa",
       "title": "Tornado/Shelter In Place Drill",
       "date": "2026-11-19",
       "schools": [
@@ -32405,7 +32420,7 @@
       "location": "Douglass Branch Library"
     },
     {
-      "id": "u4-ipa-b050af3e880f9d9ce0",
+      "id": "u4-ipa-e9905004499e8390d0",
       "title": "Girls BB Practice",
       "date": "2026-11-19",
       "schools": [
@@ -32435,7 +32450,7 @@
       "location": "Jefferson Middle School"
     },
     {
-      "id": "u4-jefferson-9beb65b90b99a360a1",
+      "id": "u4-jefferson-a1eb0e8b5a96dfb462",
       "title": "BBB vs. Edison",
       "date": "2026-11-19",
       "schools": [
@@ -32595,7 +32610,7 @@
       "sourceUrl": "https://schools.snap.app/Uni/event/4806"
     },
     {
-      "id": "u4-franklin-edb862889ad4515c56",
+      "id": "u4-franklin-d1140a72ae1ea59d5c",
       "title": "Franklin PTA Meeting",
       "date": "2026-11-19",
       "schools": [
@@ -32639,7 +32654,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28805"
     },
     {
-      "id": "u4-stm-fe0274f16ab44a415e",
+      "id": "u4-stm-2e32ea2060ab2ada40",
       "title": "Gold Bell 2 All School Adoration",
       "date": "2026-11-20",
       "schools": [
@@ -32666,7 +32681,7 @@
       "location": "Champaign Central High School"
     },
     {
-      "id": "u4-busey-ec7c8506c5a98ec942",
+      "id": "u4-busey-a4613c516540699b8a",
       "title": "University/College Color or Shirt Day",
       "date": "2026-11-20",
       "schools": [
@@ -32679,7 +32694,7 @@
       "allDay": true
     },
     {
-      "id": "u4-garden-4903366ba92abfa040",
+      "id": "u4-garden-44197030b810906650",
       "title": "8th Graders to Franklin for Central Band",
       "date": "2026-11-20",
       "schools": [
@@ -32708,7 +32723,7 @@
       "location": "Douglass Branch Library"
     },
     {
-      "id": "u4-jefferson-b799c7b41525e5ea64",
+      "id": "u4-jefferson-ffc35e73b375910d78",
       "title": "Central Band Visit",
       "date": "2026-11-20",
       "schools": [
@@ -32782,7 +32797,7 @@
       "location": "Uni 218"
     },
     {
-      "id": "u4-ipa-0eb0f4c01f63f461d5",
+      "id": "u4-ipa-85cad0866a47a46ee2",
       "title": "Girls BB Practice",
       "date": "2026-11-20",
       "schools": [
