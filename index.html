@@ -17,7 +17,7 @@
   <meta name="apple-mobile-web-app-title" content="Schoolboard" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 
-  <!-- Chambana Schoolboard v59 SGC feed recovery + Spanish strawberry-pancake wording; v50 library registration, source-feed empty state, Urbana picker grouping, and v49 visual/event fixes retained; selection storage intentionally remains v19-compatible. -->
+  <!-- Chambana Schoolboard v60 expandable week-view lunch choices; v50 library registration, source-feed empty state, Urbana picker grouping, and v49 visual/event fixes retained; selection storage intentionally remains v19-compatible. -->
   <style>
     :root{
       --paper:#f3eedf;
@@ -695,6 +695,11 @@
       text-transform:uppercase;
     }
     .menu-extra[hidden]{display:none}
+    .week-meal .menu-more{
+      margin-left:3px;
+      vertical-align:baseline;
+      font-size:9px;
+    }
     .week-meal .prediction-mark{
       color:var(--ink);
       font:800 9px ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -18977,11 +18982,22 @@
     });
   }
 
-  function renderWeekLunches(lunches){
+  function renderWeekChoicePreview(items, idPrefix){
+    const visible = items.slice(0,3);
+    const extra = items.slice(3);
+    const preview = visible.map(item => escapeHtml(translateFoodItem(item))).join(" · ");
+    if (!extra.length) return preview;
+
+    const extraId = `${idPrefix}-extra`;
+    return `${preview}<span class="menu-extra" id="${escapeAttr(extraId)}" hidden> · ${extra.map(item => escapeHtml(translateFoodItem(item))).join(" · ")}</span>
+      <button type="button" class="menu-more week-menu-more" data-target="${escapeAttr(extraId)}" data-count="${extra.length}" aria-controls="${escapeAttr(extraId)}" aria-expanded="false">${escapeHtml(t("moreChoices",{count:extra.length}))}</button>`;
+  }
+
+  function renderWeekLunches(lunches, dateString){
     const regular = lunches.filter(x => x.group.cafeteriaGroup !== "u4hs");
     const highSchool = lunches.filter(x => x.group.cafeteriaGroup === "u4hs");
 
-    const regularHtml = regular.map(x => {
+    const regularHtml = regular.map((x, idx) => {
       const mealSchoolIds = x.group.schools.filter(id => selected.includes(id));
       const _mealList = mealSchoolIds.map(id => schoolById(id)?.short).filter(Boolean);
       const mealNames = _mealList.length > 3 ? t("selectedSchools",{count:_mealList.length}) : (_mealList.join(" + ") || translateMenuGroupLabel(x.group.label));
@@ -18991,14 +19007,13 @@
       }
 
       const stationHeading = String(x.group?.label || "").trim();
-      const visibleLunchItems = x.lunch.items.filter((item, idx) => {
-        if (idx !== 0) return true;
+      const visibleLunchItems = x.lunch.items.filter((item, itemIdx) => {
+        if (itemIdx !== 0) return true;
         return canonicalMenuHeading(item) !== canonicalMenuHeading(stationHeading);
       });
-      const preview = visibleLunchItems.slice(0,3).map(item => escapeHtml(translateFoodItem(item))).join(" · ");
-      const more = Math.max(0, visibleLunchItems.length - 3);
+      const choices = renderWeekChoicePreview(visibleLunchItems, `week-${dateString}-${x.group.id || idx}`);
       return `<span style="display:block;margin-top:5px">
-        ${mealSchoolSymbols(mealSchoolIds)}<strong>${escapeHtml(mealNames)} · ${escapeHtml(translateMenuGroupLabel(x.group.label))}:</strong> ${preview}${more ? ` · ${escapeHtml(t("more",{count:more}))}` : ""}
+        ${mealSchoolSymbols(mealSchoolIds)}<strong>${escapeHtml(mealNames)} · ${escapeHtml(translateMenuGroupLabel(x.group.label))}:</strong> ${choices}
         ${x.lunch.status === "predicted" ? `<span class="prediction-mark"> · ${escapeHtml(t("predicted"))}</span>` : ""}
       </span>`;
     }).join("");
@@ -19011,16 +19026,15 @@
       const schoolList = schoolIds.map(id => schoolById(id)?.short).filter(Boolean);
       const mealNames = schoolList.length > 3 ? t("selectedSchools",{count:schoolList.length}) : (schoolList.join(" + ") || t("unit4High"));
 
-      const stations = highSchool.map(x => {
+      const stations = highSchool.map((x, idx) => {
         const label = x.group.stationLabel || x.group.label;
         if (x.lunch.status === "none"){
           return `<span class="week-meal-station"><strong>${escapeHtml(label)}:</strong> ${escapeHtml(x.lunch.label)}</span>`;
         }
         const foodItems = stationFoodItems(x.lunch.items, label);
-        const preview = foodItems.slice(0,3).map(item => escapeHtml(translateFoodItem(item))).join(" · ");
-        const more = Math.max(0, foodItems.length - 3);
+        const choices = renderWeekChoicePreview(foodItems, `week-${dateString}-u4hs-${x.group.id || idx}`);
         return `<span class="week-meal-station">
-          <strong>${escapeHtml(label)}:</strong> ${preview}${more ? ` · ${escapeHtml(t("more",{count:more}))}` : ""}
+          <strong>${escapeHtml(label)}:</strong> ${choices}
           ${x.lunch.status === "predicted" ? `<span class="prediction-mark"> · ${escapeHtml(t("predicted"))}</span>` : ""}
         </span>`;
       }).join("");
@@ -19065,10 +19079,22 @@
             </div>`;
           }).join("") : `<div class="week-event"><div class="s">${escapeHtml(t("noEvents"))}</div></div>`}
 
-          ${lunches.length ? `<div class="week-meal"><b>${escapeHtml(t("lunch"))}</b><br>${renderWeekLunches(lunches)}</div>` : ""}
+          ${lunches.length ? `<div class="week-meal"><b>${escapeHtml(t("lunch"))}</b><br>${renderWeekLunches(lunches, date)}</div>` : ""}
         </article>
       `;
     }).join("");
+
+    host.querySelectorAll(".week-menu-more").forEach(button => {
+      button.addEventListener("click", () => {
+        const extra = document.getElementById(button.dataset.target);
+        if (!extra) return;
+        const opening = extra.hidden;
+        extra.hidden = !opening;
+        button.setAttribute("aria-expanded", opening ? "true" : "false");
+        const count = Number(button.dataset.count || 0);
+        button.textContent = opening ? t("showFewer") : t("moreChoices",{count});
+      });
+    });
   }
 
   function renderWeek(){
