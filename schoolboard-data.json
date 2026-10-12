@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-11T18:42:41-05:00",
+  "updated": "2026-10-12T00:56:38-05:00",
   "mode": "live-collector",
   "sources": [
     {
@@ -23,7 +23,7 @@
     {
       "id": "uni-calendar",
       "status": "live",
-      "count": 202,
+      "count": 201,
       "unit": "events"
     },
     {
@@ -113,13 +113,13 @@
     {
       "id": "u4-events-busey",
       "status": "live",
-      "count": 19,
+      "count": 20,
       "unit": "events"
     },
     {
       "id": "u4-events-howard",
       "status": "live",
-      "count": 11,
+      "count": 12,
       "unit": "events"
     },
     {
@@ -155,13 +155,13 @@
     {
       "id": "u4-events-garden",
       "status": "live",
-      "count": 35,
+      "count": 36,
       "unit": "events"
     },
     {
       "id": "u4-events-ipa",
       "status": "live",
-      "count": 70,
+      "count": 71,
       "unit": "events"
     },
     {
@@ -173,7 +173,7 @@
     {
       "id": "u4-events-franklin",
       "status": "live",
-      "count": 38,
+      "count": 39,
       "unit": "events"
     },
     {
@@ -191,7 +191,7 @@
     {
       "id": "u4-events-centennial",
       "status": "live",
-      "count": 30,
+      "count": 31,
       "unit": "events"
     },
     {
@@ -203,14 +203,15 @@
     {
       "id": "stm-calendar",
       "status": "live",
-      "count": 53,
+      "count": 54,
       "unit": "events"
     },
     {
       "id": "stmatthew-calendar",
-      "status": "live",
-      "count": 92,
-      "unit": "events"
+      "status": "cached",
+      "count": 91,
+      "unit": "events",
+      "error": "RuntimeError: St. Matthew calendar discovery produced no usable feed and homepage fallback failed quickly: URLError: <urlopen error timed out>"
     },
     {
       "id": "stjohn-calendar",
@@ -221,13 +222,13 @@
     {
       "id": "judah-calendar",
       "status": "live",
-      "count": 14,
+      "count": 15,
       "unit": "events"
     },
     {
       "id": "judah-athletics",
       "status": "live",
-      "count": 168,
+      "count": 164,
       "unit": "events"
     },
     {
@@ -257,7 +258,7 @@
     {
       "id": "urbana-library",
       "status": "live",
-      "count": 125,
+      "count": 124,
       "unit": "events"
     },
     {
@@ -268,21 +269,24 @@
     },
     {
       "id": "quest-k5",
-      "status": "live",
+      "status": "cached",
       "count": 4,
-      "unit": "menu days"
+      "unit": "menu days",
+      "error": "RuntimeError: MySchoolQuest loaded for k5, but no lunch menu was extracted"
     },
     {
       "id": "quest-middle",
-      "status": "live",
+      "status": "cached",
       "count": 4,
-      "unit": "menu days"
+      "unit": "menu days",
+      "error": "RuntimeError: MySchoolQuest loaded for middle, but no lunch menu was extracted"
     },
     {
       "id": "quest-high",
-      "status": "live",
+      "status": "cached",
       "count": 4,
-      "unit": "menu days"
+      "unit": "menu days",
+      "error": "RuntimeError: MySchoolQuest loaded for high, but no lunch menu was extracted"
     },
     {
       "id": "unit4-menus",
@@ -292,372 +296,6 @@
     }
   ],
   "events": [
-    {
-      "id": "uni-calc1-test-0911",
-      "title": "Calculus 1 — Test 1",
-      "date": "2026-09-11",
-      "allDay": true,
-      "schools": [
-        "uni"
-      ],
-      "scope": "school",
-      "category": "test",
-      "detail": "Juniors/Seniors · Section 3",
-      "source": "Uni Test Calendar",
-      "sourceUrl": "https://outlook.cloud.microsoft/calendar/published/716d71edc9b44180a45a0f2c89b424aa@illinois.edu/f3ee9274fae0467cbe9e6a3f74a98c8716194273186825433743/calendar.html"
-    },
-    {
-      "id": "uni-google-b1235215a557d4b7",
-      "title": "ODD Block Day",
-      "date": "2026-09-11",
-      "schools": [
-        "uni"
-      ],
-      "scope": "school",
-      "category": "general",
-      "source": "Uni High Events — Google Calendar",
-      "sourceUrl": "https://calendar.google.com/calendar/u/0/embed?src=uni-asstdirector@illinois.edu&ctz=America/Chicago",
-      "allDay": true
-    },
-    {
-      "id": "uni-pollinatarium-trip-0911",
-      "title": "Pollinatarium Field Trip",
-      "date": "2026-09-11",
-      "allDay": true,
-      "schools": [
-        "uni"
-      ],
-      "scope": "school",
-      "category": "general",
-      "detail": "Juniors/Seniors · Section 5 · Entomology",
-      "source": "Uni Test Calendar",
-      "sourceUrl": "https://outlook.cloud.microsoft/calendar/published/716d71edc9b44180a45a0f2c89b424aa@illinois.edu/f3ee9274fae0467cbe9e6a3f74a98c8716194273186825433743/calendar.html"
-    },
-    {
-      "id": "uni-snap-74c45d3a0b0ddbcc80",
-      "title": "TIME TBD- Soccer-V Boys @ Hoopeston (Game)",
-      "date": "2026-09-11",
-      "schools": [
-        "uni"
-      ],
-      "scope": "school",
-      "category": "sport",
-      "source": "Uni High Athletics — Snap!",
-      "start": "00:00",
-      "end": "23:59",
-      "location": "Away - Hoopeston",
-      "sourceUrl": "https://schools.snap.app/Uni/event/4755"
-    },
-    {
-      "id": "champaign-library-14192342",
-      "title": "Toddler Storytime @ Douglass",
-      "date": "2026-09-11",
-      "schools": [
-        "champaign-lib-early"
-      ],
-      "scope": "community",
-      "category": "general",
-      "source": "Champaign Public Library",
-      "sourceUrl": "https://champaign.libnet.info/event/14192342",
-      "start": "10:30",
-      "end": "11:00",
-      "location": "Douglass Branch Library"
-    },
-    {
-      "id": "u4-central-e7fb6ff6-e",
-      "title": "Boys Golf @ Mattoon",
-      "date": "2026-09-11",
-      "schools": [
-        "central"
-      ],
-      "scope": "school",
-      "category": "sport",
-      "source": "Central calendar",
-      "sourceUrl": "https://www.champaignschools.org/",
-      "start": "13:00",
-      "end": "19:00"
-    },
-    {
-      "id": "champaign-library-16785369",
-      "title": "Members’ Half-Price Sale",
-      "date": "2026-09-11",
-      "schools": [
-        "champaign-lib-teens"
-      ],
-      "scope": "community",
-      "category": "general",
-      "source": "Champaign Public Library",
-      "sourceUrl": "https://champaign.libnet.info/event/16785369",
-      "start": "13:00",
-      "end": "16:00",
-      "location": "FriendShop Bookstore"
-    },
-    {
-      "id": "champaign-library-15024394",
-      "title": "Teen Lounge",
-      "date": "2026-09-11",
-      "schools": [
-        "champaign-lib-teens"
-      ],
-      "scope": "community",
-      "category": "general",
-      "source": "Champaign Public Library",
-      "sourceUrl": "https://champaign.libnet.info/event/15024394",
-      "start": "15:00",
-      "end": "16:30",
-      "location": "Main Library"
-    },
-    {
-      "id": "uni-google-078d31d7fd70721a",
-      "title": "Scholastic Bowl Practice",
-      "date": "2026-09-11",
-      "schools": [
-        "uni"
-      ],
-      "scope": "school",
-      "category": "general",
-      "source": "Uni High Events — Google Calendar",
-      "sourceUrl": "https://calendar.google.com/calendar/u/0/embed?src=uni-asstdirector@illinois.edu&ctz=America/Chicago",
-      "start": "15:15",
-      "end": "16:00",
-      "location": "Uni 218"
-    },
-    {
-      "id": "stmatthew-5899ba766b2feaad82",
-      "title": "CC Chrisman",
-      "date": "2026-09-11",
-      "schools": [
-        "stmatthew"
-      ],
-      "scope": "school",
-      "category": "general",
-      "source": "St. Matthew School Calendar",
-      "sourceUrl": "https://www.stmatt.net/school-news/calendar",
-      "start": "16:00",
-      "end": "17:00"
-    },
-    {
-      "id": "uni-google-8be1b0b5afee5454",
-      "title": "Theatre Rehearsals, Fall Play",
-      "date": "2026-09-11",
-      "schools": [
-        "uni"
-      ],
-      "scope": "school",
-      "category": "general",
-      "source": "Uni High Events — Google Calendar",
-      "sourceUrl": "https://calendar.google.com/calendar/u/0/embed?src=uni-asstdirector@illinois.edu&ctz=America/Chicago",
-      "start": "16:00",
-      "end": "18:00",
-      "location": "North Attic"
-    },
-    {
-      "id": "judah-athletics-2026-09-11-3",
-      "title": "Varsity Coed Cross Country — Practice",
-      "date": "2026-09-11",
-      "schools": [
-        "judah"
-      ],
-      "scope": "school",
-      "category": "athletics",
-      "source": "Judah Christian Athletics",
-      "sourceUrl": "https://arbiterlive.com/Teams/Game/102769609/11489/11648385/93",
-      "start": "16:00",
-      "end": "17:15"
-    },
-    {
-      "id": "judah-athletics-2026-09-11-4",
-      "title": "Varsity Girls Volleyball — Practice",
-      "date": "2026-09-11",
-      "schools": [
-        "judah"
-      ],
-      "scope": "school",
-      "category": "athletics",
-      "source": "Judah Christian Athletics",
-      "sourceUrl": "https://arbiterlive.com/Teams/Game/102292128/11489/8445885/93",
-      "start": "16:00",
-      "end": "18:00"
-    },
-    {
-      "id": "urbana-library-16897101",
-      "title": "Write On!",
-      "date": "2026-09-11",
-      "schools": [
-        "urbana-lib-elementary",
-        "urbana-lib-teens"
-      ],
-      "scope": "community",
-      "category": "general",
-      "source": "Urbana Free Library",
-      "sourceUrl": "https://urbanafreelibrary.libnet.info/event/16897101",
-      "start": "16:00",
-      "end": "17:00",
-      "location": "The Urbana Free Library"
-    },
-    {
-      "id": "judah-athletics-2026-09-11-2",
-      "title": "6/7/8th Boys Baseball — Practice",
-      "date": "2026-09-11",
-      "schools": [
-        "judah"
-      ],
-      "scope": "school",
-      "category": "athletics",
-      "source": "Judah Christian Athletics",
-      "sourceUrl": "https://arbiterlive.com/Teams/Game/102769918/11489/11648381/93",
-      "start": "16:30",
-      "end": "18:00"
-    },
-    {
-      "id": "judah-athletics-2026-09-11-1",
-      "title": "Varsity Boys Soccer — Practice",
-      "date": "2026-09-11",
-      "schools": [
-        "judah"
-      ],
-      "scope": "school",
-      "category": "athletics",
-      "source": "Judah Christian Athletics",
-      "sourceUrl": "https://arbiterlive.com/Teams/Game/102770167/11489/8265876/93",
-      "start": "16:30",
-      "end": "18:30"
-    },
-    {
-      "id": "u4-central-5163bde2-a",
-      "title": "Volleyball @ Crossroads Classic",
-      "date": "2026-09-11",
-      "schools": [
-        "central"
-      ],
-      "scope": "school",
-      "category": "sport",
-      "source": "Central calendar",
-      "sourceUrl": "https://www.champaignschools.org/",
-      "start": "16:30",
-      "end": "20:00"
-    },
-    {
-      "id": "champaign-library-17180855",
-      "title": "Studio @ Main | Drop-in",
-      "date": "2026-09-11",
-      "schools": [
-        "champaign-lib-early"
-      ],
-      "scope": "community",
-      "category": "general",
-      "source": "Champaign Public Library",
-      "sourceUrl": "https://champaign.libnet.info/event/17180855",
-      "start": "17:00",
-      "end": "20:00",
-      "location": "Main Library"
-    },
-    {
-      "id": "u4-robeson-be425e18-0",
-      "title": "PTA Block Party",
-      "date": "2026-09-11",
-      "schools": [
-        "robeson"
-      ],
-      "scope": "school",
-      "category": "general",
-      "source": "Robeson calendar",
-      "sourceUrl": "https://www.champaignschools.org/",
-      "start": "18:00",
-      "end": "20:00",
-      "location": "Robeson Elementary"
-    },
-    {
-      "id": "champaign-library-17286313",
-      "title": "Unbooked Kids | Coloring",
-      "date": "2026-09-11",
-      "schools": [
-        "champaign-lib-elementary"
-      ],
-      "scope": "community",
-      "category": "general",
-      "source": "Champaign Public Library",
-      "sourceUrl": "https://champaign.libnet.info/event/17286313",
-      "start": "18:00",
-      "end": "20:00",
-      "location": "Main Library"
-    },
-    {
-      "id": "champaign-library-16603644",
-      "title": "Unbooked | Trivia",
-      "date": "2026-09-11",
-      "schools": [
-        "champaign-lib-early"
-      ],
-      "scope": "community",
-      "category": "general",
-      "source": "Champaign Public Library",
-      "sourceUrl": "https://champaign.libnet.info/event/16603644",
-      "start": "18:00",
-      "end": "20:00",
-      "location": "Main Library"
-    },
-    {
-      "id": "uni-snap-192cb22393322cda5a",
-      "title": "Volleyball-V Girls @ Williamsville High School (Game)",
-      "date": "2026-09-11",
-      "schools": [
-        "uni"
-      ],
-      "scope": "school",
-      "category": "sport",
-      "source": "Uni High Athletics — Snap!",
-      "start": "18:00",
-      "end": "20:00",
-      "location": "Away - Williamsville High School",
-      "sourceUrl": "https://schools.snap.app/Uni/event/4598"
-    },
-    {
-      "id": "uhs-football-central-0911",
-      "title": "Football vs. Champaign Central",
-      "date": "2026-09-11",
-      "start": "19:00",
-      "schools": [
-        "central",
-        "uhs"
-      ],
-      "location": "Urbana High School",
-      "scope": "school",
-      "category": "sport",
-      "source": "MaxPreps + Central calendar",
-      "sourceUrl": "https://www.maxpreps.com/il/urbana/urbana-tigers/football/schedule/",
-      "end": "21:00"
-    },
-    {
-      "id": "uhs-snap-04441cbc2ba43d9bae",
-      "title": "TIME TBD- CHEERLEADING FOOTBALL-V - VS Champaign Central (Game)",
-      "date": "2026-09-11",
-      "schools": [
-        "uhs"
-      ],
-      "scope": "school",
-      "category": "sport",
-      "source": "Urbana High Athletics — Snap!",
-      "start": "19:00",
-      "end": "23:59",
-      "location": "HOME - McKinley Football Field, UHS",
-      "sourceUrl": "https://schools.snap.app/Urbana/event/28729"
-    },
-    {
-      "id": "uhs-snap-e5ac06c87ad8b5289b",
-      "title": "TIME TBD- FOOTBALL-V Boys - VS Champaign Central (Game)",
-      "date": "2026-09-11",
-      "schools": [
-        "uhs"
-      ],
-      "scope": "school",
-      "category": "sport",
-      "source": "Urbana High Athletics — Snap!",
-      "start": "19:00",
-      "end": "23:59",
-      "location": "HOME - McKinley Football Field, UHS",
-      "sourceUrl": "https://schools.snap.app/Urbana/event/28731"
-    },
     {
       "id": "u4-central-b84a1791-c",
       "title": "Marching Band @ Washington TBD times",
@@ -1276,7 +914,7 @@
       "location": "Main Library"
     },
     {
-      "id": "judah-athletics-2026-09-14-5",
+      "id": "judah-athletics-2026-09-14-1",
       "title": "Middle School Girls Basketball — Practice",
       "date": "2026-09-14",
       "schools": [
@@ -1379,7 +1017,7 @@
       "location": "North Attic"
     },
     {
-      "id": "judah-athletics-2026-09-14-9",
+      "id": "judah-athletics-2026-09-14-5",
       "title": "Varsity Coed Cross Country — Practice",
       "date": "2026-09-14",
       "schools": [
@@ -1393,7 +1031,7 @@
       "end": "17:15"
     },
     {
-      "id": "judah-athletics-2026-09-14-10",
+      "id": "judah-athletics-2026-09-14-6",
       "title": "Varsity Girls Volleyball — Practice",
       "date": "2026-09-14",
       "schools": [
@@ -1407,7 +1045,7 @@
       "end": "18:00"
     },
     {
-      "id": "judah-athletics-2026-09-14-6",
+      "id": "judah-athletics-2026-09-14-2",
       "title": "6/7/8th Boys Baseball at Villa Grove Junior/Senior High School — Game",
       "date": "2026-09-14",
       "schools": [
@@ -1421,7 +1059,7 @@
       "end": "17:30"
     },
     {
-      "id": "judah-athletics-2026-09-14-11",
+      "id": "judah-athletics-2026-09-14-7",
       "title": "7/8th Boys Soccer vs. Holy Cross Elementary School — Game",
       "date": "2026-09-14",
       "schools": [
@@ -1449,7 +1087,7 @@
       "end": "17:30"
     },
     {
-      "id": "judah-athletics-2026-09-14-8",
+      "id": "judah-athletics-2026-09-14-4",
       "title": "Varsity Boys Soccer — Practice",
       "date": "2026-09-14",
       "schools": [
@@ -1463,7 +1101,7 @@
       "end": "18:30"
     },
     {
-      "id": "judah-athletics-2026-09-14-7",
+      "id": "judah-athletics-2026-09-14-3",
       "title": "6/7/8th Coed Soccer — Practice",
       "date": "2026-09-14",
       "schools": [
@@ -1754,7 +1392,7 @@
       "location": "Uni 106S"
     },
     {
-      "id": "judah-athletics-2026-09-15-12",
+      "id": "judah-athletics-2026-09-15-8",
       "title": "Middle School Girls Basketball — Practice",
       "date": "2026-09-15",
       "schools": [
@@ -1828,7 +1466,7 @@
       "location": "North Attic"
     },
     {
-      "id": "judah-athletics-2026-09-15-16",
+      "id": "judah-athletics-2026-09-15-12",
       "title": "Varsity Coed Cross Country — Practice",
       "date": "2026-09-15",
       "schools": [
@@ -1871,7 +1509,7 @@
       "sourceUrl": "https://schools.snap.app/Uni/event/4851"
     },
     {
-      "id": "judah-athletics-2026-09-15-13",
+      "id": "judah-athletics-2026-09-15-9",
       "title": "Middle School Coed Cross Country at Schlarman High School — Game",
       "date": "2026-09-15",
       "schools": [
@@ -1899,7 +1537,7 @@
       "end": "17:15"
     },
     {
-      "id": "judah-athletics-2026-09-15-15",
+      "id": "judah-athletics-2026-09-15-11",
       "title": "6/7/8th Boys Baseball — Practice",
       "date": "2026-09-15",
       "schools": [
@@ -1986,7 +1624,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28546"
     },
     {
-      "id": "judah-athletics-2026-09-15-17",
+      "id": "judah-athletics-2026-09-15-13",
       "title": "Varsity Boys Soccer vs. Calvary Christian Academy — Game — Canceled",
       "date": "2026-09-15",
       "schools": [
@@ -2000,7 +1638,7 @@
       "end": "18:30"
     },
     {
-      "id": "judah-athletics-2026-09-15-14",
+      "id": "judah-athletics-2026-09-15-10",
       "title": "6/7/8th Coed Soccer — Practice",
       "date": "2026-09-15",
       "schools": [
@@ -2293,7 +1931,7 @@
       "location": "North Attic"
     },
     {
-      "id": "judah-athletics-2026-09-16-18",
+      "id": "judah-athletics-2026-09-16-14",
       "title": "Varsity Girls Volleyball — Practice",
       "date": "2026-09-16",
       "schools": [
@@ -2616,7 +2254,7 @@
       "location": "Uni 106S"
     },
     {
-      "id": "judah-athletics-2026-09-17-20",
+      "id": "judah-athletics-2026-09-17-16",
       "title": "Middle School Girls Basketball — Practice",
       "date": "2026-09-17",
       "schools": [
@@ -2690,7 +2328,7 @@
       "location": "North Attic"
     },
     {
-      "id": "judah-athletics-2026-09-17-19",
+      "id": "judah-athletics-2026-09-17-15",
       "title": "6/7/8th Boys Baseball at East Prairie Junior High School — Game",
       "date": "2026-09-17",
       "schools": [
@@ -2777,7 +2415,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28515"
     },
     {
-      "id": "judah-athletics-2026-09-17-22",
+      "id": "judah-athletics-2026-09-17-18",
       "title": "Varsity Boys Soccer — Practice",
       "date": "2026-09-17",
       "schools": [
@@ -2791,7 +2429,7 @@
       "end": "18:30"
     },
     {
-      "id": "judah-athletics-2026-09-17-23",
+      "id": "judah-athletics-2026-09-17-19",
       "title": "Varsity Coed Cross Country — Game",
       "date": "2026-09-17",
       "schools": [
@@ -2805,7 +2443,7 @@
       "end": "17:30"
     },
     {
-      "id": "judah-athletics-2026-09-17-21",
+      "id": "judah-athletics-2026-09-17-17",
       "title": "6/7/8th Coed Soccer — Practice",
       "date": "2026-09-17",
       "schools": [
@@ -3024,7 +2662,7 @@
       "location": "Main Library"
     },
     {
-      "id": "judah-athletics-2026-09-17-24",
+      "id": "judah-athletics-2026-09-17-20",
       "title": "Varsity Girls Volleyball at Deland-Weldon High School — Game",
       "date": "2026-09-17",
       "schools": [
@@ -3184,7 +2822,7 @@
       "location": "Uni 218"
     },
     {
-      "id": "judah-athletics-2026-09-18-25",
+      "id": "judah-athletics-2026-09-18-21",
       "title": "Middle School Girls Basketball — Practice",
       "date": "2026-09-18",
       "schools": [
@@ -3243,7 +2881,7 @@
       "location": "North Attic"
     },
     {
-      "id": "judah-athletics-2026-09-18-26",
+      "id": "judah-athletics-2026-09-18-22",
       "title": "Varsity Coed Cross Country — Practice",
       "date": "2026-09-18",
       "schools": [
@@ -3257,7 +2895,7 @@
       "end": "17:15"
     },
     {
-      "id": "judah-athletics-2026-09-18-27",
+      "id": "judah-athletics-2026-09-18-23",
       "title": "Varsity Girls Volleyball — Practice",
       "date": "2026-09-18",
       "schools": [
@@ -3302,7 +2940,7 @@
       "end": "17:00"
     },
     {
-      "id": "judah-athletics-2026-09-18-29",
+      "id": "judah-athletics-2026-09-18-25",
       "title": "6/7/8th Coed Soccer vs. Cornerstone Christian Academy — Game",
       "date": "2026-09-18",
       "schools": [
@@ -3316,7 +2954,7 @@
       "end": "18:30"
     },
     {
-      "id": "judah-athletics-2026-09-18-28",
+      "id": "judah-athletics-2026-09-18-24",
       "title": "7/8th Boys Soccer vs. Cornerstone Christian Academy — Game",
       "date": "2026-09-18",
       "schools": [
@@ -3446,7 +3084,7 @@
       "allDay": true
     },
     {
-      "id": "judah-athletics-2026-09-19-30",
+      "id": "judah-athletics-2026-09-19-26",
       "title": "6/7/8th Boys Baseball — Game",
       "date": "2026-09-19",
       "schools": [
@@ -3708,7 +3346,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28938"
     },
     {
-      "id": "judah-athletics-2026-09-19-32",
+      "id": "judah-athletics-2026-09-19-28",
       "title": "Varsity Boys Soccer at Watseka High School — Game",
       "date": "2026-09-19",
       "schools": [
@@ -3722,7 +3360,7 @@
       "end": "12:00"
     },
     {
-      "id": "judah-athletics-2026-09-19-31",
+      "id": "judah-athletics-2026-09-19-27",
       "title": "Varsity Coed Cross Country at Tuscola High School — Game",
       "date": "2026-09-19",
       "schools": [
@@ -3960,7 +3598,7 @@
       "location": "Uni 218"
     },
     {
-      "id": "judah-athletics-2026-09-21-33",
+      "id": "judah-athletics-2026-09-21-29",
       "title": "Middle School Girls Basketball — Practice",
       "date": "2026-09-21",
       "schools": [
@@ -4020,7 +3658,7 @@
       "location": "North Attic"
     },
     {
-      "id": "judah-athletics-2026-09-21-34",
+      "id": "judah-athletics-2026-09-21-30",
       "title": "Varsity Coed Cross Country — Practice",
       "date": "2026-09-21",
       "schools": [
@@ -4078,7 +3716,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28403"
     },
     {
-      "id": "judah-athletics-2026-09-21-35",
+      "id": "judah-athletics-2026-09-21-31",
       "title": "Varsity Boys Soccer vs. Olympia C.U.S.D. #16 — Game",
       "date": "2026-09-21",
       "schools": [
@@ -4092,7 +3730,7 @@
       "end": "18:30"
     },
     {
-      "id": "judah-athletics-2026-09-21-37",
+      "id": "judah-athletics-2026-09-21-33",
       "title": "6/7/8th Coed Soccer at Trinity Lutheran-Bloomington — Game",
       "date": "2026-09-21",
       "schools": [
@@ -4177,7 +3815,7 @@
       "sourceUrl": "https://schools.snap.app/Uni/event/4769"
     },
     {
-      "id": "judah-athletics-2026-09-21-36",
+      "id": "judah-athletics-2026-09-21-32",
       "title": "Varsity Girls Volleyball vs. Hoopeston Area High School — Game",
       "date": "2026-09-21",
       "schools": [
@@ -4384,7 +4022,7 @@
       "location": "Uni 106S"
     },
     {
-      "id": "judah-athletics-2026-09-22-39",
+      "id": "judah-athletics-2026-09-22-35",
       "title": "Middle School Girls Basketball — Practice",
       "date": "2026-09-22",
       "schools": [
@@ -4458,7 +4096,7 @@
       "location": "North Attic"
     },
     {
-      "id": "judah-athletics-2026-09-22-41",
+      "id": "judah-athletics-2026-09-22-37",
       "title": "Varsity Coed Cross Country — Practice",
       "date": "2026-09-22",
       "schools": [
@@ -4472,7 +4110,7 @@
       "end": "17:15"
     },
     {
-      "id": "judah-athletics-2026-09-22-42",
+      "id": "judah-athletics-2026-09-22-38",
       "title": "Varsity Girls Volleyball — Practice",
       "date": "2026-09-22",
       "schools": [
@@ -4576,7 +4214,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28601"
     },
     {
-      "id": "judah-athletics-2026-09-22-38",
+      "id": "judah-athletics-2026-09-22-34",
       "title": "Varsity Boys Soccer vs. Calvary Christian Academy — Game — Canceled",
       "date": "2026-09-22",
       "schools": [
@@ -4590,7 +4228,7 @@
       "end": "18:30"
     },
     {
-      "id": "judah-athletics-2026-09-22-40",
+      "id": "judah-athletics-2026-09-22-36",
       "title": "6/7/8th Coed Soccer — Practice",
       "date": "2026-09-22",
       "schools": [
@@ -4971,7 +4609,7 @@
       "location": "North Attic"
     },
     {
-      "id": "judah-athletics-2026-09-23-43",
+      "id": "judah-athletics-2026-09-23-39",
       "title": "Varsity Girls Volleyball — Practice",
       "date": "2026-09-23",
       "schools": [
@@ -5223,7 +4861,7 @@
       "location": "Uni 106S"
     },
     {
-      "id": "judah-athletics-2026-09-24-44",
+      "id": "judah-athletics-2026-09-24-40",
       "title": "Middle School Girls Basketball — Practice",
       "date": "2026-09-24",
       "schools": [
@@ -5297,7 +4935,7 @@
       "location": "North Attic"
     },
     {
-      "id": "judah-athletics-2026-09-24-46",
+      "id": "judah-athletics-2026-09-24-42",
       "title": "Varsity Coed Cross Country — Practice",
       "date": "2026-09-24",
       "schools": [
@@ -5311,7 +4949,7 @@
       "end": "17:15"
     },
     {
-      "id": "judah-athletics-2026-09-24-47",
+      "id": "judah-athletics-2026-09-24-43",
       "title": "Varsity Girls Volleyball — Practice",
       "date": "2026-09-24",
       "schools": [
@@ -5325,7 +4963,7 @@
       "end": "18:00"
     },
     {
-      "id": "judah-athletics-2026-09-24-49",
+      "id": "judah-athletics-2026-09-24-45",
       "title": "6/7/8th Coed Soccer at Cornerstone Christian Academy — Game",
       "date": "2026-09-24",
       "schools": [
@@ -5384,7 +5022,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28613"
     },
     {
-      "id": "judah-athletics-2026-09-24-45",
+      "id": "judah-athletics-2026-09-24-41",
       "title": "Varsity Boys Soccer — Practice",
       "date": "2026-09-24",
       "schools": [
@@ -5458,7 +5096,7 @@
       "end": "18:30"
     },
     {
-      "id": "judah-athletics-2026-09-24-48",
+      "id": "judah-athletics-2026-09-24-44",
       "title": "Varsity Girls Volleyball at Christian Life Academy (Hopedale) — Game",
       "date": "2026-09-24",
       "schools": [
@@ -5759,7 +5397,7 @@
       "end": "16:30"
     },
     {
-      "id": "judah-athletics-2026-09-25-51",
+      "id": "judah-athletics-2026-09-25-47",
       "title": "Middle School Coed Cross Country at St. Joseph Middle School — Game",
       "date": "2026-09-25",
       "schools": [
@@ -5773,7 +5411,7 @@
       "end": "16:30"
     },
     {
-      "id": "judah-athletics-2026-09-25-50",
+      "id": "judah-athletics-2026-09-25-46",
       "title": "Middle School Girls Basketball — Practice",
       "date": "2026-09-25",
       "schools": [
@@ -5860,7 +5498,7 @@
       "location": "North Attic"
     },
     {
-      "id": "judah-athletics-2026-09-25-52",
+      "id": "judah-athletics-2026-09-25-48",
       "title": "Varsity Coed Cross Country — Practice",
       "date": "2026-09-25",
       "schools": [
@@ -5874,7 +5512,7 @@
       "end": "17:15"
     },
     {
-      "id": "judah-athletics-2026-09-25-53",
+      "id": "judah-athletics-2026-09-25-49",
       "title": "Varsity Girls Volleyball — Practice",
       "date": "2026-09-25",
       "schools": [
@@ -5947,7 +5585,7 @@
       "location": "Main Library"
     },
     {
-      "id": "judah-athletics-2026-09-25-54",
+      "id": "judah-athletics-2026-09-25-50",
       "title": "Varsity Boys Soccer vs. Arthur Christian School — Game",
       "date": "2026-09-25",
       "schools": [
@@ -6255,7 +5893,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28339"
     },
     {
-      "id": "judah-athletics-2026-09-26-55",
+      "id": "judah-athletics-2026-09-26-51",
       "title": "Varsity Coed Cross Country at St. Joseph-Ogden High School — Game",
       "date": "2026-09-26",
       "schools": [
@@ -6642,7 +6280,7 @@
       "location": "North Attic"
     },
     {
-      "id": "judah-athletics-2026-09-28-58",
+      "id": "judah-athletics-2026-09-28-54",
       "title": "Varsity Coed Cross Country — Practice",
       "date": "2026-09-28",
       "schools": [
@@ -6715,7 +6353,7 @@
       "sourceUrl": "https://schools.snap.app/Uni/event/4475"
     },
     {
-      "id": "judah-athletics-2026-09-28-57",
+      "id": "judah-athletics-2026-09-28-53",
       "title": "Varsity Boys Soccer — Practice",
       "date": "2026-09-28",
       "schools": [
@@ -6729,7 +6367,7 @@
       "end": "18:30"
     },
     {
-      "id": "judah-athletics-2026-09-28-56",
+      "id": "judah-athletics-2026-09-28-52",
       "title": "6/7/8th Coed Soccer — Practice",
       "date": "2026-09-28",
       "schools": [
@@ -6771,7 +6409,7 @@
       "end": "18:30"
     },
     {
-      "id": "judah-athletics-2026-09-28-59",
+      "id": "judah-athletics-2026-09-28-55",
       "title": "Middle School Girls Basketball at Blue Ridge Junior High School — Game",
       "date": "2026-09-28",
       "schools": [
@@ -6799,7 +6437,7 @@
       "end": "19:00"
     },
     {
-      "id": "judah-athletics-2026-09-28-60",
+      "id": "judah-athletics-2026-09-28-56",
       "title": "Varsity Girls Volleyball at Cerro Gordo High School — Game",
       "date": "2026-09-28",
       "schools": [
@@ -7092,7 +6730,7 @@
       "location": "Away - UNITY"
     },
     {
-      "id": "judah-athletics-2026-09-29-61",
+      "id": "judah-athletics-2026-09-29-57",
       "title": "Middle School Coed Cross Country at Unity Junior High School — Game",
       "date": "2026-09-29",
       "schools": [
@@ -7136,7 +6774,7 @@
       "location": "North Attic"
     },
     {
-      "id": "judah-athletics-2026-09-29-64",
+      "id": "judah-athletics-2026-09-29-60",
       "title": "Varsity Coed Cross Country — Practice",
       "date": "2026-09-29",
       "schools": [
@@ -7150,7 +6788,7 @@
       "end": "17:15"
     },
     {
-      "id": "judah-athletics-2026-09-29-65",
+      "id": "judah-athletics-2026-09-29-61",
       "title": "Varsity Girls Volleyball — Practice",
       "date": "2026-09-29",
       "schools": [
@@ -7253,7 +6891,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28547"
     },
     {
-      "id": "judah-athletics-2026-09-29-63",
+      "id": "judah-athletics-2026-09-29-59",
       "title": "Varsity Boys Soccer — Practice",
       "date": "2026-09-29",
       "schools": [
@@ -7267,7 +6905,7 @@
       "end": "18:30"
     },
     {
-      "id": "judah-athletics-2026-09-29-62",
+      "id": "judah-athletics-2026-09-29-58",
       "title": "6/7/8th Coed Soccer — Practice",
       "date": "2026-09-29",
       "schools": [
@@ -7370,7 +7008,7 @@
       "end": "20:00"
     },
     {
-      "id": "judah-athletics-2026-09-29-66",
+      "id": "judah-athletics-2026-09-29-62",
       "title": "Middle School Girls Basketball vs. Calvary Christian Academy — Game",
       "date": "2026-09-29",
       "schools": [
@@ -7680,7 +7318,7 @@
       "location": "North Attic"
     },
     {
-      "id": "judah-athletics-2026-09-30-67",
+      "id": "judah-athletics-2026-09-30-63",
       "title": "Varsity Girls Volleyball — Practice",
       "date": "2026-09-30",
       "schools": [
@@ -8238,7 +7876,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28466"
     },
     {
-      "id": "judah-athletics-2026-10-01-71",
+      "id": "judah-athletics-2026-10-01-67",
       "title": "6/7/8th Coed Soccer at Calvary Christian Academy — Game",
       "date": "2026-10-01",
       "schools": [
@@ -8340,7 +7978,7 @@
       "sourceUrl": "https://schools.snap.app/Uni/event/4873"
     },
     {
-      "id": "judah-athletics-2026-10-01-68",
+      "id": "judah-athletics-2026-10-01-64",
       "title": "Varsity Boys Soccer — Practice",
       "date": "2026-10-01",
       "schools": [
@@ -8354,7 +7992,7 @@
       "end": "18:30"
     },
     {
-      "id": "judah-athletics-2026-10-01-69",
+      "id": "judah-athletics-2026-10-01-65",
       "title": "Middle School Girls Basketball vs. Next Generation — Game",
       "date": "2026-10-01",
       "schools": [
@@ -8605,7 +8243,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28745"
     },
     {
-      "id": "judah-athletics-2026-10-01-70",
+      "id": "judah-athletics-2026-10-01-66",
       "title": "Varsity Girls Volleyball vs. Deland-Weldon High School — Game",
       "date": "2026-10-01",
       "schools": [
@@ -8803,7 +8441,7 @@
       "location": "Uni 218"
     },
     {
-      "id": "judah-athletics-2026-10-02-72",
+      "id": "judah-athletics-2026-10-02-68",
       "title": "Middle School Girls Basketball — Practice",
       "date": "2026-10-02",
       "schools": [
@@ -8831,7 +8469,7 @@
       "end": "17:00"
     },
     {
-      "id": "judah-athletics-2026-10-02-73",
+      "id": "judah-athletics-2026-10-02-69",
       "title": "Varsity Coed Cross Country — Practice",
       "date": "2026-10-02",
       "schools": [
@@ -8845,7 +8483,7 @@
       "end": "17:15"
     },
     {
-      "id": "judah-athletics-2026-10-02-75",
+      "id": "judah-athletics-2026-10-02-71",
       "title": "Varsity Girls Volleyball — Practice",
       "date": "2026-10-02",
       "schools": [
@@ -8888,7 +8526,7 @@
       "sourceUrl": "https://schools.snap.app/Uni/event/4745"
     },
     {
-      "id": "judah-athletics-2026-10-02-74",
+      "id": "judah-athletics-2026-10-02-70",
       "title": "Varsity Boys Soccer at Schlarman High School — Game",
       "date": "2026-10-02",
       "schools": [
@@ -9051,7 +8689,7 @@
       "location": "Champaign Central High School"
     },
     {
-      "id": "judah-athletics-2026-10-03-76",
+      "id": "judah-athletics-2026-10-03-72",
       "title": "Varsity Girls Volleyball — Game",
       "date": "2026-10-03",
       "schools": [
@@ -9667,7 +9305,7 @@
       "location": "Main Library"
     },
     {
-      "id": "judah-athletics-2026-10-05-77",
+      "id": "judah-athletics-2026-10-05-73",
       "title": "Middle School Girls Basketball — Practice",
       "date": "2026-10-05",
       "schools": [
@@ -9726,7 +9364,7 @@
       "end": "18:30"
     },
     {
-      "id": "judah-athletics-2026-10-05-78",
+      "id": "judah-athletics-2026-10-05-74",
       "title": "Varsity Coed Cross Country — Practice",
       "date": "2026-10-05",
       "schools": [
@@ -9815,7 +9453,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28548"
     },
     {
-      "id": "judah-athletics-2026-10-05-79",
+      "id": "judah-athletics-2026-10-05-75",
       "title": "Varsity Boys Soccer at Arthur-Lovington-Atwood-Hammond High School — Game",
       "date": "2026-10-05",
       "schools": [
@@ -9829,7 +9467,7 @@
       "end": "17:00"
     },
     {
-      "id": "judah-athletics-2026-10-05-81",
+      "id": "judah-athletics-2026-10-05-77",
       "title": "6/7/8th Coed Soccer vs. Trinity Lutheran-Bloomington — Game",
       "date": "2026-10-05",
       "schools": [
@@ -9932,7 +9570,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28752"
     },
     {
-      "id": "judah-athletics-2026-10-05-80",
+      "id": "judah-athletics-2026-10-05-76",
       "title": "Varsity Girls Volleyball vs. Oakwood High School — Game",
       "date": "2026-10-05",
       "schools": [
@@ -10140,7 +9778,7 @@
       "location": "North Attic"
     },
     {
-      "id": "judah-athletics-2026-10-06-82",
+      "id": "judah-athletics-2026-10-06-78",
       "title": "Middle School Girls Basketball — Practice",
       "date": "2026-10-06",
       "schools": [
@@ -10185,7 +9823,7 @@
       "sourceUrl": "https://schools.snap.app/Uni/event/4781"
     },
     {
-      "id": "judah-athletics-2026-10-06-84",
+      "id": "judah-athletics-2026-10-06-80",
       "title": "Varsity Coed Cross Country — Practice",
       "date": "2026-10-06",
       "schools": [
@@ -10229,7 +9867,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28457"
     },
     {
-      "id": "judah-athletics-2026-10-06-86",
+      "id": "judah-athletics-2026-10-06-82",
       "title": "6/7/8th Coed Soccer at Countryside High School — Game",
       "date": "2026-10-06",
       "schools": [
@@ -10348,7 +9986,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28519"
     },
     {
-      "id": "judah-athletics-2026-10-06-83",
+      "id": "judah-athletics-2026-10-06-79",
       "title": "Varsity Coed Cross Country at University High School-Urbana — Game",
       "date": "2026-10-06",
       "schools": [
@@ -10582,7 +10220,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28807"
     },
     {
-      "id": "judah-athletics-2026-10-06-85",
+      "id": "judah-athletics-2026-10-06-81",
       "title": "Varsity Girls Volleyball vs. Calvary Christian Academy — Game",
       "date": "2026-10-06",
       "schools": [
@@ -10799,7 +10437,7 @@
       "location": "Douglass Branch Library"
     },
     {
-      "id": "judah-athletics-2026-10-07-87",
+      "id": "judah-athletics-2026-10-07-83",
       "title": "Varsity Girls Volleyball — Practice",
       "date": "2026-10-07",
       "schools": [
@@ -11363,7 +11001,7 @@
       "end": "20:00"
     },
     {
-      "id": "judah-athletics-2026-10-08-89",
+      "id": "judah-athletics-2026-10-08-85",
       "title": "Varsity Coed Cross Country — Practice",
       "date": "2026-10-08",
       "schools": [
@@ -11377,7 +11015,7 @@
       "end": "17:15"
     },
     {
-      "id": "judah-athletics-2026-10-08-90",
+      "id": "judah-athletics-2026-10-08-86",
       "title": "Varsity Girls Volleyball — Practice",
       "date": "2026-10-08",
       "schools": [
@@ -11435,7 +11073,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28606"
     },
     {
-      "id": "judah-athletics-2026-10-08-88",
+      "id": "judah-athletics-2026-10-08-84",
       "title": "Varsity Boys Soccer — Practice",
       "date": "2026-10-08",
       "schools": [
@@ -11491,7 +11129,7 @@
       "end": "18:30"
     },
     {
-      "id": "judah-athletics-2026-10-08-91",
+      "id": "judah-athletics-2026-10-08-87",
       "title": "Middle School Girls Basketball at Unity Christian School — Game",
       "date": "2026-10-08",
       "schools": [
@@ -11814,7 +11452,7 @@
       "end": "11:00"
     },
     {
-      "id": "judah-athletics-2026-10-09-92",
+      "id": "judah-athletics-2026-10-09-88",
       "title": "Middle School Girls Basketball — Practice",
       "date": "2026-10-09",
       "schools": [
@@ -11915,7 +11553,7 @@
       "end": "18:00"
     },
     {
-      "id": "judah-athletics-2026-10-09-95",
+      "id": "judah-athletics-2026-10-09-91",
       "title": "Varsity Boys Soccer at Cornerstone Christian Academy — Game",
       "date": "2026-10-09",
       "schools": [
@@ -11929,7 +11567,7 @@
       "end": "17:30"
     },
     {
-      "id": "judah-athletics-2026-10-09-93",
+      "id": "judah-athletics-2026-10-09-89",
       "title": "Varsity Coed Cross Country — Practice",
       "date": "2026-10-09",
       "schools": [
@@ -12046,7 +11684,7 @@
       "end": "21:00"
     },
     {
-      "id": "judah-athletics-2026-10-09-94",
+      "id": "judah-athletics-2026-10-09-90",
       "title": "Varsity Girls Volleyball vs. Decatur Christian School — Game",
       "date": "2026-10-09",
       "schools": [
@@ -12476,7 +12114,7 @@
       "allDay": true
     },
     {
-      "id": "u4-centennial-723fda00e6e82e1d5e",
+      "id": "u4-centennial-c641b20d0f29e1a57c",
       "title": "FALL BREAK - NO SCHOOL",
       "date": "2026-10-12",
       "schools": [
@@ -12491,7 +12129,7 @@
       "weekdaysOnly": false
     },
     {
-      "id": "u4-district-552245aaa0f4fc13b4",
+      "id": "u4-district-011fedb9d8cbb95592",
       "title": "Fall Break",
       "date": "2026-10-12",
       "schools": [
@@ -12523,7 +12161,7 @@
       "weekdaysOnly": false
     },
     {
-      "id": "u4-barkstall-72dd07f78f18f5ca3e",
+      "id": "u4-barkstall-51433f7a3732328ffb",
       "title": "Fall Break (No School)",
       "date": "2026-10-12",
       "schools": [
@@ -12550,7 +12188,7 @@
       "endDate": "2026-10-13"
     },
     {
-      "id": "u4-westview-9c6319144f6ec04a6f",
+      "id": "u4-westview-85758ed6e01ea8848c",
       "title": "Fall Break - No School",
       "date": "2026-10-12",
       "schools": [
@@ -12649,7 +12287,7 @@
       "weekdaysOnly": true
     },
     {
-      "id": "u4-franklin-eb0162a95ac347da2b",
+      "id": "u4-franklin-8918ed430c6757847c",
       "title": "Fall Break- No School",
       "date": "2026-10-12",
       "schools": [
@@ -12664,7 +12302,7 @@
       "weekdaysOnly": false
     },
     {
-      "id": "u4-howard-8712bed386b54caa97",
+      "id": "u4-howard-503c0b8b65d06ca0a1",
       "title": "Fall Break- No Student Attendance",
       "date": "2026-10-12",
       "schools": [
@@ -12679,7 +12317,7 @@
       "weekdaysOnly": false
     },
     {
-      "id": "u4-district-443c59ec60fa3eea5d",
+      "id": "u4-district-97e4e9f9a6c4e88ae9",
       "title": "Fall Holiday",
       "date": "2026-10-12",
       "schools": [
@@ -12722,7 +12360,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-4190d0c586be9d7903",
+      "id": "u4-stm-c4a894f302b630ab2f",
       "title": "Juniors Only - PSAT/NMSQT Test Day",
       "date": "2026-10-12",
       "schools": [
@@ -12749,7 +12387,7 @@
       "endDate": "2026-10-16"
     },
     {
-      "id": "u4-bottenfield-9df00c61c194c31d6a",
+      "id": "u4-bottenfield-65a2266e448ee804fa",
       "title": "No School - Fall Break",
       "date": "2026-10-12",
       "schools": [
@@ -12807,7 +12445,7 @@
       "location": "Main Library"
     },
     {
-      "id": "u4-ipa-d0d7f4665ac4078b0c",
+      "id": "u4-ipa-e7f658c3f0f9cb43c0",
       "title": "Girls BB Practice",
       "date": "2026-10-12",
       "schools": [
@@ -12866,7 +12504,7 @@
       "end": "18:00"
     },
     {
-      "id": "u4-central-3fb8485b224b9b89e3",
+      "id": "u4-central-5c9493daedd6b8b280",
       "title": "Girls Tennis @ Centennial",
       "date": "2026-10-12",
       "schools": [
@@ -12880,7 +12518,7 @@
       "end": "18:00"
     },
     {
-      "id": "judah-athletics-2026-10-12-97",
+      "id": "judah-athletics-2026-10-12-93",
       "title": "Varsity Girls Volleyball — Practice",
       "date": "2026-10-12",
       "schools": [
@@ -12909,7 +12547,7 @@
       "location": "Champaign Central High School"
     },
     {
-      "id": "judah-athletics-2026-10-12-96",
+      "id": "judah-athletics-2026-10-12-92",
       "title": "Varsity Boys Soccer vs. Calvary Christian Academy — Game",
       "date": "2026-10-12",
       "schools": [
@@ -12979,7 +12617,7 @@
       "end": "19:00"
     },
     {
-      "id": "judah-athletics-2026-10-12-98",
+      "id": "judah-athletics-2026-10-12-94",
       "title": "Middle School Girls Basketball vs. Fisher Grade School — Game",
       "date": "2026-10-12",
       "schools": [
@@ -12993,7 +12631,7 @@
       "end": "20:00"
     },
     {
-      "id": "u4-barkstall-a2fa84434cbce17242",
+      "id": "u4-barkstall-f868b693c74e152189",
       "title": "Fall Break (No School)",
       "date": "2026-10-13",
       "schools": [
@@ -13006,7 +12644,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-d813e9ae1f50f60a08",
+      "id": "u4-stm-d601b48b911679f98a",
       "title": "Green Bell 1",
       "date": "2026-10-13",
       "schools": [
@@ -13049,7 +12687,7 @@
       "location": "Main Library"
     },
     {
-      "id": "u4-ipa-6c34307aa7eda82602",
+      "id": "u4-ipa-ea7679130a6eccf07e",
       "title": "Girls BB Practice",
       "date": "2026-10-13",
       "schools": [
@@ -13093,7 +12731,7 @@
       "location": "The Urbana Free Library"
     },
     {
-      "id": "judah-athletics-2026-10-13-99",
+      "id": "judah-athletics-2026-10-13-95",
       "title": "Middle School Girls Basketball — Practice",
       "date": "2026-10-13",
       "schools": [
@@ -13210,7 +12848,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28512"
     },
     {
-      "id": "judah-athletics-2026-10-13-101",
+      "id": "judah-athletics-2026-10-13-97",
       "title": "Varsity Boys Soccer at University High School-Urbana — Game",
       "date": "2026-10-13",
       "schools": [
@@ -13267,7 +12905,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28703"
     },
     {
-      "id": "judah-athletics-2026-10-13-100",
+      "id": "judah-athletics-2026-10-13-96",
       "title": "Varsity Girls Volleyball at Arthur Christian School — Game",
       "date": "2026-10-13",
       "schools": [
@@ -13311,7 +12949,7 @@
       "location": "Main Library"
     },
     {
-      "id": "u4-busey-9b453e69d2c5dec767",
+      "id": "u4-busey-003a20e6dc45519d79",
       "title": "CB Bobcat Spirit Day",
       "date": "2026-10-14",
       "schools": [
@@ -13324,7 +12962,7 @@
       "allDay": true
     },
     {
-      "id": "u4-barkstall-b8dfb2ab369fc97276",
+      "id": "u4-barkstall-033805021557f1feb1",
       "title": "Fall Break (No School)",
       "date": "2026-10-14",
       "schools": [
@@ -13351,7 +12989,7 @@
       "location": "Primary Building"
     },
     {
-      "id": "u4-stm-fafffd529afcde446a",
+      "id": "u4-stm-cf0d2e8a22c9a06d55",
       "title": "Gold Bell 1",
       "date": "2026-10-14",
       "schools": [
@@ -13435,7 +13073,7 @@
       "location": "Main Library"
     },
     {
-      "id": "u4-jefferson-db09703455ed1af2d1",
+      "id": "u4-jefferson-9be2979c39204efd76",
       "title": "D & D Club",
       "date": "2026-10-14",
       "schools": [
@@ -13480,7 +13118,7 @@
       "location": "Douglass Branch Library"
     },
     {
-      "id": "judah-athletics-2026-10-14-102",
+      "id": "judah-athletics-2026-10-14-98",
       "title": "Varsity Girls Volleyball — Practice",
       "date": "2026-10-14",
       "schools": [
@@ -13508,7 +13146,7 @@
       "end": "18:30"
     },
     {
-      "id": "u4-barkstall-c2cd2e40d09fcd0a9a",
+      "id": "u4-barkstall-85a370728a154efa6a",
       "title": "Fall Break (No School)",
       "date": "2026-10-15",
       "schools": [
@@ -13521,7 +13159,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-bb56ec218cc37f5ed8",
+      "id": "u4-stm-6d04dc3f2709e89504",
       "title": "Green Bell 1",
       "date": "2026-10-15",
       "schools": [
@@ -13681,7 +13319,7 @@
       "location": "Champaign Central High School"
     },
     {
-      "id": "u4-central-6a46c1b388f25dbf2f",
+      "id": "u4-central-be6581aa73104f2784",
       "title": "Freshman Football vs. Centennial",
       "date": "2026-10-15",
       "schools": [
@@ -13725,7 +13363,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28517"
     },
     {
-      "id": "judah-athletics-2026-10-15-103",
+      "id": "judah-athletics-2026-10-15-99",
       "title": "Varsity Boys Soccer vs. St. Thomas More High School — Game — Canceled",
       "date": "2026-10-15",
       "schools": [
@@ -13769,7 +13407,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28587"
     },
     {
-      "id": "judah-athletics-2026-10-15-105",
+      "id": "judah-athletics-2026-10-15-101",
       "title": "Varsity Girls Volleyball at University High School-Urbana — Game",
       "date": "2026-10-15",
       "schools": [
@@ -13841,7 +13479,7 @@
       "location": "The Urbana Free Library"
     },
     {
-      "id": "judah-athletics-2026-10-15-104",
+      "id": "judah-athletics-2026-10-15-100",
       "title": "Middle School Girls Basketball vs. St. Malachy School-Rantoul — Game",
       "date": "2026-10-15",
       "schools": [
@@ -13930,7 +13568,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28804"
     },
     {
-      "id": "u4-barkstall-fcb59d023d9a9acef1",
+      "id": "u4-barkstall-9b2d847a377329457a",
       "title": "Fall Break (No School)",
       "date": "2026-10-16",
       "schools": [
@@ -13943,7 +13581,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-fa10dc4777dbd8e01b",
+      "id": "u4-stm-3a3f35626bd5465ae3",
       "title": "Gold Bell 1",
       "date": "2026-10-16",
       "schools": [
@@ -13994,7 +13632,7 @@
       "source": "CDL 2026–27 Calendar"
     },
     {
-      "id": "u4-busey-3cbda0e8f8f70126ff",
+      "id": "u4-busey-7cec7cab7e5b217dd8",
       "title": "University/College Color or Shirt Day",
       "date": "2026-10-16",
       "schools": [
@@ -14007,7 +13645,7 @@
       "allDay": true
     },
     {
-      "id": "judah-athletics-2026-10-16-106",
+      "id": "judah-athletics-2026-10-16-102",
       "title": "Middle School Girls Basketball — Practice",
       "date": "2026-10-16",
       "schools": [
@@ -14066,7 +13704,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28402"
     },
     {
-      "id": "u4-howard-9243a8238cd5273690",
+      "id": "u4-howard-d6ca4b0e93e89275ea",
       "title": "2nd Grade Hopes and Dreams Calls",
       "date": "2026-10-16",
       "schools": [
@@ -14094,7 +13732,7 @@
       "end": "19:00"
     },
     {
-      "id": "judah-athletics-2026-10-16-108",
+      "id": "judah-athletics-2026-10-16-104",
       "title": "Varsity Girls Volleyball — Practice",
       "date": "2026-10-16",
       "schools": [
@@ -14108,7 +13746,7 @@
       "end": "18:00"
     },
     {
-      "id": "judah-athletics-2026-10-16-107",
+      "id": "judah-athletics-2026-10-16-103",
       "title": "Varsity Boys Soccer — Practice",
       "date": "2026-10-16",
       "schools": [
@@ -14197,7 +13835,7 @@
       "location": "Centennial High School"
     },
     {
-      "id": "u4-centennial-883489b10eb328dee2",
+      "id": "u4-centennial-eef85b570b7108b4dd",
       "title": "Central vs. Centennial Football Game (Fall Sports Senior Night)",
       "date": "2026-10-16",
       "schools": [
@@ -14241,7 +13879,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28741"
     },
     {
-      "id": "u4-central-7fa5af1f91c52ebb7c",
+      "id": "u4-central-11bb985e65afc3d21d",
       "title": "Varsity Football @ Centennial",
       "date": "2026-10-16",
       "schools": [
@@ -14311,7 +13949,7 @@
       "sourceUrl": "https://schools.snap.app/Uni/event/5058"
     },
     {
-      "id": "judah-athletics-2026-10-17-109",
+      "id": "judah-athletics-2026-10-17-105",
       "title": "Varsity Coed Cross Country at Charleston High School — Game",
       "date": "2026-10-17",
       "schools": [
@@ -14516,7 +14154,7 @@
       "location": "Douglass Branch Library"
     },
     {
-      "id": "u4-district-cbe33cb08a76ee8dbf",
+      "id": "u4-district-83086a8903eea2931e",
       "title": "Jefferson Middle School Tour",
       "date": "2026-10-17",
       "schools": [
@@ -14578,7 +14216,7 @@
       "location": "FriendShop Bookstore"
     },
     {
-      "id": "u4-jefferson-8a3d82d501ad8e46f0",
+      "id": "u4-jefferson-962cb62ce97fd5244f",
       "title": "Referendum Open House",
       "date": "2026-10-17",
       "schools": [
@@ -14637,7 +14275,7 @@
       "endDate": "2026-10-23"
     },
     {
-      "id": "u4-stm-1d744c6e37694a3347",
+      "id": "u4-stm-5cc4e3f055d8739b4b",
       "title": "Maroon Bell 3 Late Start",
       "date": "2026-10-19",
       "schools": [
@@ -14650,7 +14288,7 @@
       "allDay": true
     },
     {
-      "id": "u4-jefferson-f0ac13178f95c42e77",
+      "id": "u4-jefferson-1673225e9b0e1a8a33",
       "title": "SchooLinks (Science)",
       "date": "2026-10-19",
       "schools": [
@@ -14761,7 +14399,7 @@
       "location": "Uni 210"
     },
     {
-      "id": "u4-jefferson-49a399faad6e36bc8d",
+      "id": "u4-jefferson-57667cae9451f81935",
       "title": "Department Collaboration Meeting",
       "date": "2026-10-19",
       "schools": [
@@ -14821,7 +14459,7 @@
       "location": "Douglass Branch Library"
     },
     {
-      "id": "u4-ipa-cb3bc962872e36e40b",
+      "id": "u4-ipa-5704fefa0e7ee77a1d",
       "title": "Girls BB Practice",
       "date": "2026-10-19",
       "schools": [
@@ -14851,7 +14489,7 @@
       "location": "Champaign Central High School"
     },
     {
-      "id": "u4-central-b0c0e723a9a2baf900",
+      "id": "u4-central-4cb8964ac456624a0a",
       "title": "JV Football vs. Centennial",
       "date": "2026-10-19",
       "schools": [
@@ -14865,7 +14503,7 @@
       "end": "18:30"
     },
     {
-      "id": "judah-athletics-2026-10-19-110",
+      "id": "judah-athletics-2026-10-19-106",
       "title": "Varsity Boys Soccer — Practice",
       "date": "2026-10-19",
       "schools": [
@@ -14965,7 +14603,7 @@
       "end": "18:30"
     },
     {
-      "id": "judah-athletics-2026-10-19-112",
+      "id": "judah-athletics-2026-10-19-108",
       "title": "Middle School Girls Basketball at St. John's JH — Game",
       "date": "2026-10-19",
       "schools": [
@@ -14979,7 +14617,7 @@
       "end": "19:30"
     },
     {
-      "id": "u4-ipa-f29c4c80c86a9433c9",
+      "id": "u4-ipa-1926f7393262107489",
       "title": "Boys Open Gym",
       "date": "2026-10-19",
       "schools": [
@@ -15038,7 +14676,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28726"
     },
     {
-      "id": "judah-athletics-2026-10-19-111",
+      "id": "judah-athletics-2026-10-19-107",
       "title": "Varsity Girls Volleyball vs. Heritage High School — Game",
       "date": "2026-10-19",
       "schools": [
@@ -15052,7 +14690,7 @@
       "end": "20:00"
     },
     {
-      "id": "u4-stm-db95471a4ec33d9b5c",
+      "id": "u4-stm-5340b85265b29b33c7",
       "title": "Green Bell 1",
       "date": "2026-10-20",
       "schools": [
@@ -15096,7 +14734,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28172"
     },
     {
-      "id": "u4-centennial-a25cea0265a900f863",
+      "id": "u4-centennial-67e0f43865ec69fea8",
       "title": "Fire Drill (#2)",
       "date": "2026-10-20",
       "schools": [
@@ -15169,7 +14807,7 @@
       "location": "Uni 218"
     },
     {
-      "id": "u4-ipa-265d88d055f69fb45d",
+      "id": "u4-ipa-3a9d288d1a91453145",
       "title": "Boys BB Tryouts",
       "date": "2026-10-20",
       "schools": [
@@ -15228,7 +14866,7 @@
       "location": "Uni 106S"
     },
     {
-      "id": "judah-athletics-2026-10-20-113",
+      "id": "judah-athletics-2026-10-20-109",
       "title": "Middle School Girls Basketball — Practice",
       "date": "2026-10-20",
       "schools": [
@@ -15273,7 +14911,7 @@
       "end": "19:00"
     },
     {
-      "id": "u4-central-a25db2c6938728ec94",
+      "id": "u4-central-386c5e4f47465fe04c",
       "title": "Girls Swim and Dive @ Urbana",
       "date": "2026-10-20",
       "schools": [
@@ -15317,7 +14955,7 @@
       "sourceUrl": "https://schools.snap.app/Uni/event/4843"
     },
     {
-      "id": "u4-garden-af6edadd240c4a57f2",
+      "id": "u4-garden-d56d4a02f2f21bd3bc",
       "title": "Girls' Basketball vs Danville (at Franklin)",
       "date": "2026-10-20",
       "schools": [
@@ -15346,7 +14984,7 @@
       "location": "HOME -"
     },
     {
-      "id": "u4-franklin-f2ddba581543be8947",
+      "id": "u4-franklin-82819343a8c31b9e3d",
       "title": "Texas Roadhouse Dining Night for PTA",
       "date": "2026-10-20",
       "schools": [
@@ -15447,7 +15085,7 @@
       "end": "19:00"
     },
     {
-      "id": "u4-robeson-9cfe5f450aec6e46dd",
+      "id": "u4-robeson-cd19d3951c1e120bbb",
       "title": "PTA Meeting * in cafeteria",
       "date": "2026-10-20",
       "schools": [
@@ -15476,7 +15114,7 @@
       "sourceUrl": "https://schools.snap.app/Uni/event/4844"
     },
     {
-      "id": "judah-athletics-2026-10-20-114",
+      "id": "judah-athletics-2026-10-20-110",
       "title": "Varsity Girls Volleyball at Cornerstone Christian Academy — Game",
       "date": "2026-10-20",
       "schools": [
@@ -15505,7 +15143,7 @@
       "location": "Douglass Branch Library"
     },
     {
-      "id": "u4-busey-8c67186b3fdb22b522",
+      "id": "u4-busey-fbdc0c17fd7c35a9c4",
       "title": "CB Bobcat Spirit Day",
       "date": "2026-10-21",
       "schools": [
@@ -15532,7 +15170,7 @@
       "location": "Centennial High School"
     },
     {
-      "id": "u4-stm-7a6da137ca8c05fb94",
+      "id": "u4-stm-5076d34068864cfb44",
       "title": "Gold Bell 1",
       "date": "2026-10-21",
       "schools": [
@@ -15545,7 +15183,7 @@
       "allDay": true
     },
     {
-      "id": "u4-garden-0e10c4635960f211e9",
+      "id": "u4-garden-0da0ec2a3ce0cb013f",
       "title": "IEP",
       "date": "2026-10-21",
       "schools": [
@@ -15628,7 +15266,7 @@
       "location": "Main Library"
     },
     {
-      "id": "u4-robeson-cdef569c664add443b",
+      "id": "u4-robeson-2d626033681c81d038",
       "title": "Lockdown Drill",
       "date": "2026-10-21",
       "schools": [
@@ -15642,7 +15280,7 @@
       "end": "10:30"
     },
     {
-      "id": "u4-garden-e6dc0b8999a18abaa7",
+      "id": "u4-garden-4072433beedec20cce",
       "title": "Dr. Ponce Listen and Learn Visit - Teacher Lounge",
       "date": "2026-10-21",
       "schools": [
@@ -15686,7 +15324,7 @@
       "location": "FriendShop Bookstore"
     },
     {
-      "id": "u4-jefferson-76dbd70bea5d9183cb",
+      "id": "u4-jefferson-00f3c18b17296becb9",
       "title": "Art Club",
       "date": "2026-10-21",
       "schools": [
@@ -15746,7 +15384,7 @@
       "location": "Douglass Branch Library"
     },
     {
-      "id": "u4-ipa-7bac541565b037c02e",
+      "id": "u4-ipa-2db09abd5dc74ac628",
       "title": "Girls BB Practice",
       "date": "2026-10-21",
       "schools": [
@@ -15760,7 +15398,7 @@
       "end": "17:30"
     },
     {
-      "id": "judah-athletics-2026-10-21-115",
+      "id": "judah-athletics-2026-10-21-111",
       "title": "Varsity Girls Volleyball — Practice",
       "date": "2026-10-21",
       "schools": [
@@ -15774,7 +15412,7 @@
       "end": "17:30"
     },
     {
-      "id": "u4-garden-08a9f90392334f5b67",
+      "id": "u4-garden-c43fad22f33fd1a005",
       "title": "Girls' Basketball vs Urbana (at Franklin)",
       "date": "2026-10-21",
       "schools": [
@@ -15804,7 +15442,7 @@
       "location": "HOME -"
     },
     {
-      "id": "u4-franklin-087fee446c04faa2b4",
+      "id": "u4-franklin-b4401c7d1856389028",
       "title": "Knights GBB-MS Girls - VS Urbana Middle School (Game)",
       "date": "2026-10-21",
       "schools": [
@@ -15863,7 +15501,7 @@
       "end": "18:30"
     },
     {
-      "id": "u4-ipa-4ed19df10f7ba21b9d",
+      "id": "u4-ipa-17239a207efeb1720e",
       "title": "Boys BB Tryouts",
       "date": "2026-10-21",
       "schools": [
@@ -15892,7 +15530,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28675"
     },
     {
-      "id": "u4-stm-3dd283742afef240bd",
+      "id": "u4-stm-be6bf1f75bae06f07b",
       "title": "STM Preview Nights",
       "date": "2026-10-21",
       "schools": [
@@ -15962,7 +15600,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-abe356d51e627fe1cb",
+      "id": "u4-stm-ffb899d43bf3b1db8e",
       "title": "Green Bell 1",
       "date": "2026-10-22",
       "schools": [
@@ -15975,7 +15613,7 @@
       "allDay": true
     },
     {
-      "id": "u4-garden-e295602254068b59c4",
+      "id": "u4-garden-86be3127cce698592b",
       "title": "International Night 5p-7p",
       "date": "2026-10-22",
       "schools": [
@@ -16027,7 +15665,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-9f9b34cbb4c8bff724",
+      "id": "u4-stm-483794527344d254c1",
       "title": "Picture Retake Day",
       "date": "2026-10-22",
       "schools": [
@@ -16129,7 +15767,7 @@
       "location": "Douglass Branch Library"
     },
     {
-      "id": "u4-garden-b4644054c2879b2780",
+      "id": "u4-garden-0df18b1413573b8303",
       "title": "Sen. Faraci School Visit - Principal for a Day",
       "date": "2026-10-22",
       "schools": [
@@ -16158,7 +15796,7 @@
       "location": "FriendShop Bookstore"
     },
     {
-      "id": "u4-ipa-8aac1d753ae57b1c7c",
+      "id": "u4-ipa-5ada03934917b32e42",
       "title": "Boys BB Tryouts",
       "date": "2026-10-22",
       "schools": [
@@ -16172,7 +15810,7 @@
       "end": "16:00"
     },
     {
-      "id": "u4-jefferson-c09b73fca94859b3c9",
+      "id": "u4-jefferson-f5af463a0c4e039ae5",
       "title": "Dr. Ponce's Listen & Learn Visit",
       "date": "2026-10-22",
       "schools": [
@@ -16262,7 +15900,7 @@
       "location": "Douglass Branch Library"
     },
     {
-      "id": "judah-athletics-2026-10-22-118",
+      "id": "judah-athletics-2026-10-22-114",
       "title": "Varsity Girls Volleyball — Practice",
       "date": "2026-10-22",
       "schools": [
@@ -16291,7 +15929,7 @@
       "location": "Jefferson Middle School"
     },
     {
-      "id": "u4-garden-14c4ce74012984354c",
+      "id": "u4-garden-f4f714fd6bb28ab2f7",
       "title": "Girls' Basketball vs Dansby Ellsworth (at Franklin)",
       "date": "2026-10-22",
       "schools": [
@@ -16305,7 +15943,7 @@
       "end": "19:00"
     },
     {
-      "id": "u4-franklin-c97b4fb0260f80eac2",
+      "id": "u4-franklin-604d74041f8d0d4110",
       "title": "Knights GBB-MS Girls - VS Dansby Ellsworth (Game)",
       "date": "2026-10-22",
       "schools": [
@@ -16320,7 +15958,7 @@
       "location": "HOME -"
     },
     {
-      "id": "judah-athletics-2026-10-22-117",
+      "id": "judah-athletics-2026-10-22-113",
       "title": "Varsity Boys Soccer — Practice",
       "date": "2026-10-22",
       "schools": [
@@ -16436,7 +16074,7 @@
       "location": "HOME -"
     },
     {
-      "id": "judah-athletics-2026-10-22-116",
+      "id": "judah-athletics-2026-10-22-112",
       "title": "Middle School Girls Basketball at Champaign Holy Cross School — Game",
       "date": "2026-10-22",
       "schools": [
@@ -16491,7 +16129,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-bdcb55296f630752f1",
+      "id": "u4-stm-9dc5e3ae1378747661",
       "title": "Freshman Class Retreat",
       "date": "2026-10-23",
       "schools": [
@@ -16518,7 +16156,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-ccce07f3c69289b7f4",
+      "id": "u4-stm-963d4a2d952dba4043",
       "title": "Gold Bell 1",
       "date": "2026-10-23",
       "schools": [
@@ -16584,7 +16222,7 @@
       "allDay": true
     },
     {
-      "id": "u4-busey-3b992dd24aa91b073a",
+      "id": "u4-busey-dd5373708079495b0f",
       "title": "University/College Color or Shirt Day",
       "date": "2026-10-23",
       "schools": [
@@ -16725,7 +16363,7 @@
       "location": "FriendShop Bookstore"
     },
     {
-      "id": "u4-howard-de17008a4c73648ed8",
+      "id": "u4-howard-eab539303cad254621",
       "title": "2nd Grade Hopes and Dreams Calls",
       "date": "2026-10-23",
       "schools": [
@@ -16798,7 +16436,7 @@
       "end": "18:30"
     },
     {
-      "id": "u4-ipa-ecbcd34458f9cc8a57",
+      "id": "u4-ipa-b78b66d0c7f185bee3",
       "title": "Girls BB Practice",
       "date": "2026-10-23",
       "schools": [
@@ -16812,7 +16450,7 @@
       "end": "17:30"
     },
     {
-      "id": "judah-athletics-2026-10-23-119",
+      "id": "judah-athletics-2026-10-23-115",
       "title": "Varsity Girls Volleyball — Practice",
       "date": "2026-10-23",
       "schools": [
@@ -16874,7 +16512,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28930"
     },
     {
-      "id": "judah-athletics-2026-10-23-120",
+      "id": "judah-athletics-2026-10-23-116",
       "title": "Middle School Girls Basketball vs. Schlarman High School — Game",
       "date": "2026-10-23",
       "schools": [
@@ -16946,7 +16584,7 @@
       "allDay": true
     },
     {
-      "id": "u4-jefferson-11ca11f8ce91ceb47c",
+      "id": "u4-jefferson-cff94ced8124d1daaa",
       "title": "Korean Festival",
       "date": "2026-10-24",
       "schools": [
@@ -17030,7 +16668,7 @@
       "sourceUrl": "https://schools.snap.app/Uni/event/5048"
     },
     {
-      "id": "judah-athletics-2026-10-24-121",
+      "id": "judah-athletics-2026-10-24-117",
       "title": "Varsity Girls Volleyball — Game",
       "date": "2026-10-24",
       "schools": [
@@ -17074,7 +16712,7 @@
       "location": "Centennial High School"
     },
     {
-      "id": "u4-central-ba678fa56d4320aed5",
+      "id": "u4-central-e27118aa96c1340e04",
       "title": "JV Volleyball @ Centennial",
       "date": "2026-10-24",
       "schools": [
@@ -17193,7 +16831,7 @@
       "location": "The Urbana Free Library"
     },
     {
-      "id": "u4-district-fbc5788a877763e60a",
+      "id": "u4-district-e57a35ec7e762c3779",
       "title": "IPA Middle School Tour",
       "date": "2026-10-25",
       "schools": [
@@ -17282,7 +16920,7 @@
       "endDate": "2026-10-30"
     },
     {
-      "id": "u4-stm-f8581bf7e6b52fe3ee",
+      "id": "u4-stm-7b0327b45ec81b8e25",
       "title": "Maroon Day",
       "date": "2026-10-26",
       "schools": [
@@ -17295,7 +16933,7 @@
       "allDay": true
     },
     {
-      "id": "u4-kenwood-698e684f027079ee7b",
+      "id": "u4-kenwood-118d596b45d5b7a1f5",
       "title": "Spirit Week:  Class Color Day",
       "date": "2026-10-26",
       "schools": [
@@ -17337,7 +16975,7 @@
       "end": "13:00"
     },
     {
-      "id": "u4-westview-01e65c0468b1cdd311",
+      "id": "u4-westview-82baf7469b70bf74c1",
       "title": "Evacuation Drill to St. Peter's Church",
       "date": "2026-10-26",
       "schools": [
@@ -17351,7 +16989,7 @@
       "end": "10:00"
     },
     {
-      "id": "u4-garden-87e47fa64f6e184e27",
+      "id": "u4-garden-d7e397e4fe5507fad1",
       "title": "7th Grade Field Trip Champaign County Forest Perserve",
       "date": "2026-10-26",
       "schools": [
@@ -17470,7 +17108,7 @@
       "location": "Main Library"
     },
     {
-      "id": "judah-athletics-2026-10-26-122",
+      "id": "judah-athletics-2026-10-26-118",
       "title": "Middle School Girls Basketball — Practice",
       "date": "2026-10-26",
       "schools": [
@@ -17516,7 +17154,7 @@
       "location": "Urbana Middle School"
     },
     {
-      "id": "u4-jefferson-d9887fbe1ca56ef18a",
+      "id": "u4-jefferson-45c4531ac8a68d2791",
       "title": "GBB @ Urbana",
       "date": "2026-10-26",
       "schools": [
@@ -17530,7 +17168,7 @@
       "end": "17:30"
     },
     {
-      "id": "u4-garden-293e3ca224a48f2825",
+      "id": "u4-garden-cfed78a6f4ca9f1a65",
       "title": "Girls' Basketball vs Mattoon (at Franklin)",
       "date": "2026-10-26",
       "schools": [
@@ -17544,7 +17182,7 @@
       "end": "19:00"
     },
     {
-      "id": "judah-athletics-2026-10-26-123",
+      "id": "judah-athletics-2026-10-26-119",
       "title": "Varsity Boys Soccer — Practice",
       "date": "2026-10-26",
       "schools": [
@@ -17602,7 +17240,7 @@
       "end": "18:30"
     },
     {
-      "id": "u4-district-415941fff310b3b164",
+      "id": "u4-district-fe8d91ea208993b383",
       "title": "Board of Education Regular Meeting",
       "date": "2026-10-26",
       "schools": [
@@ -17664,7 +17302,7 @@
       "location": "Carrodine Gym"
     },
     {
-      "id": "u4-jefferson-edc185ed4912d2d17a",
+      "id": "u4-jefferson-f85dccfdd036802b84",
       "title": "AVID National Visit",
       "date": "2026-10-27",
       "schools": [
@@ -17691,7 +17329,7 @@
       "location": "Garden Hills Academy"
     },
     {
-      "id": "u4-stm-c0497f4459d820eb03",
+      "id": "u4-stm-dbe201f996aa6a5a4e",
       "title": "Green Bell 1",
       "date": "2026-10-27",
       "schools": [
@@ -17718,7 +17356,7 @@
       "location": "Garden Hills Academy"
     },
     {
-      "id": "u4-kenwood-d8c62cb0156e58e424",
+      "id": "u4-kenwood-0262aa4443c42953c7",
       "title": "REPORT CARD DISTRIBUTION",
       "date": "2026-10-27",
       "schools": [
@@ -17731,7 +17369,7 @@
       "allDay": true
     },
     {
-      "id": "u4-kenwood-bc62e74fb91f5c9de6",
+      "id": "u4-kenwood-fc9941029bccf9d174",
       "title": "Spirit Week:  Storybook Character Day",
       "date": "2026-10-27",
       "schools": [
@@ -17834,7 +17472,7 @@
       "location": "Uni 109"
     },
     {
-      "id": "u4-garden-cd74787ece57bffcd9",
+      "id": "u4-garden-b3503c7c11a566e996",
       "title": "Building Council",
       "date": "2026-10-27",
       "schools": [
@@ -17848,7 +17486,7 @@
       "end": "15:45"
     },
     {
-      "id": "u4-robeson-6fd304e027cc1e9e8b",
+      "id": "u4-robeson-b9fbab1579bd9c6ef4",
       "title": "Report Card Distribution",
       "date": "2026-10-27",
       "schools": [
@@ -17953,7 +17591,7 @@
       "location": "Garden Hills Academy"
     },
     {
-      "id": "u4-ipa-1c2a308d8980e3f145",
+      "id": "u4-ipa-828b6a502f3966b9e9",
       "title": "Girls BB Practice",
       "date": "2026-10-27",
       "schools": [
@@ -17967,7 +17605,7 @@
       "end": "17:30"
     },
     {
-      "id": "u4-jefferson-73cd48dd834564e59e",
+      "id": "u4-jefferson-01e452e9c19f9bf8c5",
       "title": "GBB vs. Franklin",
       "date": "2026-10-27",
       "schools": [
@@ -17981,7 +17619,7 @@
       "end": "17:30"
     },
     {
-      "id": "u4-garden-3b729348c655abbb37",
+      "id": "u4-garden-f5848cc60cd7fbae0a",
       "title": "Girls' Basketball vs Jefferson (at Jefferson)",
       "date": "2026-10-27",
       "schools": [
@@ -18011,7 +17649,7 @@
       "location": "Away - JEFFERSON MIDDLE SCHOOL"
     },
     {
-      "id": "u4-franklin-08cc16e157858cc6f0",
+      "id": "u4-franklin-fe8ed969742042f149",
       "title": "Knights GBB-MS Girls @ Jefferson Middle School (Game)",
       "date": "2026-10-27",
       "schools": [
@@ -18040,7 +17678,7 @@
       "end": "18:30"
     },
     {
-      "id": "u4-ipa-d646cbed7c342e04a6",
+      "id": "u4-ipa-608e7842f79533b2e4",
       "title": "Boys BB Practice",
       "date": "2026-10-27",
       "schools": [
@@ -18054,7 +17692,7 @@
       "end": "19:30"
     },
     {
-      "id": "judah-athletics-2026-10-27-124",
+      "id": "judah-athletics-2026-10-27-120",
       "title": "Middle School Girls Basketball vs. St. Thomas School-Philo — Game",
       "date": "2026-10-27",
       "schools": [
@@ -18082,7 +17720,7 @@
       "end": "19:00"
     },
     {
-      "id": "u4-busey-51bb8c45874b28db66",
+      "id": "u4-busey-9246b8f99572c63103",
       "title": "CB Bobcat Spirit Day",
       "date": "2026-10-28",
       "schools": [
@@ -18095,7 +17733,7 @@
       "allDay": true
     },
     {
-      "id": "u4-franklin-018439e5e8125ee854",
+      "id": "u4-franklin-699d85c11dd229fcf3",
       "title": "FSA AVID Initial Visit",
       "date": "2026-10-28",
       "schools": [
@@ -18108,7 +17746,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-5ecd8f1e60cae8d8fd",
+      "id": "u4-stm-881415e72ec24f7a10",
       "title": "Gold Bell 1",
       "date": "2026-10-28",
       "schools": [
@@ -18134,7 +17772,7 @@
       "allDay": true
     },
     {
-      "id": "u4-garden-d3d2095e6d7e9c0b5b",
+      "id": "u4-garden-f02843ee081bfe3c6c",
       "title": "IEP",
       "date": "2026-10-28",
       "schools": [
@@ -18147,7 +17785,7 @@
       "allDay": true
     },
     {
-      "id": "u4-kenwood-fa915b2965d71b1577",
+      "id": "u4-kenwood-e49182c8387135f3fb",
       "title": "Spirit Week:  Backward Day",
       "date": "2026-10-28",
       "schools": [
@@ -18205,7 +17843,7 @@
       "location": "FriendShop Bookstore"
     },
     {
-      "id": "u4-ipa-48631a9c90929d8ae5",
+      "id": "u4-ipa-a46ee9ec6221d7a90c",
       "title": "Boys BB Practice",
       "date": "2026-10-28",
       "schools": [
@@ -18219,7 +17857,7 @@
       "end": "16:00"
     },
     {
-      "id": "u4-jefferson-993b497106aadac8f9",
+      "id": "u4-jefferson-b71dd6dd6b193baecb",
       "title": "D & D Club",
       "date": "2026-10-28",
       "schools": [
@@ -18294,7 +17932,7 @@
       "location": "Douglass Branch Library"
     },
     {
-      "id": "u4-garden-a4a18b52f41c32aadd",
+      "id": "u4-garden-42ff98ca32f5dbb3f2",
       "title": "Girls' Basketball vs IPA (at IPA)",
       "date": "2026-10-28",
       "schools": [
@@ -18308,7 +17946,7 @@
       "end": "19:00"
     },
     {
-      "id": "u4-franklin-72b8f4672efc426072",
+      "id": "u4-franklin-d49ba5e10e00c1adb6",
       "title": "Knights GBB-MS Girls @ International Prep Academy (Game)",
       "date": "2026-10-28",
       "schools": [
@@ -18353,7 +17991,7 @@
       "location": "IPA gym"
     },
     {
-      "id": "u4-ipa-bdd532ecb00e0f7d6d",
+      "id": "u4-ipa-1d46cd1a4847875e18",
       "title": "GBB vs. Franklin (home)",
       "date": "2026-10-28",
       "schools": [
@@ -18381,7 +18019,7 @@
       "end": "19:00"
     },
     {
-      "id": "u4-robeson-5cd780e3d053061a3a",
+      "id": "u4-robeson-3e4f339a633b7650b1",
       "title": "Girl Scouts",
       "date": "2026-10-28",
       "schools": [
@@ -18410,7 +18048,7 @@
       "sourceUrl": "https://trinity-urbana.org/wp/wp-content/uploads/2026/02/WD-Calendar-of-Events.26-27.pdf"
     },
     {
-      "id": "u4-stm-9d665ef1afd9ddfc6e",
+      "id": "u4-stm-b96c55ed1b9f437395",
       "title": "Green Bell 1",
       "date": "2026-10-29",
       "schools": [
@@ -18438,7 +18076,7 @@
       "detail": "Fall retake day\nOctober 29, 2026 (THURS)\nStart time: 8AM-330PM\nMulti-Purpose Room"
     },
     {
-      "id": "u4-kenwood-ae7e058ffb3ede32f6",
+      "id": "u4-kenwood-af79f4248e36737a25",
       "title": "Spirit Week:  Twin/Group Day",
       "date": "2026-10-29",
       "schools": [
@@ -18555,7 +18193,7 @@
       "location": "FriendShop Bookstore"
     },
     {
-      "id": "u4-garden-8b8021a8c7e2eba523",
+      "id": "u4-garden-541b9a3a7dbe3ca81d",
       "title": "Steward Meeting with Admin",
       "date": "2026-10-29",
       "schools": [
@@ -18675,7 +18313,7 @@
       "location": "Fisher Jr./Sr. High School"
     },
     {
-      "id": "u4-ipa-2d3cd77d6deaafe259",
+      "id": "u4-ipa-fb6714c360ed2d1f21",
       "title": "Boys BB Practice",
       "date": "2026-10-29",
       "schools": [
@@ -18689,7 +18327,7 @@
       "end": "19:30"
     },
     {
-      "id": "judah-athletics-2026-10-29-125",
+      "id": "judah-athletics-2026-10-29-121",
       "title": "Elementary Boys Basketball vs. SMART Christian Academy — Game",
       "date": "2026-10-29",
       "schools": [
@@ -18760,7 +18398,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-844f98c96e2bdfd961",
+      "id": "u4-stm-a28914d4ad5e5b30d9",
       "title": "Gold Bell 2 All School Adoration",
       "date": "2026-10-30",
       "schools": [
@@ -18789,7 +18427,7 @@
       "location": "Kenwood Elementary"
     },
     {
-      "id": "u4-kenwood-2e8747ed7a4981d02e",
+      "id": "u4-kenwood-231dbc8eab764d26a2",
       "title": "Spirit Week:  Superhero Day",
       "date": "2026-10-30",
       "schools": [
@@ -18828,7 +18466,7 @@
       "allDay": true
     },
     {
-      "id": "u4-busey-2971a40ee36b319fea",
+      "id": "u4-busey-20f11e187a57d8ed33",
       "title": "University/College Color or Shirt Day",
       "date": "2026-10-30",
       "schools": [
@@ -18901,7 +18539,7 @@
       "location": "FriendShop Bookstore"
     },
     {
-      "id": "u4-howard-33936929558e4af8d5",
+      "id": "u4-howard-fcd6611655ec8186d9",
       "title": "2nd Grade Hopes and Dreams Calls",
       "date": "2026-10-30",
       "schools": [
@@ -18945,7 +18583,7 @@
       "location": "Uni 218"
     },
     {
-      "id": "judah-athletics-2026-10-30-126",
+      "id": "judah-athletics-2026-10-30-122",
       "title": "Middle School Girls Basketball — Practice",
       "date": "2026-10-30",
       "schools": [
@@ -18959,7 +18597,7 @@
       "end": "17:30"
     },
     {
-      "id": "u4-ipa-b4aa14d7430828b018",
+      "id": "u4-ipa-d56fc860b5b78b6c50",
       "title": "Girls BB Practice",
       "date": "2026-10-30",
       "schools": [
@@ -19001,7 +18639,7 @@
       "location": "Main Library"
     },
     {
-      "id": "u4-ipa-6a55b9a743655b6df4",
+      "id": "u4-ipa-dbe114fa77ee20d558",
       "title": "Boys BB Practice",
       "date": "2026-10-30",
       "schools": [
@@ -19227,7 +18865,7 @@
       "location": "The Urbana Free Library"
     },
     {
-      "id": "u4-district-68dd0a4341ef5145f2",
+      "id": "u4-district-b53ec49505bf7ed5f3",
       "title": "Franklin Middle School Tour",
       "date": "2026-11-01",
       "schools": [
@@ -19259,7 +18897,7 @@
       "location": "Franklin STEAM Academy, 817 N Harris Ave, Champaign, IL 61820, USA"
     },
     {
-      "id": "u4-stm-2a225a19a13371c60e",
+      "id": "u4-stm-535bbf89cdc799bf2a",
       "title": "Maroon Bell 2 All School Mass",
       "date": "2026-11-02",
       "schools": [
@@ -19333,7 +18971,7 @@
       "location": "Main Library"
     },
     {
-      "id": "u4-stm-f67135e96d6f33cc1a",
+      "id": "u4-stm-4407dac437b95c5269",
       "title": "Academic Award Ceremony",
       "date": "2026-11-02",
       "schools": [
@@ -19417,7 +19055,7 @@
       "location": "Uni 218"
     },
     {
-      "id": "u4-jefferson-eaba8311dd958cbb12",
+      "id": "u4-jefferson-a12a66a87aeab1f682",
       "title": "Faculty Meeting",
       "date": "2026-11-02",
       "schools": [
@@ -19461,7 +19099,7 @@
       "location": "Uni Kitchen"
     },
     {
-      "id": "judah-athletics-2026-11-02-127",
+      "id": "judah-athletics-2026-11-02-123",
       "title": "Middle School Girls Basketball — Practice",
       "date": "2026-11-02",
       "schools": [
@@ -19520,7 +19158,7 @@
       "end": "18:00"
     },
     {
-      "id": "u4-ipa-009a754d9c87021527",
+      "id": "u4-ipa-7b37d4ce640f56af96",
       "title": "Girls BB Practice",
       "date": "2026-11-02",
       "schools": [
@@ -19563,7 +19201,7 @@
       "end": "17:30"
     },
     {
-      "id": "u4-garden-3d6e5dd43fe21f0365",
+      "id": "u4-garden-95250253cba05bf0f6",
       "title": "Girls' Basketball vs Edison MS (at Franklin)",
       "date": "2026-11-02",
       "schools": [
@@ -19608,7 +19246,7 @@
       "location": "HOME -"
     },
     {
-      "id": "u4-franklin-658a9f5c24484bfb49",
+      "id": "u4-franklin-aba6e1d3417bb2073f",
       "title": "Knights GBB-MS Girls - VS Edison Middle School (Game)",
       "date": "2026-11-02",
       "schools": [
@@ -19637,7 +19275,7 @@
       "end": "18:30"
     },
     {
-      "id": "u4-ipa-19b1e90707e19ef723",
+      "id": "u4-ipa-45d6b9846234543e13",
       "title": "Boys BB Practice",
       "date": "2026-11-02",
       "schools": [
@@ -19651,7 +19289,7 @@
       "end": "19:30"
     },
     {
-      "id": "judah-athletics-2026-11-02-128",
+      "id": "judah-athletics-2026-11-02-124",
       "title": "Elementary Boys Basketball at St. Joseph Middle School — Game",
       "date": "2026-11-02",
       "schools": [
@@ -19681,7 +19319,7 @@
       "location": "The Urbana Free Library"
     },
     {
-      "id": "u4-stm-f002caa288d8aec183",
+      "id": "u4-stm-265293ad6f2b96b02f",
       "title": "Fall Sports Signing Day",
       "date": "2026-11-03",
       "schools": [
@@ -19694,7 +19332,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-1914674fd6ed3ef108",
+      "id": "u4-stm-cbf6bf4fdb36f3f167",
       "title": "Green Bell 1",
       "date": "2026-11-03",
       "schools": [
@@ -19707,7 +19345,7 @@
       "allDay": true
     },
     {
-      "id": "u4-cecc-0c04dd5e185e10cd28",
+      "id": "u4-cecc-473265ef1a1c5228b3",
       "title": "Picture Day",
       "date": "2026-11-03",
       "schools": [
@@ -19883,7 +19521,7 @@
       "location": "Uni 106S"
     },
     {
-      "id": "judah-athletics-2026-11-03-129",
+      "id": "judah-athletics-2026-11-03-125",
       "title": "Middle School Girls Basketball — Practice",
       "date": "2026-11-03",
       "schools": [
@@ -19987,7 +19625,7 @@
       "end": "18:30"
     },
     {
-      "id": "judah-athletics-2026-11-03-130",
+      "id": "judah-athletics-2026-11-03-126",
       "title": "7/8th Boys Basketball at Blue Ridge Junior High School — Game",
       "date": "2026-11-03",
       "schools": [
@@ -20089,7 +19727,7 @@
       "location": "Douglass Branch Library"
     },
     {
-      "id": "u4-busey-0789e29a9c999b8100",
+      "id": "u4-busey-7ebf60abb4e09c068e",
       "title": "CB Bobcat Spirit Day",
       "date": "2026-11-04",
       "schools": [
@@ -20118,7 +19756,7 @@
       "location": "Franklin STEAM Academy"
     },
     {
-      "id": "u4-stm-ce4ad5dc63894a308b",
+      "id": "u4-stm-73433eb2ef30a6eb70",
       "title": "Gold Bell 1",
       "date": "2026-11-04",
       "schools": [
@@ -20131,7 +19769,7 @@
       "allDay": true
     },
     {
-      "id": "u4-garden-5b6bfab7bf48721fba",
+      "id": "u4-garden-5b463d04df32af1da8",
       "title": "IEP",
       "date": "2026-11-04",
       "schools": [
@@ -20219,7 +19857,7 @@
       "location": "Uni Kitchen"
     },
     {
-      "id": "u4-jefferson-da9cf4ad0143802751",
+      "id": "u4-jefferson-5d648f4d55c6559eeb",
       "title": "Art Club",
       "date": "2026-11-04",
       "schools": [
@@ -20325,7 +19963,7 @@
       "location": "Jefferson Middle School"
     },
     {
-      "id": "u4-jefferson-312ac72b1e45f72e16",
+      "id": "u4-jefferson-8f8a1e989058be217d",
       "title": "GBB vs. Urbana",
       "date": "2026-11-04",
       "schools": [
@@ -20398,7 +20036,7 @@
       "location": "North Gym"
     },
     {
-      "id": "u4-ipa-8ba40a232dd49bba01",
+      "id": "u4-ipa-4e215139c8f6aef46e",
       "title": "Boys BB Practice",
       "date": "2026-11-04",
       "schools": [
@@ -20427,7 +20065,7 @@
       "location": "Westview Elementary"
     },
     {
-      "id": "u4-stm-2a22a7acac72b7a9d4",
+      "id": "u4-stm-d9b9e92f78d8d63015",
       "title": "Parent Association Meeting",
       "date": "2026-11-04",
       "schools": [
@@ -20469,7 +20107,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-3ad73b1d452ccf0822",
+      "id": "u4-stm-67c20622980f2df291",
       "title": "Green Bell 1",
       "date": "2026-11-05",
       "schools": [
@@ -20703,7 +20341,7 @@
       "location": "Away - URBANA MIDDLE SCHOOL"
     },
     {
-      "id": "u4-franklin-06220ad7b17cad7647",
+      "id": "u4-franklin-2f58b45832545fbf8a",
       "title": "Knights GBB-MS Girls @ Urbana Middle School (Game)",
       "date": "2026-11-05",
       "schools": [
@@ -20734,7 +20372,7 @@
       "location": "Jefferson Middle School"
     },
     {
-      "id": "u4-jefferson-bdec0a72da6c9ad1d3",
+      "id": "u4-jefferson-29b418d0f1794cb3e4",
       "title": "GBB vs. Edison",
       "date": "2026-11-05",
       "schools": [
@@ -20764,7 +20402,7 @@
       "location": "Away - EDISON MIDDLE SCHOOL"
     },
     {
-      "id": "u4-franklin-59d8568e7af8b8bbf2",
+      "id": "u4-franklin-493c7a93e97dbed40c",
       "title": "Knights BBB-MS Boys @ Edison Middle School (Game)",
       "date": "2026-11-05",
       "schools": [
@@ -20794,7 +20432,7 @@
       "location": "IPA gym"
     },
     {
-      "id": "judah-athletics-2026-11-05-131",
+      "id": "judah-athletics-2026-11-05-127",
       "title": "Elementary Boys Basketball at Next Generation — Game",
       "date": "2026-11-05",
       "schools": [
@@ -20896,7 +20534,7 @@
       "location": "Judah Christian School"
     },
     {
-      "id": "judah-athletics-2026-11-05-132",
+      "id": "judah-athletics-2026-11-05-128",
       "title": "Middle School Girls Basketball vs. INTERNATIONAL PREP ACADEMY — Game",
       "date": "2026-11-05",
       "schools": [
@@ -20955,7 +20593,7 @@
       "location": "North Attic"
     },
     {
-      "id": "u4-westview-62b2af69d99e7bc796",
+      "id": "u4-westview-c7856fbbf031501e90",
       "title": "Clothing Drive Shopping Day",
       "date": "2026-11-06",
       "schools": [
@@ -20968,7 +20606,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-c914014a830475479f",
+      "id": "u4-stm-549367df1bdfd3f385",
       "title": "Gold Bell 1",
       "date": "2026-11-06",
       "schools": [
@@ -20995,7 +20633,7 @@
       "location": "Dr. Howard Elementary"
     },
     {
-      "id": "u4-busey-59b3393a1d6b648106",
+      "id": "u4-busey-9267f7b3aba4fe78ab",
       "title": "University/College Color or Shirt Day",
       "date": "2026-11-06",
       "schools": [
@@ -21082,7 +20720,7 @@
       "location": "Uni Kitchen"
     },
     {
-      "id": "u4-howard-803d18500b80cab487",
+      "id": "u4-howard-7c432bb0a2b9eb44b4",
       "title": "2nd Grade Hopes and Dreams Calls",
       "date": "2026-11-06",
       "schools": [
@@ -21111,7 +20749,7 @@
       "location": "Uni 218"
     },
     {
-      "id": "judah-athletics-2026-11-06-133",
+      "id": "judah-athletics-2026-11-06-129",
       "title": "Middle School Girls Basketball — Practice",
       "date": "2026-11-06",
       "schools": [
@@ -21125,7 +20763,7 @@
       "end": "17:30"
     },
     {
-      "id": "u4-ipa-9e666b1ede61a3c89d",
+      "id": "u4-ipa-0f686c8d234bc427a0",
       "title": "Girls BB Practice",
       "date": "2026-11-06",
       "schools": [
@@ -21139,7 +20777,7 @@
       "end": "17:30"
     },
     {
-      "id": "judah-athletics-2026-11-06-134",
+      "id": "judah-athletics-2026-11-06-130",
       "title": "7/8th Boys Basketball vs. Villa Grove Junior/Senior High School — Game",
       "date": "2026-11-06",
       "schools": [
@@ -21153,7 +20791,7 @@
       "end": "20:00"
     },
     {
-      "id": "u4-ipa-0c2dec9fe42b6db7fd",
+      "id": "u4-ipa-c09a038dd0dc308e95",
       "title": "Boys BB Practice",
       "date": "2026-11-06",
       "schools": [
@@ -21167,7 +20805,7 @@
       "end": "19:30"
     },
     {
-      "id": "u4-jefferson-4cb885734f26aa15ca",
+      "id": "u4-jefferson-18968b7fd2dd54aa83",
       "title": "Jefferson Fall Dance",
       "date": "2026-11-06",
       "schools": [
@@ -21371,7 +21009,7 @@
       "sourceUrl": "https://schools.snap.app/Uni/event/4875"
     },
     {
-      "id": "u4-garden-691c3d50ddf2670069",
+      "id": "u4-garden-0299d27f2f1eae4f5b",
       "title": "Girls' Basketball vs Stephen Decatur (at Franklin)",
       "date": "2026-11-07",
       "schools": [
@@ -21579,7 +21217,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-23f7f6b9a649690221",
+      "id": "u4-stm-a1f707993e065bac24",
       "title": "Maroon Day",
       "date": "2026-11-09",
       "schools": [
@@ -21713,7 +21351,7 @@
       "location": "Jefferson Middle School"
     },
     {
-      "id": "u4-jefferson-8e54d47e56515f336f",
+      "id": "u4-jefferson-3bcc706e1f20cda5a3",
       "title": "BBB vs. Urbana",
       "date": "2026-11-09",
       "schools": [
@@ -21786,7 +21424,7 @@
       "end": "18:30"
     },
     {
-      "id": "judah-athletics-2026-11-09-136",
+      "id": "judah-athletics-2026-11-09-132",
       "title": "7/8th Boys Basketball at Deland-Weldon Middle School — Game",
       "date": "2026-11-09",
       "schools": [
@@ -21800,7 +21438,7 @@
       "end": "19:30"
     },
     {
-      "id": "u4-district-549411f5951ef0a822",
+      "id": "u4-district-c8af8b75cc55005b65",
       "title": "Board of Education Regular Meeting",
       "date": "2026-11-09",
       "schools": [
@@ -21860,7 +21498,7 @@
       "end": "19:00"
     },
     {
-      "id": "judah-athletics-2026-11-09-135",
+      "id": "judah-athletics-2026-11-09-131",
       "title": "Middle School Girls Basketball vs. Arthur Christian School — Game",
       "date": "2026-11-09",
       "schools": [
@@ -21889,7 +21527,7 @@
       "location": "The Urbana Free Library"
     },
     {
-      "id": "u4-stm-2d0b5b1036a8bee8db",
+      "id": "u4-stm-546eca2137381045f3",
       "title": "ABO Meeting (Athletic Booster Organization)",
       "date": "2026-11-09",
       "schools": [
@@ -21904,7 +21542,7 @@
       "location": "Library"
     },
     {
-      "id": "u4-stm-8c1c4529d1b01f464c",
+      "id": "u4-stm-452a03eaf1e926f497",
       "title": "Green Bell 2 Veteran's Day Assembly",
       "date": "2026-11-10",
       "schools": [
@@ -22034,7 +21672,7 @@
       "end": "16:45"
     },
     {
-      "id": "judah-athletics-2026-11-10-138",
+      "id": "judah-athletics-2026-11-10-134",
       "title": "Middle School Girls Basketball — Practice",
       "date": "2026-11-10",
       "schools": [
@@ -22152,7 +21790,7 @@
       "sourceUrl": "https://schools.snap.app/Uni/event/4532"
     },
     {
-      "id": "u4-ipa-b5af046081bc865d46",
+      "id": "u4-ipa-97a14588eebe1bd032",
       "title": "Boys BB Practice",
       "date": "2026-11-10",
       "schools": [
@@ -22166,7 +21804,7 @@
       "end": "19:30"
     },
     {
-      "id": "judah-athletics-2026-11-10-137",
+      "id": "judah-athletics-2026-11-10-133",
       "title": "Elementary Boys Basketball vs. Villa Grove Elementary School — Game",
       "date": "2026-11-10",
       "schools": [
@@ -22210,7 +21848,7 @@
       "location": "Main Library"
     },
     {
-      "id": "u4-busey-88f20ee0a02c13d8cf",
+      "id": "u4-busey-079904a2adbc2e0995",
       "title": "CB Bobcat Spirit Day",
       "date": "2026-11-11",
       "schools": [
@@ -22223,7 +21861,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-4c77659e9bfcf30040",
+      "id": "u4-stm-390c2b27b4dc056145",
       "title": "Gold Bell 1",
       "date": "2026-11-11",
       "schools": [
@@ -22364,7 +22002,7 @@
       "location": "FriendShop Bookstore"
     },
     {
-      "id": "u4-jefferson-3109502de47b36511f",
+      "id": "u4-jefferson-7ef6fff644511c4161",
       "title": "D & D Club",
       "date": "2026-11-11",
       "schools": [
@@ -22424,7 +22062,7 @@
       "location": "Douglass Branch Library"
     },
     {
-      "id": "u4-ipa-e9cd6f079c422b9cb2",
+      "id": "u4-ipa-65a1366400766c9ce0",
       "title": "Girls BB Practice",
       "date": "2026-11-11",
       "schools": [
@@ -22454,7 +22092,7 @@
       "location": "Edison Middle School"
     },
     {
-      "id": "u4-jefferson-a0ce52c7e89a7938d7",
+      "id": "u4-jefferson-7ca9c933427f077634",
       "title": "GBB @ Edison",
       "date": "2026-11-11",
       "schools": [
@@ -22512,7 +22150,7 @@
       "location": "Centennial Auditorium"
     },
     {
-      "id": "u4-robeson-81759f0245499726bd",
+      "id": "u4-robeson-409a475bf98a84c835",
       "title": "Girl Scouts",
       "date": "2026-11-11",
       "schools": [
@@ -22526,7 +22164,7 @@
       "end": "19:30"
     },
     {
-      "id": "u4-stm-115fdb61fc4075a1f8",
+      "id": "u4-stm-d8378cd121520f8337",
       "title": "Green Bell 1",
       "date": "2026-11-12",
       "schools": [
@@ -22539,7 +22177,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-e859c36b1ecdc67df1",
+      "id": "u4-stm-c4fd532f09780f1cff",
       "title": "Jr and Sr LOGOS Retreat",
       "date": "2026-11-12",
       "schools": [
@@ -22845,7 +22483,7 @@
       "end": "19:00"
     },
     {
-      "id": "judah-athletics-2026-11-12-140",
+      "id": "judah-athletics-2026-11-12-136",
       "title": "7/8th Boys Basketball vs. St. Malachy School-Rantoul — Game",
       "date": "2026-11-12",
       "schools": [
@@ -22859,7 +22497,7 @@
       "end": "20:00"
     },
     {
-      "id": "u4-central-e2592e0fe6906c7a49",
+      "id": "u4-central-64bed9f5e4c7e5acdb",
       "title": "Fall Academic Letter Night",
       "date": "2026-11-12",
       "schools": [
@@ -22888,7 +22526,7 @@
       "location": "Bement Middle School"
     },
     {
-      "id": "judah-athletics-2026-11-12-139",
+      "id": "judah-athletics-2026-11-12-135",
       "title": "Middle School Girls Basketball at Schlarman High School — Game",
       "date": "2026-11-12",
       "schools": [
@@ -22917,7 +22555,7 @@
       "location": "Main Library"
     },
     {
-      "id": "u4-stm-2bb3543814e86c4938",
+      "id": "u4-stm-692df75880c00c4ecf",
       "title": "Empty Bowl Supper/Saber Showcase",
       "date": "2026-11-13",
       "schools": [
@@ -22943,7 +22581,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-ead5369e9e27953774",
+      "id": "u4-stm-d16533882439517a88",
       "title": "Gold Bell 1",
       "date": "2026-11-13",
       "schools": [
@@ -22956,7 +22594,7 @@
       "allDay": true
     },
     {
-      "id": "u4-busey-8b0aaea46c93eaa953",
+      "id": "u4-busey-4dfb7244195134b183",
       "title": "University/College Color or Shirt Day",
       "date": "2026-11-13",
       "schools": [
@@ -23044,7 +22682,7 @@
       "location": "FriendShop Bookstore"
     },
     {
-      "id": "u4-howard-28d6844562249b6f05",
+      "id": "u4-howard-88acccc8721d6d0b2f",
       "title": "2nd Grade Hopes and Dreams Calls",
       "date": "2026-11-13",
       "schools": [
@@ -23103,7 +22741,7 @@
       "location": "Uni 218"
     },
     {
-      "id": "judah-athletics-2026-11-13-142",
+      "id": "judah-athletics-2026-11-13-138",
       "title": "Middle School Girls Basketball — Practice",
       "date": "2026-11-13",
       "schools": [
@@ -23132,7 +22770,7 @@
       "location": "The Urbana Free Library"
     },
     {
-      "id": "u4-ipa-7969886012a9f178de",
+      "id": "u4-ipa-4d4f068c183d232fbd",
       "title": "Girls BB Practice",
       "date": "2026-11-13",
       "schools": [
@@ -23161,7 +22799,7 @@
       "location": "Main Library"
     },
     {
-      "id": "judah-athletics-2026-11-13-141",
+      "id": "judah-athletics-2026-11-13-137",
       "title": "Elementary Boys Basketball vs. Urbana Middle School — Game",
       "date": "2026-11-13",
       "schools": [
@@ -23175,7 +22813,7 @@
       "end": "18:45"
     },
     {
-      "id": "u4-ipa-09036e0bdf16f720cc",
+      "id": "u4-ipa-65da8e1266436e5843",
       "title": "Boys BB Practice",
       "date": "2026-11-13",
       "schools": [
@@ -23570,7 +23208,7 @@
       "location": "FriendShop Bookstore"
     },
     {
-      "id": "u4-stm-444980ac4a243a5615",
+      "id": "u4-stm-e93c08ecbda33dcc20",
       "title": "Maroon Day",
       "date": "2026-11-16",
       "schools": [
@@ -23583,7 +23221,7 @@
       "allDay": true
     },
     {
-      "id": "u4-jefferson-55b758c8285eda3af6",
+      "id": "u4-jefferson-6ee8036bf3e1a90c1a",
       "title": "SchooLinks (SS)",
       "date": "2026-11-16",
       "schools": [
@@ -23643,7 +23281,7 @@
       "location": "Uni 218"
     },
     {
-      "id": "u4-jefferson-13826aa22761b58379",
+      "id": "u4-jefferson-43af82a81a76b6f40a",
       "title": "Department Collaboration Meeting",
       "date": "2026-11-16",
       "schools": [
@@ -23672,7 +23310,7 @@
       "location": "Main Library"
     },
     {
-      "id": "judah-athletics-2026-11-16-144",
+      "id": "judah-athletics-2026-11-16-140",
       "title": "Middle School Girls Basketball — Practice",
       "date": "2026-11-16",
       "schools": [
@@ -23717,7 +23355,7 @@
       "location": "Douglass Branch Library"
     },
     {
-      "id": "u4-ipa-58238f4ce4583e7600",
+      "id": "u4-ipa-44766d1e0a96622795",
       "title": "Girls BB Practice",
       "date": "2026-11-16",
       "schools": [
@@ -23747,7 +23385,7 @@
       "location": "Jefferson Middle School"
     },
     {
-      "id": "u4-jefferson-6f11aa9a13dd29c082",
+      "id": "u4-jefferson-b0772dc2909d837892",
       "title": "BBB vs. Garden Hills",
       "date": "2026-11-16",
       "schools": [
@@ -23819,7 +23457,7 @@
       "location": "Judah Christian School"
     },
     {
-      "id": "u4-ipa-3cf72f7fe67b27882c",
+      "id": "u4-ipa-810561f23d5e9efba6",
       "title": "Boys BB Practice",
       "date": "2026-11-16",
       "schools": [
@@ -23833,7 +23471,7 @@
       "end": "19:30"
     },
     {
-      "id": "judah-athletics-2026-11-16-143",
+      "id": "judah-athletics-2026-11-16-139",
       "title": "Elementary Boys Basketball at Villa Grove Elementary School — Game",
       "date": "2026-11-16",
       "schools": [
@@ -23847,7 +23485,7 @@
       "end": "19:15"
     },
     {
-      "id": "u4-garden-0e1ba081b4c622f536",
+      "id": "u4-garden-27483754d83ebd58bb",
       "title": "5th Grade Field Trip - Staerkel Planetarium 12:30-2:10",
       "date": "2026-11-17",
       "schools": [
@@ -23860,7 +23498,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-163d8eb77986556705",
+      "id": "u4-stm-f39c0bb5465ac8cec3",
       "title": "Green Bell 1",
       "date": "2026-11-17",
       "schools": [
@@ -23887,7 +23525,7 @@
       "location": "Franklin STEAM Academy"
     },
     {
-      "id": "u4-westview-78f06e83806e57b1c9",
+      "id": "u4-westview-aec2afa98282fa21b0",
       "title": "Picture Day Retakes",
       "date": "2026-11-17",
       "schools": [
@@ -23991,7 +23629,7 @@
       "location": "Uni 106S"
     },
     {
-      "id": "judah-athletics-2026-11-17-145",
+      "id": "judah-athletics-2026-11-17-141",
       "title": "Middle School Girls Basketball — Practice",
       "date": "2026-11-17",
       "schools": [
@@ -24109,7 +23747,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28637"
     },
     {
-      "id": "judah-athletics-2026-11-17-146",
+      "id": "judah-athletics-2026-11-17-142",
       "title": "7/8th Boys Basketball vs. Thomasboro Grade School — Game",
       "date": "2026-11-17",
       "schools": [
@@ -24138,7 +23776,7 @@
       "sourceUrl": "https://schools.snap.app/Uni/event/4810"
     },
     {
-      "id": "u4-ipa-1318209cfe9881f1f2",
+      "id": "u4-ipa-9fad2ff7444640d2b6",
       "title": "Boys BB Practice",
       "date": "2026-11-17",
       "schools": [
@@ -24167,7 +23805,7 @@
       "location": "Cornerstone Christian Academy"
     },
     {
-      "id": "u4-robeson-384acee84afa915893",
+      "id": "u4-robeson-88f68c87732bc09225",
       "title": "PTA Meeting * in cafeteria",
       "date": "2026-11-17",
       "schools": [
@@ -24226,7 +23864,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28801"
     },
     {
-      "id": "u4-busey-10455e4c2f94f746ad",
+      "id": "u4-busey-eb750ea25136e42777",
       "title": "CB Bobcat Spirit Day",
       "date": "2026-11-18",
       "schools": [
@@ -24255,7 +23893,7 @@
       "location": "Centennial High School"
     },
     {
-      "id": "u4-stm-d2612e5a8ea8069a17",
+      "id": "u4-stm-b281d1d0a525c6e4ab",
       "title": "Gold Bell 1",
       "date": "2026-11-18",
       "schools": [
@@ -24268,7 +23906,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-f1bf920a8b41d4ff10",
+      "id": "u4-stm-b57d18f18716cb9fa4",
       "title": "NHS Induction Ceremony",
       "date": "2026-11-18",
       "schools": [
@@ -24324,7 +23962,7 @@
       "location": "FriendShop Bookstore"
     },
     {
-      "id": "u4-jefferson-da8b2e480c2d5da691",
+      "id": "u4-jefferson-05c9e18477b9950b35",
       "title": "Art Club",
       "date": "2026-11-18",
       "schools": [
@@ -24501,7 +24139,7 @@
       "location": "Carrie Busey Elementary"
     },
     {
-      "id": "u4-stm-224b85cc0a331e6121",
+      "id": "u4-stm-563538f81101fc6c10",
       "title": "Green Bell 1",
       "date": "2026-11-19",
       "schools": [
@@ -24567,7 +24205,7 @@
       "location": "Robeson Elementary"
     },
     {
-      "id": "u4-centennial-429ae31ca932589070",
+      "id": "u4-centennial-6d2ef6dedcebcf1dfb",
       "title": "Tornado/Shelter In Place Drill",
       "date": "2026-11-19",
       "schools": [
@@ -24702,7 +24340,7 @@
       "location": "Uni 106S"
     },
     {
-      "id": "judah-athletics-2026-11-19-147",
+      "id": "judah-athletics-2026-11-19-143",
       "title": "Middle School Girls Basketball — Practice",
       "date": "2026-11-19",
       "schools": [
@@ -24732,7 +24370,7 @@
       "location": "Douglass Branch Library"
     },
     {
-      "id": "u4-ipa-d77ee36a19dab93ce9",
+      "id": "u4-ipa-436cd47e372a81fd8b",
       "title": "Girls BB Practice",
       "date": "2026-11-19",
       "schools": [
@@ -24762,7 +24400,7 @@
       "location": "Jefferson Middle School"
     },
     {
-      "id": "u4-jefferson-500c1d3d415949a443",
+      "id": "u4-jefferson-d83b692185eacf696c",
       "title": "BBB vs. Edison",
       "date": "2026-11-19",
       "schools": [
@@ -24864,7 +24502,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28630"
     },
     {
-      "id": "judah-athletics-2026-11-19-148",
+      "id": "judah-athletics-2026-11-19-144",
       "title": "7/8th Boys Basketball vs. University Laboratory High School — Game",
       "date": "2026-11-19",
       "schools": [
@@ -24908,7 +24546,7 @@
       "sourceUrl": "https://schools.snap.app/Uni/event/4806"
     },
     {
-      "id": "u4-ipa-e942dba8aee3b97293",
+      "id": "u4-ipa-9efe84a9e14546047b",
       "title": "Boys BB Practice",
       "date": "2026-11-19",
       "schools": [
@@ -24922,7 +24560,7 @@
       "end": "19:30"
     },
     {
-      "id": "u4-franklin-671afdb3629c75688f",
+      "id": "u4-franklin-d5c032cc011ad8a61e",
       "title": "Franklin PTA Meeting",
       "date": "2026-11-19",
       "schools": [
@@ -24966,7 +24604,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28805"
     },
     {
-      "id": "u4-stm-74a608a492a58d42e4",
+      "id": "u4-stm-4c46171d3f366c87f3",
       "title": "Gold Bell 2 All School Adoration",
       "date": "2026-11-20",
       "schools": [
@@ -24993,7 +24631,7 @@
       "location": "Champaign Central High School"
     },
     {
-      "id": "u4-busey-ec2a0ffdaac9890dd8",
+      "id": "u4-busey-8a5f5123ca91f79d53",
       "title": "University/College Color or Shirt Day",
       "date": "2026-11-20",
       "schools": [
@@ -25006,7 +24644,7 @@
       "allDay": true
     },
     {
-      "id": "u4-garden-2d096c17ecc4268c5b",
+      "id": "u4-garden-e5375e07edd66371af",
       "title": "8th Graders to Franklin for Central Band",
       "date": "2026-11-20",
       "schools": [
@@ -25035,7 +24673,7 @@
       "location": "Douglass Branch Library"
     },
     {
-      "id": "u4-jefferson-9628ab60cd7535c88e",
+      "id": "u4-jefferson-37b3059b1803143c20",
       "title": "Central Band Visit",
       "date": "2026-11-20",
       "schools": [
@@ -25064,7 +24702,7 @@
       "location": "FriendShop Bookstore"
     },
     {
-      "id": "u4-howard-7258daa24564c15e1e",
+      "id": "u4-howard-a366d5a904b9e80b6b",
       "title": "2nd Grade Hopes and Dreams Calls",
       "date": "2026-11-20",
       "schools": [
@@ -25123,7 +24761,7 @@
       "location": "Uni 218"
     },
     {
-      "id": "judah-athletics-2026-11-20-149",
+      "id": "judah-athletics-2026-11-20-145",
       "title": "Middle School Girls Basketball — Practice",
       "date": "2026-11-20",
       "schools": [
@@ -25137,7 +24775,7 @@
       "end": "17:30"
     },
     {
-      "id": "u4-ipa-aee703379035e84a46",
+      "id": "u4-ipa-f7174bd121f9801051",
       "title": "Girls BB Practice",
       "date": "2026-11-20",
       "schools": [
@@ -25199,7 +24837,7 @@
       "location": "Main Library"
     },
     {
-      "id": "u4-ipa-57346bc6f57744235d",
+      "id": "u4-ipa-b0ece0d4309ddffb52",
       "title": "Boys BB Practice",
       "date": "2026-11-20",
       "schools": [
@@ -25446,7 +25084,7 @@
       "source": "CDL 2026–27 Calendar"
     },
     {
-      "id": "u4-stm-ed14ecaf38a638781b",
+      "id": "u4-stm-e069cf4c421dd63220",
       "title": "Thanksgiving Break",
       "date": "2026-11-23",
       "schools": [
@@ -25475,7 +25113,7 @@
       "endDate": "2026-11-27"
     },
     {
-      "id": "judah-athletics-2026-11-23-151",
+      "id": "judah-athletics-2026-11-23-147",
       "title": "Varsity Boys Basketball at Shiloh High School — Game",
       "date": "2026-11-23",
       "schools": [
@@ -25533,7 +25171,7 @@
       "location": "Main Library"
     },
     {
-      "id": "judah-athletics-2026-11-23-150",
+      "id": "judah-athletics-2026-11-23-146",
       "title": "Middle School Girls Basketball — Practice",
       "date": "2026-11-23",
       "schools": [
@@ -25563,7 +25201,7 @@
       "location": "Douglass Branch Library"
     },
     {
-      "id": "u4-ipa-6921e21fc2f931a6c0",
+      "id": "u4-ipa-74d89dcf71a521ecad",
       "title": "Girls BB Practice",
       "date": "2026-11-23",
       "schools": [
@@ -25621,7 +25259,7 @@
       "end": "18:30"
     },
     {
-      "id": "u4-district-b7f8b21a0a059078e2",
+      "id": "u4-district-f2aa34b9f9cd1a4f6b",
       "title": "Board of Education Regular Meeting",
       "date": "2026-11-23",
       "schools": [
@@ -25682,7 +25320,7 @@
       "end": "19:00"
     },
     {
-      "id": "judah-athletics-2026-11-23-152",
+      "id": "judah-athletics-2026-11-23-148",
       "title": "7/8th Boys Basketball vs. St. John's JH — Game",
       "date": "2026-11-23",
       "schools": [
@@ -25726,7 +25364,7 @@
       "sourceUrl": "https://schools.snap.app/Uni/event/4812"
     },
     {
-      "id": "u4-ipa-600a7c00a5ffd5e156",
+      "id": "u4-ipa-2b7289248a6f3c6eb4",
       "title": "Boys BB Practice",
       "date": "2026-11-23",
       "schools": [
@@ -25795,7 +25433,7 @@
       "allDay": true
     },
     {
-      "id": "u4-garden-a7335f5a60601c249a",
+      "id": "u4-garden-3f7ca0541da856674b",
       "title": "Picture Retakes",
       "date": "2026-11-24",
       "schools": [
@@ -25808,7 +25446,7 @@
       "allDay": true
     },
     {
-      "id": "judah-athletics-2026-11-24-154",
+      "id": "judah-athletics-2026-11-24-150",
       "title": "Varsity Boys Basketball at Shiloh High School — Game",
       "date": "2026-11-24",
       "schools": [
@@ -25851,7 +25489,7 @@
       "location": "The Urbana Free Library"
     },
     {
-      "id": "u4-garden-ea747cc83139f2f102",
+      "id": "u4-garden-c10913379d936d4a01",
       "title": "Building Council",
       "date": "2026-11-24",
       "schools": [
@@ -25895,7 +25533,7 @@
       "location": "The Urbana Free Library"
     },
     {
-      "id": "judah-athletics-2026-11-24-153",
+      "id": "judah-athletics-2026-11-24-149",
       "title": "Middle School Girls Basketball — Practice",
       "date": "2026-11-24",
       "schools": [
@@ -25940,7 +25578,7 @@
       "location": "Garden Hills Academy"
     },
     {
-      "id": "u4-ipa-4836e965b04a54668d",
+      "id": "u4-ipa-1b7c090571ff0c264b",
       "title": "Girls BB Practice",
       "date": "2026-11-24",
       "schools": [
@@ -25983,7 +25621,7 @@
       "end": "19:00"
     },
     {
-      "id": "u4-busey-a031dbc68d0a03ada6",
+      "id": "u4-busey-8454d49a79b7a388b8",
       "title": "CB Bobcat Spirit Day",
       "date": "2026-11-25",
       "schools": [
@@ -26010,7 +25648,7 @@
       "endDate": "2026-11-27"
     },
     {
-      "id": "u4-bottenfield-1bd700e497632b96eb",
+      "id": "u4-bottenfield-cdb4381dce5010550a",
       "title": "No School - Thanksgiving Break",
       "date": "2026-11-25",
       "schools": [
@@ -26038,7 +25676,7 @@
       "allDay": true
     },
     {
-      "id": "u4-franklin-cfbb5d146033f34528",
+      "id": "u4-franklin-1a59af319844272ccc",
       "title": "No School- Thanksgiving Break",
       "date": "2026-11-25",
       "schools": [
@@ -26053,7 +25691,7 @@
       "weekdaysOnly": false
     },
     {
-      "id": "u4-district-fbdd3a6c7c8513a5fa",
+      "id": "u4-district-5c03461a1aa37889ee",
       "title": "Thanksgiving Break",
       "date": "2026-11-25",
       "schools": [
@@ -26085,7 +25723,7 @@
       "weekdaysOnly": false
     },
     {
-      "id": "u4-barkstall-fb8c95f27433441a85",
+      "id": "u4-barkstall-496d1dc3f23446fa8e",
       "title": "Thanksgiving Break (No School)",
       "date": "2026-11-25",
       "schools": [
@@ -26098,7 +25736,7 @@
       "allDay": true
     },
     {
-      "id": "u4-westview-28c8fb001533c51462",
+      "id": "u4-westview-230629f074c031e4a6",
       "title": "Thanksgiving Break - No School",
       "date": "2026-11-25",
       "schools": [
@@ -26182,7 +25820,7 @@
       "weekdaysOnly": true
     },
     {
-      "id": "u4-howard-961a09ffca41b820e1",
+      "id": "u4-howard-484444268c29be00a9",
       "title": "Thanksgiving Break- No Student Attendance",
       "date": "2026-11-25",
       "schools": [
@@ -26226,7 +25864,7 @@
       "sourceUrl": "https://trinity-urbana.org/wp/wp-content/uploads/2026/02/WD-Calendar-of-Events.26-27.pdf"
     },
     {
-      "id": "judah-athletics-2026-11-25-155",
+      "id": "judah-athletics-2026-11-25-151",
       "title": "Varsity Boys Basketball — Game",
       "date": "2026-11-25",
       "schools": [
@@ -26284,7 +25922,7 @@
       "location": "FriendShop Bookstore"
     },
     {
-      "id": "u4-jefferson-c72e775ba9c928f0e5",
+      "id": "u4-jefferson-b4ba73020b735aee6a",
       "title": "D & D Club",
       "date": "2026-11-25",
       "schools": [
@@ -26357,7 +25995,7 @@
       "allDay": true
     },
     {
-      "id": "u4-barkstall-213819ccd9270ce102",
+      "id": "u4-barkstall-e72724758cabb51807",
       "title": "Thanksgiving Break (No School)",
       "date": "2026-11-26",
       "schools": [
@@ -26428,7 +26066,7 @@
       "location": "Main Library"
     },
     {
-      "id": "u4-garden-d0e3394f809f369bfc",
+      "id": "u4-garden-383077a2ef4c9bb7a4",
       "title": "Steward Meeting with Admin",
       "date": "2026-11-26",
       "schools": [
@@ -26442,7 +26080,7 @@
       "end": "15:45"
     },
     {
-      "id": "judah-athletics-2026-11-26-156",
+      "id": "judah-athletics-2026-11-26-152",
       "title": "Middle School Girls Basketball — Practice",
       "date": "2026-11-26",
       "schools": [
@@ -26469,7 +26107,7 @@
       "allDay": true
     },
     {
-      "id": "u4-barkstall-beeb350bbb1d1b15a3",
+      "id": "u4-barkstall-e93b7b96786cf46b40",
       "title": "Thanksgiving Break (No School)",
       "date": "2026-11-27",
       "schools": [
@@ -26482,7 +26120,7 @@
       "allDay": true
     },
     {
-      "id": "u4-busey-18a452b72d4a620f2f",
+      "id": "u4-busey-1fcb976dc14caef737",
       "title": "University/College Color or Shirt Day",
       "date": "2026-11-27",
       "schools": [
@@ -26510,7 +26148,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28997"
     },
     {
-      "id": "judah-athletics-2026-11-27-158",
+      "id": "judah-athletics-2026-11-27-154",
       "title": "Varsity Boys Basketball at Shiloh High School — Game",
       "date": "2026-11-27",
       "schools": [
@@ -26553,7 +26191,7 @@
       "location": "FriendShop Bookstore"
     },
     {
-      "id": "u4-howard-aea092036c4d2e26ad",
+      "id": "u4-howard-3d12587ddba74d1ef0",
       "title": "2nd Grade Hopes and Dreams Calls",
       "date": "2026-11-27",
       "schools": [
@@ -26567,7 +26205,7 @@
       "end": "14:15"
     },
     {
-      "id": "judah-athletics-2026-11-27-157",
+      "id": "judah-athletics-2026-11-27-153",
       "title": "Middle School Girls Basketball — Practice",
       "date": "2026-11-27",
       "schools": [
@@ -26716,7 +26354,7 @@
       "location": "FriendShop Bookstore"
     },
     {
-      "id": "u4-stm-ef9862c00b22efeb52",
+      "id": "u4-stm-d8c8f2dde4c6ed0086",
       "title": "Maroon Bell 3 Late Start",
       "date": "2026-11-30",
       "schools": [
@@ -26804,7 +26442,7 @@
       "location": "Main Library"
     },
     {
-      "id": "judah-athletics-2026-11-30-159",
+      "id": "judah-athletics-2026-11-30-155",
       "title": "Middle School Girls Basketball — Practice",
       "date": "2026-11-30",
       "schools": [
@@ -26834,7 +26472,7 @@
       "location": "Douglass Branch Library"
     },
     {
-      "id": "u4-ipa-254ccef6ca3df45db8",
+      "id": "u4-ipa-9661ff248acab7d4e6",
       "title": "Girls BB Practice",
       "date": "2026-11-30",
       "schools": [
@@ -26864,7 +26502,7 @@
       "location": "HOME -"
     },
     {
-      "id": "u4-franklin-e2e084b84b1487ff70",
+      "id": "u4-franklin-3b31c6851a0d5289fd",
       "title": "Knights BBB-MS Boys - VS Urbana Middle School (Game)",
       "date": "2026-11-30",
       "schools": [
@@ -26910,7 +26548,7 @@
       "location": "Jefferson Middle School"
     },
     {
-      "id": "u4-jefferson-d23dff1a31d0d5f9f3",
+      "id": "u4-jefferson-64ee7d522275f69168",
       "title": "BBB vs. Edison",
       "date": "2026-11-30",
       "schools": [
@@ -26998,7 +26636,7 @@
       "sourceUrl": "https://schools.snap.app/Uni/event/4555"
     },
     {
-      "id": "judah-athletics-2026-11-30-160",
+      "id": "judah-athletics-2026-11-30-156",
       "title": "Varsity Boys Basketball vs. Hoopeston Area High School — Game",
       "date": "2026-11-30",
       "schools": [
@@ -27027,7 +26665,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28808"
     },
     {
-      "id": "u4-stm-89230593cb50a47d32",
+      "id": "u4-stm-da5e2e368c8b246c01",
       "title": "Green Bell 1",
       "date": "2026-12-01",
       "schools": [
@@ -27203,7 +26841,7 @@
       "location": "Douglass Branch Library"
     },
     {
-      "id": "u4-ipa-b36a21f2d23b00238e",
+      "id": "u4-ipa-70fc18723e5d0d8a95",
       "title": "Girls BB Practice",
       "date": "2026-12-01",
       "schools": [
@@ -27305,7 +26943,7 @@
       "end": "19:00"
     },
     {
-      "id": "judah-athletics-2026-12-01-161",
+      "id": "judah-athletics-2026-12-01-157",
       "title": "7/8th Boys Basketball vs. St. Thomas School-Philo — Game",
       "date": "2026-12-01",
       "schools": [
@@ -27377,7 +27015,7 @@
       "location": "Centennial High School, 913 Crescent Dr, Champaign, IL 61821, USA"
     },
     {
-      "id": "u4-busey-e43ac725f8ae01b47f",
+      "id": "u4-busey-4dbe24fe4eb4a386b7",
       "title": "CB Bobcat Spirit Day",
       "date": "2026-12-02",
       "schools": [
@@ -27390,7 +27028,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-dc33b92fd3d44f1b4f",
+      "id": "u4-stm-e7d94cf12fcff81ffd",
       "title": "Gold Bell 1",
       "date": "2026-12-02",
       "schools": [
@@ -27433,7 +27071,7 @@
       "location": "FriendShop Bookstore"
     },
     {
-      "id": "u4-jefferson-ed68ef6f6a1c606010",
+      "id": "u4-jefferson-290b9eeabe5476aeb1",
       "title": "Art Club",
       "date": "2026-12-02",
       "schools": [
@@ -27508,7 +27146,7 @@
       "location": "Douglass Branch Library"
     },
     {
-      "id": "u4-ipa-8bae58e4b58fc92f51",
+      "id": "u4-ipa-ef3a193c70ece73364",
       "title": "Girls BB Practice",
       "date": "2026-12-02",
       "schools": [
@@ -27553,7 +27191,7 @@
       "location": "HOME -"
     },
     {
-      "id": "u4-franklin-9f80121caf162d5d0c",
+      "id": "u4-franklin-323433dd441b10e907",
       "title": "Knights BBB-MS Boys - VS Garden Hills (Game)",
       "date": "2026-12-02",
       "schools": [
@@ -27627,7 +27265,7 @@
       "sourceUrl": "https://schools.snap.app/Uni/event/4543"
     },
     {
-      "id": "u4-ipa-e7d764773e94289ab0",
+      "id": "u4-ipa-937f6ba89ca0c61d5a",
       "title": "Boys BB Practice",
       "date": "2026-12-02",
       "schools": [
@@ -27656,7 +27294,7 @@
       "location": "Westview Elementary"
     },
     {
-      "id": "u4-stm-94d948abfd4e9d70ee",
+      "id": "u4-stm-c436efc283e0b4bd5c",
       "title": "Green Bell 1",
       "date": "2026-12-03",
       "schools": [
@@ -27669,7 +27307,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-aca5708f9059761cc6",
+      "id": "u4-stm-9441db38193728e87a",
       "title": "Madrigal Dinner",
       "date": "2026-12-03",
       "schools": [
@@ -27865,7 +27503,7 @@
       "location": "Douglass Branch Library"
     },
     {
-      "id": "u4-ipa-d3412765d2c2c6ffca",
+      "id": "u4-ipa-572236fbc58a92f525",
       "title": "Girls BB Practice",
       "date": "2026-12-03",
       "schools": [
@@ -27894,7 +27532,7 @@
       "location": "Stratton Academy of the Arts"
     },
     {
-      "id": "u4-jefferson-54e30373ac07afcff8",
+      "id": "u4-jefferson-4885ff092e4e29611a",
       "title": "BBB vs Franklin",
       "date": "2026-12-03",
       "schools": [
@@ -27922,7 +27560,7 @@
       "end": "18:00"
     },
     {
-      "id": "u4-ipa-7a46192749cc40c7a2",
+      "id": "u4-ipa-3eefc4393a027ee52c",
       "title": "BBB vs. St. Matts (home)",
       "date": "2026-12-03",
       "schools": [
@@ -27952,7 +27590,7 @@
       "location": "Away - JEFFERSON MIDDLE SCHOOL"
     },
     {
-      "id": "u4-franklin-d3c933d073174bd01d",
+      "id": "u4-franklin-65f5924154ae44eab4",
       "title": "Knights BBB-MS Boys @ Jefferson Middle School (Game)",
       "date": "2026-12-03",
       "schools": [
@@ -28086,7 +27724,7 @@
       "sourceUrl": "https://schools.snap.app/Uni/event/5010"
     },
     {
-      "id": "u4-ipa-f289f904a56e7805fb",
+      "id": "u4-ipa-929265ab579e81deb2",
       "title": "Boys BB Practice",
       "date": "2026-12-03",
       "schools": [
@@ -28100,7 +27738,7 @@
       "end": "19:30"
     },
     {
-      "id": "judah-athletics-2026-12-03-162",
+      "id": "judah-athletics-2026-12-03-158",
       "title": "Elementary Boys Basketball vs. St. Joseph Middle School — Game",
       "date": "2026-12-03",
       "schools": [
@@ -28144,7 +27782,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28815"
     },
     {
-      "id": "u4-stm-906856bd794f39ddc1",
+      "id": "u4-stm-a13c0b5680ab083f8c",
       "title": "Gold Bell 1",
       "date": "2026-12-04",
       "schools": [
@@ -28157,7 +27795,7 @@
       "allDay": true
     },
     {
-      "id": "u4-busey-fcd74b09a817c6bcbc",
+      "id": "u4-busey-808d85af8a0d4b8924",
       "title": "University/College Color or Shirt Day",
       "date": "2026-12-04",
       "schools": [
@@ -28229,7 +27867,7 @@
       "location": "FriendShop Bookstore"
     },
     {
-      "id": "u4-howard-e81dbdbd96e81cbdc0",
+      "id": "u4-howard-eeb461ff3824f5f297",
       "title": "2nd Grade Hopes and Dreams Calls",
       "date": "2026-12-04",
       "schools": [
@@ -28288,7 +27926,7 @@
       "location": "Centennial High School"
     },
     {
-      "id": "u4-ipa-019668fb3e0b48aa94",
+      "id": "u4-ipa-af1b2144db220503e5",
       "title": "Girls BB Practice",
       "date": "2026-12-04",
       "schools": [
@@ -28365,7 +28003,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28642"
     },
     {
-      "id": "judah-athletics-2026-12-04-164",
+      "id": "judah-athletics-2026-12-04-160",
       "title": "7/8th Boys Basketball — Game",
       "date": "2026-12-04",
       "schools": [
@@ -28379,7 +28017,7 @@
       "end": "20:00"
     },
     {
-      "id": "u4-ipa-e2787b57366f491051",
+      "id": "u4-ipa-d698325dfb3bfa6924",
       "title": "Boys BB Practice",
       "date": "2026-12-04",
       "schools": [
@@ -28423,7 +28061,7 @@
       "location": "Main Library"
     },
     {
-      "id": "judah-athletics-2026-12-04-163",
+      "id": "judah-athletics-2026-12-04-159",
       "title": "Varsity Boys Basketball vs. Georgetown-Ridge Farm High School — Game",
       "date": "2026-12-04",
       "schools": [
@@ -28720,7 +28358,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-3a9156d4b193f99fbc",
+      "id": "u4-stm-83fddad8e16bef5b90",
       "title": "Maroon Day",
       "date": "2026-12-07",
       "schools": [
@@ -28778,7 +28416,7 @@
       "location": "Uni 218"
     },
     {
-      "id": "u4-jefferson-76a036a644da1dc514",
+      "id": "u4-jefferson-e3822eff9661870081",
       "title": "Faculty Meeting",
       "date": "2026-12-07",
       "schools": [
@@ -28838,7 +28476,7 @@
       "location": "Douglass Branch Library"
     },
     {
-      "id": "u4-ipa-837c1413dd55c050a7",
+      "id": "u4-ipa-807aaf4aff7d208122",
       "title": "Girls BB Practice",
       "date": "2026-12-07",
       "schools": [
@@ -28882,7 +28520,7 @@
       "location": "Jefferson Middle School"
     },
     {
-      "id": "u4-ipa-81bce4f61e61ff0988",
+      "id": "u4-ipa-641286391fc0fb453d",
       "title": "BBB vs. Rantoul (away)",
       "date": "2026-12-07",
       "schools": [
@@ -28972,7 +28610,7 @@
       "location": "The Urbana Free Library"
     },
     {
-      "id": "judah-athletics-2026-12-07-165",
+      "id": "judah-athletics-2026-12-07-161",
       "title": "Varsity Boys Basketball at Villa Grove Junior/Senior High School — Game",
       "date": "2026-12-07",
       "schools": [
@@ -28986,7 +28624,7 @@
       "end": "20:00"
     },
     {
-      "id": "u4-stm-9cdec99c5eb52b6601",
+      "id": "u4-stm-f1ae5ed1db66105b82",
       "title": "STM ABO (Athletic Booster Organization)",
       "date": "2026-12-07",
       "schools": [
@@ -29015,7 +28653,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28806"
     },
     {
-      "id": "u4-stm-fa93b944d689dbe079",
+      "id": "u4-stm-42017b9c1170dbf6e1",
       "title": "Green Bell 2 All School Mass",
       "date": "2026-12-08",
       "schools": [
@@ -29192,7 +28830,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28605"
     },
     {
-      "id": "judah-athletics-2026-12-08-167",
+      "id": "judah-athletics-2026-12-08-163",
       "title": "7/8th Boys Basketball at Champaign Holy Cross School — Game",
       "date": "2026-12-08",
       "schools": [
@@ -29236,7 +28874,7 @@
       "sourceUrl": "https://schools.snap.app/Uni/event/4559"
     },
     {
-      "id": "u4-ipa-f74990ec73fa564851",
+      "id": "u4-ipa-b4057ade24ef014de0",
       "title": "Boys BB Practice",
       "date": "2026-12-08",
       "schools": [
@@ -29250,7 +28888,7 @@
       "end": "19:30"
     },
     {
-      "id": "judah-athletics-2026-12-08-166",
+      "id": "judah-athletics-2026-12-08-162",
       "title": "Elementary Boys Basketball at Bismarck-Henning High School — Game",
       "date": "2026-12-08",
       "schools": [
@@ -29264,7 +28902,7 @@
       "end": "19:15"
     },
     {
-      "id": "judah-athletics-2026-12-08-168",
+      "id": "judah-athletics-2026-12-08-164",
       "title": "Varsity Boys Basketball at Salt Fork High School — Game",
       "date": "2026-12-08",
       "schools": [
@@ -29338,7 +28976,7 @@
       "sourceUrl": "https://schools.snap.app/Urbana/event/28719"
     },
     {
-      "id": "u4-busey-ec21511b91f5ec702f",
+      "id": "u4-busey-973abf84d74e1a8487",
       "title": "CB Bobcat Spirit Day",
       "date": "2026-12-09",
       "schools": [
@@ -29351,7 +28989,7 @@
       "allDay": true
     },
     {
-      "id": "u4-stm-b3ed76017bf59c95f1",
+      "id": "u4-stm-8893213f9d32cc917b",
       "title": "Gold Bell 1",
       "date": "2026-12-09",
       "schools": [
@@ -29364,7 +29002,7 @@
       "allDay": true
     },
     {
-      "id": "u4-garden-f2d595fddd8c8a2110",
+      "id": "u4-garden-d50a9b5a2d54efb9ba",
       "title": "IEP",
       "date": "2026-12-09",
       "schools": [
@@ -29390,7 +29028,7 @@
       "sourceUrl": "https://092db9f9-c045-47d1-91a6-5339c081a44a.filesusr.com/ugd/a4a196_54ae12c64ebf42859edbcfbddcdc7d43.pdf"
     },
     {
-      "id": "u4-stm-acde91ad1ac0ba374e",
+      "id": "u4-stm-7ac6a92f61241b7cd2",
       "title": "Winter Concert",
       "date": "2026-12-09",
       "schools": [
@@ -29403,7 +29041,7 @@
       "allDay": true
     },
     {
-      "id": "u4-garden-ee2375d34f586bb872",
+      "id": "u4-garden-7d2f54ca025b944250",
       "title": "8th Grade Field Trip Career Spark- Gordyville",
       "date": "2026-12-09",
       "schools": [
@@ -29447,7 +29085,7 @@
       "location": "FriendShop Bookstore"
     },
     {
-      "id": "u4-jefferson-13ba6773af30a639cf",
+      "id": "u4-jefferson-fbeab9a2dfceb468aa",
       "title": "D & D Club",
       "date": "2026-12-09",
       "schools": [
@@ -29462,7 +29100,7 @@
       "location": "Library"
     },
     {
-      "id": "u4-jefferson-f53783cb112f5ae9aa",
+      "id": "u4-jefferson-020a5831585d668885",
       "title": "Drama Club",
       "date": "2026-12-09",
       "schools": [
@@ -29625,7 +29263,7 @@
       "sourceUrl": "https://schools.snap.app/Uni/event/4877"
     },
     {
-      "id": "u4-robeson-93f395e86e7718033e",
+      "id": "u4-robeson-95f45d3befd13c815a",
       "title": "Girl Scouts",
       "date": "2026-12-09",
       "schools": [
@@ -29654,7 +29292,7 @@
       "location": "Auditorium"
     },
     {
-      "id": "u4-stm-f6c53078c1fe7d7d11",
+      "id": "u4-stm-d8f1cd620c601d8242",
       "title": "Green Bell 1",
       "date": "2026-12-10",
       "schools": [
@@ -30036,6 +29674,341 @@
       "start": "19:00",
       "end": "21:00",
       "location": "Champaign Central High School"
+    },
+    {
+      "id": "judah-calendar-2026-12-11-4th-6th-grade-elem-christmas-program-7-pm",
+      "title": "4th-6th Grade Elem. Christmas Program 7 PM",
+      "date": "2026-12-11",
+      "schools": [
+        "judah"
+      ],
+      "scope": "school",
+      "category": "general",
+      "source": "Judah Christian School Calendar",
+      "sourceUrl": "https://www.judah.org/calendar",
+      "allDay": true
+    },
+    {
+      "id": "u4-garden-60808db0cdd554f7cb",
+      "title": "Choir Riser Delivery @ 2:30p",
+      "date": "2026-12-11",
+      "schools": [
+        "garden"
+      ],
+      "scope": "school",
+      "category": "sport",
+      "source": "Unit 4 School Calendar — Garden Hills Academy",
+      "sourceUrl": "https://www.champaignschools.org/o/gardenhills/events",
+      "allDay": true
+    },
+    {
+      "id": "u4-stm-0b98911d34f9b8e0c5",
+      "title": "Gold Bell 2 All School Adoration",
+      "date": "2026-12-11",
+      "schools": [
+        "stm"
+      ],
+      "scope": "school",
+      "category": "general",
+      "source": "Saint Thomas More Calendar",
+      "sourceUrl": "https://www.hs-stm.org/events",
+      "allDay": true
+    },
+    {
+      "id": "u4-busey-89fca0e968777d0e50",
+      "title": "University/College Color or Shirt Day",
+      "date": "2026-12-11",
+      "schools": [
+        "busey"
+      ],
+      "scope": "school",
+      "category": "general",
+      "source": "Unit 4 School Calendar — Carrie Busey Elementary",
+      "sourceUrl": "https://www.champaignschools.org/o/carriebusy/events",
+      "allDay": true
+    },
+    {
+      "id": "uhs-snap-9dfe6b061f86ca15b9",
+      "title": "TIME TBD- WRESTLING-V Boys @ pontiac invite (Game)",
+      "date": "2026-12-11",
+      "schools": [
+        "uhs"
+      ],
+      "scope": "school",
+      "category": "sport",
+      "source": "Urbana High Athletics — Snap!",
+      "start": "09:00",
+      "end": "23:59",
+      "location": "Away - pontiac invite",
+      "sourceUrl": "https://schools.snap.app/Urbana/event/28328"
+    },
+    {
+      "id": "champaign-library-14192356",
+      "title": "Toddler Storytime @ Douglass",
+      "date": "2026-12-11",
+      "schools": [
+        "champaign-lib-early"
+      ],
+      "scope": "community",
+      "category": "general",
+      "source": "Champaign Public Library",
+      "sourceUrl": "https://champaign.libnet.info/event/14192356",
+      "start": "10:30",
+      "end": "11:00",
+      "location": "Douglass Branch Library"
+    },
+    {
+      "id": "champaign-library-16785384",
+      "title": "Members’ Half-Price Sale",
+      "date": "2026-12-11",
+      "schools": [
+        "champaign-lib-teens"
+      ],
+      "scope": "community",
+      "category": "general",
+      "source": "Champaign Public Library",
+      "sourceUrl": "https://champaign.libnet.info/event/16785384",
+      "start": "13:00",
+      "end": "16:00",
+      "location": "FriendShop Bookstore"
+    },
+    {
+      "id": "u4-howard-b4bc4733029aee0ca7",
+      "title": "2nd Grade Hopes and Dreams Calls",
+      "date": "2026-12-11",
+      "schools": [
+        "howard"
+      ],
+      "scope": "school",
+      "category": "general",
+      "source": "Unit 4 School Calendar — Dr. Howard Elementary",
+      "sourceUrl": "https://www.champaignschools.org/o/drhoward/events",
+      "start": "14:00",
+      "end": "14:15"
+    },
+    {
+      "id": "champaign-library-15024481",
+      "title": "Teen Lounge",
+      "date": "2026-12-11",
+      "schools": [
+        "champaign-lib-teens"
+      ],
+      "scope": "community",
+      "category": "general",
+      "source": "Champaign Public Library",
+      "sourceUrl": "https://champaign.libnet.info/event/15024481",
+      "start": "15:00",
+      "end": "16:30",
+      "location": "Main Library"
+    },
+    {
+      "id": "uni-google-6f7c849315e1964e",
+      "title": "Scholastic Bowl Practice",
+      "date": "2026-12-11",
+      "schools": [
+        "uni"
+      ],
+      "scope": "school",
+      "category": "general",
+      "source": "Uni High Events — Google Calendar",
+      "sourceUrl": "https://calendar.google.com/calendar/u/0/embed?src=uni-asstdirector@illinois.edu&ctz=America/Chicago",
+      "start": "15:15",
+      "end": "16:00",
+      "location": "Uni 218"
+    },
+    {
+      "id": "uni-google-288b1740543dd334",
+      "title": "Subbie Event: Cookie Decorating",
+      "date": "2026-12-11",
+      "schools": [
+        "uni"
+      ],
+      "scope": "school",
+      "category": "general",
+      "source": "Uni High Events — Google Calendar",
+      "sourceUrl": "https://calendar.google.com/calendar/u/0/embed?src=uni-asstdirector@illinois.edu&ctz=America/Chicago",
+      "start": "15:15",
+      "end": "16:00",
+      "location": "Uni Kitchen"
+    },
+    {
+      "id": "uhs-snap-3df764d8ec544b2ddb",
+      "title": "TIME TBD- BASKETBALL-JV Girls @ Manual HS (Game)",
+      "date": "2026-12-11",
+      "schools": [
+        "uhs"
+      ],
+      "scope": "school",
+      "category": "sport",
+      "source": "Urbana High Athletics — Snap!",
+      "start": "16:30",
+      "end": "23:59",
+      "location": "Away - MANUAL HS",
+      "sourceUrl": "https://schools.snap.app/Urbana/event/28799"
+    },
+    {
+      "id": "uhs-snap-b7bfb51ada6dc0feea",
+      "title": "TIME TBD- BASKETBALL-S Boys @ Manual HS (Game)",
+      "date": "2026-12-11",
+      "schools": [
+        "uhs"
+      ],
+      "scope": "school",
+      "category": "sport",
+      "source": "Urbana High Athletics — Snap!",
+      "start": "16:30",
+      "end": "23:59",
+      "location": "Away - MANUAL HS",
+      "sourceUrl": "https://schools.snap.app/Urbana/event/28638"
+    },
+    {
+      "id": "champaign-library-17180867",
+      "title": "Studio @ Main | Drop-in",
+      "date": "2026-12-11",
+      "schools": [
+        "champaign-lib-early"
+      ],
+      "scope": "community",
+      "category": "general",
+      "source": "Champaign Public Library",
+      "sourceUrl": "https://champaign.libnet.info/event/17180867",
+      "start": "17:00",
+      "end": "20:00",
+      "location": "Main Library"
+    },
+    {
+      "id": "uni-snap-8e6067ab5d8c4b0c2a",
+      "title": "Basketball-V Boys @ Momence High School (Game)",
+      "date": "2026-12-11",
+      "schools": [
+        "uni"
+      ],
+      "scope": "school",
+      "category": "sport",
+      "source": "Uni High Athletics — Snap!",
+      "start": "17:30",
+      "end": "19:30",
+      "location": "Away - Momence High School",
+      "sourceUrl": "https://schools.snap.app/Uni/event/4626"
+    },
+    {
+      "id": "u4-franklin-fd8469f1-2",
+      "title": "Winter Wonderland Dance",
+      "date": "2026-12-11",
+      "schools": [
+        "franklin"
+      ],
+      "scope": "school",
+      "category": "general",
+      "source": "Franklin calendar",
+      "sourceUrl": "https://www.champaignschools.org/",
+      "start": "17:30",
+      "end": "19:30",
+      "location": "Franklin STEAM Academy"
+    },
+    {
+      "id": "u4-centennial-25b31e1a-5",
+      "title": "Artisan Fair & Home Basketball Game (Varsity Only)",
+      "date": "2026-12-11",
+      "schools": [
+        "centennial"
+      ],
+      "scope": "school",
+      "category": "general",
+      "source": "Centennial calendar",
+      "sourceUrl": "https://www.champaignschools.org/",
+      "start": "18:00",
+      "end": "22:00",
+      "location": "Centennial High School"
+    },
+    {
+      "id": "uni-snap-dcedbfa67b55a0fe0b",
+      "title": "Basketball-V Girls - VS Danville Schlarmann (Game)",
+      "date": "2026-12-11",
+      "schools": [
+        "uni"
+      ],
+      "scope": "school",
+      "category": "sport",
+      "source": "Uni High Athletics — Snap!",
+      "start": "18:00",
+      "end": "20:00",
+      "location": "HOME - Kenney Gym",
+      "sourceUrl": "https://schools.snap.app/Uni/event/4894"
+    },
+    {
+      "id": "u4-ipa-914ceab48fc44a3dad",
+      "title": "Boys BB Practice",
+      "date": "2026-12-11",
+      "schools": [
+        "ipa"
+      ],
+      "scope": "school",
+      "category": "general",
+      "source": "Unit 4 School Calendar — International Prep Academy",
+      "sourceUrl": "https://www.champaignschools.org/o/ipa/events",
+      "start": "18:00",
+      "end": "19:30"
+    },
+    {
+      "id": "uhs-snap-52e7cda50fb7489952",
+      "title": "TIME TBD- BASKETBALL-V Girls @ Manual HS (Game)",
+      "date": "2026-12-11",
+      "schools": [
+        "uhs"
+      ],
+      "scope": "school",
+      "category": "sport",
+      "source": "Urbana High Athletics — Snap!",
+      "start": "18:00",
+      "end": "23:59",
+      "location": "Away - MANUAL HS",
+      "sourceUrl": "https://schools.snap.app/Urbana/event/28629"
+    },
+    {
+      "id": "champaign-library-16744203",
+      "title": "Unbooked Kids",
+      "date": "2026-12-11",
+      "schools": [
+        "champaign-lib-elementary"
+      ],
+      "scope": "community",
+      "category": "general",
+      "source": "Champaign Public Library",
+      "sourceUrl": "https://champaign.libnet.info/event/16744203",
+      "start": "18:00",
+      "end": "20:00",
+      "location": "Main Library"
+    },
+    {
+      "id": "champaign-library-16603647",
+      "title": "Unbooked | Trivia",
+      "date": "2026-12-11",
+      "schools": [
+        "champaign-lib-early"
+      ],
+      "scope": "community",
+      "category": "general",
+      "source": "Champaign Public Library",
+      "sourceUrl": "https://champaign.libnet.info/event/16603647",
+      "start": "18:00",
+      "end": "20:00",
+      "location": "Main Library"
+    },
+    {
+      "id": "uhs-snap-2031ffbcf1f2e5a44c",
+      "title": "TIME TBD- BASKETBALL-V Boys @ Manual HS (Game)",
+      "date": "2026-12-11",
+      "schools": [
+        "uhs"
+      ],
+      "scope": "school",
+      "category": "sport",
+      "source": "Urbana High Athletics — Snap!",
+      "start": "19:30",
+      "end": "23:59",
+      "location": "Away - MANUAL HS",
+      "sourceUrl": "https://schools.snap.app/Urbana/event/28783"
     }
   ],
   "meals": [
